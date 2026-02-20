@@ -1,0 +1,11 @@
+name = "gadgets-store"
+compatibility_date = "2025-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "gadgets-db"
+database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "gadgets-images"
