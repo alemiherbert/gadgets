@@ -17,9 +17,9 @@ export async function deleteImage(bucket: R2Bucket, key: string): Promise<void> 
 	await bucket.delete(key);
 }
 
-export function generateImageKey(filename: string): string {
+export function generateImageKey(filename: string, prefix: string = 'products'): string {
 	const ext = filename.split('.').pop() || 'jpg';
 	const timestamp = Date.now();
 	const random = Math.random().toString(36).substring(2, 8);
-	return `products/${timestamp}-${random}.${ext}`;
+	return `${prefix}/${timestamp}-${random}.${ext}`;
 }

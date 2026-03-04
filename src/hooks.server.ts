@@ -1,5 +1,5 @@
 import type { Handle } from '@sveltejs/kit';
-import { getSession } from '$lib/db';
+import { getSession, getAdminSession } from '$lib/db';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const db = event.platform?.env?.DB;
@@ -25,7 +25,6 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const adminSessionId = event.cookies.get('admin_session');
 	if (adminSessionId && db) {
 		try {
-			const { getAdminSession } = await import('$lib/db');
 			const session = await getAdminSession(db, adminSessionId);
 			if (session) {
 				event.locals.admin = {

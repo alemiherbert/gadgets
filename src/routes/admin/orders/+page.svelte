@@ -1,94 +1,79 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import { formatPrice } from '$lib/utils';
+import type { PageData } from './$types';
+import { formatPrice } from '$lib/utils';
 
-	let { data }: { data: PageData } = $props();
+let { data }: { data: PageData } = $props();
 
-	const statuses = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+const statuses = ['all', 'pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 </script>
 
 <svelte:head>
-	<title>Orders — Admin</title>
+<title>Orders — Admin</title>
 </svelte:head>
 
-<div class="page-header">
-	<h1>Orders</h1>
+<div class="p-6 lg:p-8">
+<div class="flex items-center justify-between mb-6">
+<h1 class="text-xl font-bold tracking-tight text-zinc-900">Orders</h1>
 </div>
 
-<div class="filters mb-2">
-	{#each statuses as status}
-		<a
-			href="/admin/orders?status={status}"
-			class="filter-btn"
-			class:active={data.currentStatus === status}
-		>
-			{status}
-		</a>
-	{/each}
+<!-- Filters -->
+<div class="flex flex-wrap gap-2 mb-6">
+{#each statuses as s}
+<a
+href="/admin/orders{s === 'all' ? '' : '?status=' + s}"
+class="badge cursor-pointer transition-colors
+{data.currentStatus === s ? 'bg-zinc-900 text-white border-zinc-900' : 'badge-outline hover:bg-zinc-50'}"
+>
+{s.charAt(0).toUpperCase() + s.slice(1)}
+</a>
+{/each}
 </div>
 
 {#if data.orders.length === 0}
-	<div class="card text-center" style="padding:3rem">
-		<p class="text-light">No orders found.</p>
-	</div>
+<div class="card p-8 text-center">
+<p class="text-sm text-zinc-500">No orders found.</p>
+</div>
 {:else}
-	<div class="table-wrapper card" style="padding:0">
-		<table>
-			<thead>
-				<tr>
-					<th>Order #</th>
-					<th>Customer</th>
-					<th>Phone</th>
-					<th>Total</th>
-					<th>Status</th>
-					<th>Date</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.orders as order}
-					<tr>
-						<td><strong>#{order.id}</strong></td>
-						<td>{order.name}</td>
-						<td>{order.phone}</td>
-						<td>{formatPrice(order.total)}</td>
-						<td><span class="badge badge-{order.status}">{order.status}</span></td>
-						<td>{new Date(order.created_at).toLocaleDateString()}</td>
-						<td>
-							<a href="/admin/orders/{order.id}" class="btn btn-sm btn-secondary">View</a>
-						</td>
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
+<div class="card overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-sm">
+<thead>
+<tr class="border-b border-zinc-200 bg-zinc-50">
+<th class="px-4 py-3 text-left font-medium text-zinc-500">Order</th>
+<th class="px-4 py-3 text-left font-medium text-zinc-500">Customer</th>
+<th class="px-4 py-3 text-left font-medium text-zinc-500">Status</th>
+<th class="px-4 py-3 text-right font-medium text-zinc-500">Total</th>
+<th class="px-4 py-3 text-left font-medium text-zinc-500">Date</th>
+<th class="px-4 py-3"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-zinc-100">
+{#each data.orders as order}
+<tr class="hover:bg-zinc-50 transition-colors">
+<td class="px-4 py-3 font-medium text-zinc-900">#{order.id}</td>
+<td class="px-4 py-3">
+<p class="text-zinc-900">{order.name}</p>
+<p class="text-xs text-zinc-500">{order.email}</p>
+</td>
+<td class="px-4 py-3">
+<span class="badge {order.status === 'delivered' ? 'badge-success' : order.status === 'shipped' ? 'badge-info' : order.status === 'cancelled' ? 'badge-destructive' : 'badge-warning'}">
+{order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+</span>
+</td>
+<td class="px-4 py-3 text-right font-medium">{formatPrice(order.total)}</td>
+<td class="px-4 py-3 text-zinc-500">{new Date(order.created_at).toLocaleDateString()}</td>
+<td class="px-4 py-3">
+<a href="/admin/orders/{order.id}" class="text-zinc-400 hover:text-zinc-900 transition-colors" aria-label="View order {order.id}">
+<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+</svg>
+</a>
+</td>
+</tr>
+{/each}
+</tbody>
+</table>
+</div>
+</div>
 {/if}
-
-<style>
-	.filters {
-		display: flex;
-		gap: 0.5rem;
-		flex-wrap: wrap;
-	}
-	.filter-btn {
-		padding: 0.375rem 0.875rem;
-		border-radius: 999px;
-		font-size: 0.85rem;
-		text-decoration: none;
-		color: var(--color-text);
-		background: white;
-		border: 1px solid var(--color-border);
-		text-transform: capitalize;
-		transition: all 0.15s;
-	}
-	.filter-btn:hover {
-		text-decoration: none;
-		border-color: var(--color-primary);
-		color: var(--color-primary);
-	}
-	.filter-btn.active {
-		background: var(--color-primary);
-		color: white;
-		border-color: var(--color-primary);
-	}
-</style>
+</div>

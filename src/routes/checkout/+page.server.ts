@@ -3,15 +3,24 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getProductById, createOrder, createOrderItem, decrementStock, getOrderItems } from '$lib/db';
 import { sendOrderConfirmation, sendAdminNewOrderNotification } from '$lib/email';
 import type { CartItem, ShippingAddress } from '$lib/types';
+import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
+	if (!locals.customer) {
+		throw redirect(303, `/auth/login?redirectTo=${encodeURIComponent(url.pathname)}`);
+	}
+
 	return {
-		customer: locals.customer ?? null
+		customer: locals.customer
 	};
 };
 
 export const actions: Actions = {
 	default: async ({ request, platform, locals }) => {
+		if (!locals.customer) {
+			throw redirect(303, '/auth/login?redirectTo=%2Fcheckout');
+		}
+
 		const db = platform!.env.DB;
 		const formData = await request.formData();
 
@@ -27,6 +36,18 @@ export const actions: Actions = {
 		// Validate required fields
 		if (!name || !email || !phone || !street || !city || !state) {
 			return fail(400, { error: 'All fields except notes are required.' });
+		}
+
+		if (!isValidEmail(email)) {
+			return fail(400, { error: 'Please enter a valid email address.' });
+		}
+
+		if (!isValidUgandanPhone(phone)) {
+			return fail(400, { error: 'Please enter a valid Ugandan phone number (e.g. 0771234567 or +256771234567).' });
+		}
+
+		if (name.trim().length < 2) {
+			return fail(400, { error: 'Please enter your full name.' });
 		}
 
 		// Parse cart

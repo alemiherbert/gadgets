@@ -1,4 +1,4 @@
-import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session } from './types';
+import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session, Category, Subcategory, SearchHistoryItem, FeaturedSlide, PasswordResetToken, ProductReview, ProductImage } from './types';
 
 // ─── Products ────────────────────────────────────────────
 export async function getActiveProducts(db: D1Database): Promise<Product[]> {
@@ -15,21 +15,277 @@ export async function getProductById(db: D1Database, id: number): Promise<Produc
 	return db.prepare('SELECT * FROM products WHERE id = ?').bind(id).first<Product>();
 }
 
+export async function getNewArrivals(db: D1Database, limit = 8): Promise<Product[]> {
+	const result = await db.prepare(
+		'SELECT * FROM products WHERE active = 1 ORDER BY created_at DESC LIMIT ?'
+	).bind(limit).all<Product>();
+	return result.results;
+}
+
+export async function getFeaturedProducts(db: D1Database, limit = 6): Promise<Product[]> {
+	const result = await db.prepare(
+		'SELECT * FROM products WHERE active = 1 AND featured = 1 ORDER BY created_at DESC LIMIT ?'
+	).bind(limit).all<Product>();
+	return result.results;
+}
+
+// Great deals: products with compare_at_price (discount), sorted by discount %
+export async function getGreatDeals(db: D1Database, limit = 8, offset = 0): Promise<Product[]> {
+	const result = await db.prepare(
+		`SELECT *, 
+		 CASE WHEN compare_at_price IS NOT NULL AND compare_at_price > price 
+		      THEN ROUND(((compare_at_price - price) * 100.0) / compare_at_price) 
+		      ELSE 0 END as discount_pct
+		 FROM products WHERE active = 1 
+		 AND compare_at_price IS NOT NULL AND compare_at_price > price
+		 ORDER BY discount_pct DESC, sales_count DESC
+		 LIMIT ? OFFSET ?`
+	).bind(limit, offset).all<Product>();
+	return result.results;
+}
+
+// Best sellers: sorted by sales_count
+export async function getBestSellers(db: D1Database, limit = 8, offset = 0): Promise<Product[]> {
+	const result = await db.prepare(
+		'SELECT * FROM products WHERE active = 1 ORDER BY sales_count DESC, created_at DESC LIMIT ? OFFSET ?'
+	).bind(limit, offset).all<Product>();
+	return result.results;
+}
+
+// Paginated products for shop page with optional category/subcategory filter
+export async function getShopProducts(db: D1Database, options: {
+	categorySlug?: string;
+	subcategorySlug?: string;
+	search?: string;
+	minPrice?: number;
+	maxPrice?: number;
+	specFilters?: Record<string, string[]>;
+	sort?: string;
+	limit?: number;
+	offset?: number;
+}): Promise<{ products: Product[]; total: number }> {
+	const { categorySlug, subcategorySlug, search, minPrice, maxPrice, specFilters, sort = 'newest', limit = 48, offset = 0 } = options;
+
+	let orderBy = 'p.created_at DESC';
+	if (sort === 'price-asc') orderBy = 'p.price ASC';
+	else if (sort === 'price-desc') orderBy = 'p.price DESC';
+	else if (sort === 'popular') orderBy = 'p.sales_count DESC';
+	else if (sort === 'discount') orderBy = 'CASE WHEN p.compare_at_price IS NOT NULL AND p.compare_at_price > p.price THEN ROUND(((p.compare_at_price - p.price) * 100.0) / p.compare_at_price) ELSE 0 END DESC';
+
+	// Build WHERE clauses and bindings dynamically
+	const conditions: string[] = ['p.active = 1'];
+	const bindings: (string | number)[] = [];
+
+	if (subcategorySlug) {
+		conditions.push('s.slug = ?');
+		bindings.push(subcategorySlug);
+	}
+
+	if (search) {
+		conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
+		bindings.push(`%${search}%`, `%${search}%`);
+	}
+
+	if (minPrice !== undefined) {
+		conditions.push('p.price >= ?');
+		bindings.push(minPrice);
+	}
+
+	if (maxPrice !== undefined) {
+		conditions.push('p.price <= ?');
+		bindings.push(maxPrice);
+	}
+
+	// Spec filters: use json_extract on the specs column
+	if (specFilters) {
+		for (const [key, values] of Object.entries(specFilters)) {
+			if (values.length > 0) {
+				const placeholders = values.map(() => '?').join(', ');
+				conditions.push(`json_extract(p.specs, '$."${key}"') IN (${placeholders})`);
+				bindings.push(...values);
+			}
+		}
+	}
+
+	const whereClause = conditions.join(' AND ');
+
+	// When filtering by subcategory, join the subcategories table
+	if (subcategorySlug) {
+		const joinClause = `JOIN subcategories s ON p.subcategory_id = s.id`;
+
+		const countSql = `SELECT COUNT(*) as total FROM products p ${joinClause} WHERE ${whereClause}`;
+		const querySql = `SELECT p.* FROM products p ${joinClause} WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+
+		const countResult = await db.prepare(countSql).bind(...bindings).first<{ total: number }>();
+		const result = await db.prepare(querySql).bind(...bindings, limit, offset).all<Product>();
+		return { products: result.results, total: countResult?.total ?? 0 };
+	}
+
+	if (categorySlug) {
+		const countSql = `SELECT COUNT(*) as total FROM products p
+			JOIN product_categories pc ON p.id = pc.product_id
+			JOIN categories c ON pc.category_id = c.id
+			WHERE ${whereClause} AND c.slug = ?`;
+
+		const querySql = `SELECT p.* FROM products p
+			JOIN product_categories pc ON p.id = pc.product_id
+			JOIN categories c ON pc.category_id = c.id
+			WHERE ${whereClause} AND c.slug = ?
+			ORDER BY ${orderBy}
+			LIMIT ? OFFSET ?`;
+
+		const countResult = await db.prepare(countSql).bind(...bindings, categorySlug).first<{ total: number }>();
+		const result = await db.prepare(querySql).bind(...bindings, categorySlug, limit, offset).all<Product>();
+		return { products: result.results, total: countResult?.total ?? 0 };
+	}
+
+	const countSql = `SELECT COUNT(*) as total FROM products p WHERE ${whereClause}`;
+	const querySql = `SELECT * FROM products p WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+
+	const countResult = await db.prepare(countSql).bind(...bindings).first<{ total: number }>();
+	const result = await db.prepare(querySql).bind(...bindings, limit, offset).all<Product>();
+	return { products: result.results, total: countResult?.total ?? 0 };
+}
+
+// Get available spec keys and their values — only when a subcategory is selected
+export async function getAvailableSpecs(db: D1Database, subcategorySlug?: string): Promise<Record<string, string[]>> {
+	// Only show spec filters when browsing a specific subcategory
+	if (!subcategorySlug) return {};
+
+	const sql = `SELECT p.specs FROM products p
+		JOIN subcategories s ON p.subcategory_id = s.id
+		WHERE p.active = 1 AND s.slug = ?`;
+
+	const result = await db.prepare(sql).bind(subcategorySlug).all<{ specs: string }>();
+
+	const specMap: Record<string, Set<string>> = {};
+	for (const row of result.results) {
+		try {
+			const specs = JSON.parse(row.specs);
+			for (const [key, value] of Object.entries(specs)) {
+				if (!specMap[key]) specMap[key] = new Set();
+				specMap[key].add(String(value));
+			}
+		} catch { /* skip invalid JSON */ }
+	}
+
+	const sorted: Record<string, string[]> = {};
+	for (const [key, values] of Object.entries(specMap)) {
+		sorted[key] = [...values].sort();
+	}
+	return sorted;
+}
+
+// Get min/max price range  
+export async function getPriceRange(db: D1Database, categorySlug?: string): Promise<{ min: number; max: number }> {
+	let sql: string;
+	const bindings: string[] = [];
+
+	if (categorySlug) {
+		sql = `SELECT MIN(p.price) as min, MAX(p.price) as max FROM products p
+			JOIN product_categories pc ON p.id = pc.product_id
+			JOIN categories c ON pc.category_id = c.id
+			WHERE p.active = 1 AND c.slug = ?`;
+		bindings.push(categorySlug);
+	} else {
+		sql = 'SELECT MIN(price) as min, MAX(price) as max FROM products WHERE active = 1';
+	}
+
+	const result = await db.prepare(sql).bind(...bindings).first<{ min: number; max: number }>();
+	return { min: result?.min ?? 0, max: result?.max ?? 0 };
+}
+
+export async function searchProducts(db: D1Database, query: string, categoryId?: number): Promise<Product[]> {
+	if (categoryId) {
+		const result = await db.prepare(
+			`SELECT p.* FROM products p
+			 JOIN product_categories pc ON p.id = pc.product_id
+			 WHERE p.active = 1 AND pc.category_id = ?
+			 AND (p.name LIKE ? OR p.description LIKE ?)
+			 ORDER BY p.created_at DESC`
+		).bind(categoryId, `%${query}%`, `%${query}%`).all<Product>();
+		return result.results;
+	}
+	const result = await db.prepare(
+		`SELECT * FROM products WHERE active = 1
+		 AND (name LIKE ? OR description LIKE ?)
+		 ORDER BY created_at DESC`
+	).bind(`%${query}%`, `%${query}%`).all<Product>();
+	return result.results;
+}
+
+export async function getProductsByCategory(db: D1Database, categoryId: number): Promise<Product[]> {
+	const result = await db.prepare(
+		`SELECT p.* FROM products p
+		 JOIN product_categories pc ON p.id = pc.product_id
+		 WHERE p.active = 1 AND pc.category_id = ?
+		 ORDER BY p.created_at DESC`
+	).bind(categoryId).all<Product>();
+	return result.results;
+}
+
+export async function getProductsByCategorySlug(db: D1Database, slug: string): Promise<Product[]> {
+	const result = await db.prepare(
+		`SELECT p.* FROM products p
+		 JOIN product_categories pc ON p.id = pc.product_id
+		 JOIN categories c ON pc.category_id = c.id
+		 WHERE p.active = 1 AND c.slug = ?
+		 ORDER BY p.created_at DESC`
+	).bind(slug).all<Product>();
+	return result.results;
+}
+
+export async function getRecommendedProducts(db: D1Database, productId: number, limit = 4): Promise<Product[]> {
+	// Get products from the same categories, excluding the current product
+	const result = await db.prepare(
+		`SELECT DISTINCT p.* FROM products p
+		 JOIN product_categories pc ON p.id = pc.product_id
+		 WHERE p.active = 1 AND p.id != ?
+		 AND pc.category_id IN (
+			SELECT category_id FROM product_categories WHERE product_id = ?
+		 )
+		 ORDER BY p.featured DESC, p.created_at DESC
+		 LIMIT ?`
+	).bind(productId, productId, limit).all<Product>();
+	// Fall back to popular products if not enough recommendations
+	if (result.results.length < limit) {
+		const fallback = await db.prepare(
+			`SELECT * FROM products WHERE active = 1 AND id != ?
+			 ORDER BY featured DESC, created_at DESC LIMIT ?`
+		).bind(productId, limit - result.results.length).all<Product>();
+		const existingIds = new Set(result.results.map(p => p.id));
+		for (const p of fallback.results) {
+			if (!existingIds.has(p.id)) result.results.push(p);
+		}
+	}
+	return result.results.slice(0, limit);
+}
+
 export async function createProduct(db: D1Database, product: {
 	name: string; description: string; price: number; stock: number; image_key: string | null;
+	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; specs?: string;
 }): Promise<number> {
 	const result = await db.prepare(
-		'INSERT INTO products (name, description, price, stock, image_key) VALUES (?, ?, ?, ?, ?)'
-	).bind(product.name, product.description, product.price, product.stock, product.image_key).run();
+		'INSERT INTO products (name, description, price, compare_at_price, stock, image_key, featured, subcategory_id, specs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+	).bind(
+		product.name, product.description, product.price, product.compare_at_price ?? null,
+		product.stock, product.image_key, product.featured ?? 0,
+		product.subcategory_id ?? null, product.specs ?? '{}'
+	).run();
 	return result.meta.last_row_id as number;
 }
 
 export async function updateProduct(db: D1Database, id: number, product: {
 	name: string; description: string; price: number; stock: number; image_key: string | null; active: number;
+	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; specs?: string;
 }): Promise<void> {
 	await db.prepare(
-		'UPDATE products SET name = ?, description = ?, price = ?, stock = ?, image_key = ?, active = ? WHERE id = ?'
-	).bind(product.name, product.description, product.price, product.stock, product.image_key, product.active, id).run();
+		'UPDATE products SET name = ?, description = ?, price = ?, compare_at_price = ?, stock = ?, image_key = ?, active = ?, featured = ?, subcategory_id = ?, specs = ? WHERE id = ?'
+	).bind(
+		product.name, product.description, product.price, product.compare_at_price ?? null,
+		product.stock, product.image_key, product.active, product.featured ?? 0,
+		product.subcategory_id ?? null, product.specs ?? '{}', id
+	).run();
 }
 
 export async function deleteProduct(db: D1Database, id: number): Promise<void> {
@@ -81,6 +337,34 @@ export async function getSession(db: D1Database, sessionId: string): Promise<(Se
 
 export async function deleteSession(db: D1Database, sessionId: string): Promise<void> {
 	await db.prepare('DELETE FROM sessions WHERE id = ?').bind(sessionId).run();
+}
+
+// ─── Password Reset Tokens ──────────────────────────────
+export async function createPasswordResetToken(db: D1Database, token: { id: string; customer_id: number; expires_at: string }): Promise<void> {
+	// Invalidate any existing unused tokens for this customer
+	await db.prepare('DELETE FROM password_reset_tokens WHERE customer_id = ? AND used = 0')
+		.bind(token.customer_id).run();
+	await db.prepare('INSERT INTO password_reset_tokens (id, customer_id, expires_at) VALUES (?, ?, ?)')
+		.bind(token.id, token.customer_id, token.expires_at).run();
+}
+
+export async function getPasswordResetToken(db: D1Database, tokenId: string): Promise<(PasswordResetToken & { customer_email: string }) | null> {
+	return db.prepare(
+		`SELECT password_reset_tokens.*, customers.email as customer_email
+		 FROM password_reset_tokens
+		 JOIN customers ON password_reset_tokens.customer_id = customers.id
+		 WHERE password_reset_tokens.id = ? AND password_reset_tokens.used = 0
+		 AND password_reset_tokens.expires_at > datetime('now')`
+	).bind(tokenId).first();
+}
+
+export async function markResetTokenUsed(db: D1Database, tokenId: string): Promise<void> {
+	await db.prepare('UPDATE password_reset_tokens SET used = 1 WHERE id = ?').bind(tokenId).run();
+}
+
+export async function updateCustomerPassword(db: D1Database, customerId: number, passwordHash: string): Promise<void> {
+	await db.prepare('UPDATE customers SET password_hash = ? WHERE id = ?')
+		.bind(passwordHash, customerId).run();
 }
 
 // ─── Orders ──────────────────────────────────────────────
@@ -183,4 +467,326 @@ export async function getAdminCount(db: D1Database): Promise<number> {
 export async function createAdmin(db: D1Database, admin: { email: string; password_hash: string }): Promise<void> {
 	await db.prepare('INSERT INTO admins (email, password_hash) VALUES (?, ?)')
 		.bind(admin.email, admin.password_hash).run();
+}
+
+// ─── Categories ──────────────────────────────────────────
+export async function getAllCategories(db: D1Database): Promise<Category[]> {
+	const result = await db.prepare(
+		`SELECT c.*, COUNT(pc.product_id) as product_count
+		 FROM categories c
+		 LEFT JOIN product_categories pc ON c.id = pc.category_id
+		 LEFT JOIN products p ON pc.product_id = p.id AND p.active = 1
+		 GROUP BY c.id
+		 ORDER BY c.sort_order ASC`
+	).all<Category>();
+	return result.results;
+}
+
+export async function getCategoryBySlug(db: D1Database, slug: string): Promise<Category | null> {
+	return db.prepare('SELECT * FROM categories WHERE slug = ?').bind(slug).first<Category>();
+}
+
+export async function getCategoryById(db: D1Database, id: number): Promise<Category | null> {
+	return db.prepare('SELECT * FROM categories WHERE id = ?').bind(id).first<Category>();
+}
+
+export async function getProductCategoryIds(db: D1Database, productId: number): Promise<number[]> {
+	const result = await db.prepare(
+		'SELECT category_id FROM product_categories WHERE product_id = ?'
+	).bind(productId).all<{ category_id: number }>();
+	return result.results.map(r => r.category_id);
+}
+
+export async function setProductCategories(db: D1Database, productId: number, categoryIds: number[]): Promise<void> {
+	await db.prepare('DELETE FROM product_categories WHERE product_id = ?').bind(productId).run();
+	for (const catId of categoryIds) {
+		await db.prepare(
+			'INSERT INTO product_categories (product_id, category_id) VALUES (?, ?)'
+		).bind(productId, catId).run();
+	}
+}
+
+// ─── Subcategories ──────────────────────────────────────
+export async function getAllSubcategoriesGrouped(db: D1Database): Promise<Record<string, Subcategory[]>> {
+	const result = await db.prepare(
+		`SELECT s.*, c.slug as category_slug,
+		        (SELECT COUNT(*) FROM products p WHERE p.subcategory_id = s.id AND p.active = 1) as product_count
+		 FROM subcategories s
+		 JOIN categories c ON s.category_id = c.id
+		 ORDER BY s.sort_order ASC`
+	).all<Subcategory & { category_slug: string }>();
+
+	const grouped: Record<string, Subcategory[]> = {};
+	for (const row of result.results) {
+		const catSlug = row.category_slug;
+		if (!grouped[catSlug]) grouped[catSlug] = [];
+		grouped[catSlug].push({
+			id: row.id,
+			name: row.name,
+			slug: row.slug,
+			category_id: row.category_id,
+			sort_order: row.sort_order,
+			product_count: row.product_count,
+			created_at: row.created_at
+		});
+	}
+	return grouped;
+}
+
+export async function getSubcategoriesByCategory(db: D1Database, categorySlug: string): Promise<Subcategory[]> {
+	const result = await db.prepare(
+		`SELECT s.*, (SELECT COUNT(*) FROM products p WHERE p.subcategory_id = s.id AND p.active = 1) as product_count
+		 FROM subcategories s
+		 JOIN categories c ON s.category_id = c.id
+		 WHERE c.slug = ?
+		 ORDER BY s.sort_order ASC`
+	).bind(categorySlug).all<Subcategory>();
+	return result.results;
+}
+
+// ─── Search History ─────────────────────────────────────
+export async function saveSearchQuery(db: D1Database, customerId: number | null, query: string, resultsCount: number): Promise<void> {
+	await db.prepare(
+		'INSERT INTO search_history (customer_id, query, results_count) VALUES (?, ?, ?)'
+	).bind(customerId, query, resultsCount).run();
+}
+
+export async function getRecentSearches(db: D1Database, customerId: number, limit = 5): Promise<SearchHistoryItem[]> {
+	const result = await db.prepare(
+		`SELECT * FROM search_history WHERE customer_id = ?
+		 GROUP BY query ORDER BY MAX(created_at) DESC LIMIT ?`
+	).bind(customerId, limit).all<SearchHistoryItem>();
+	return result.results;
+}
+
+export async function getPopularSearches(db: D1Database, limit = 5): Promise<string[]> {
+	const result = await db.prepare(
+		`SELECT query, COUNT(*) as cnt FROM search_history
+		 GROUP BY query ORDER BY cnt DESC LIMIT ?`
+	).bind(limit).all<{ query: string; cnt: number }>();
+	return result.results.map(r => r.query);
+}
+
+// ─── Product Views ──────────────────────────────────────
+export async function recordProductView(db: D1Database, productId: number, customerId: number | null): Promise<void> {
+	await db.prepare(
+		'INSERT INTO product_views (product_id, customer_id) VALUES (?, ?)'
+	).bind(productId, customerId).run();
+}
+
+export async function getPopularProducts(db: D1Database, limit = 8): Promise<Product[]> {
+	const result = await db.prepare(
+		`SELECT p.*, COUNT(pv.id) as view_count FROM products p
+		 LEFT JOIN product_views pv ON p.id = pv.product_id
+		 WHERE p.active = 1
+		 GROUP BY p.id
+		 ORDER BY view_count DESC, p.created_at DESC
+		 LIMIT ?`
+	).bind(limit).all<Product>();
+	return result.results;
+}
+
+// ─── Featured Slides ────────────────────────────────────
+export async function getActiveSlides(db: D1Database): Promise<FeaturedSlide[]> {
+	const result = await db.prepare(
+		'SELECT * FROM featured_slides WHERE active = 1 ORDER BY sort_order ASC'
+	).all<FeaturedSlide>();
+	return result.results;
+}
+
+export async function getAllSlides(db: D1Database): Promise<FeaturedSlide[]> {
+	const result = await db.prepare(
+		'SELECT * FROM featured_slides ORDER BY sort_order ASC'
+	).all<FeaturedSlide>();
+	return result.results;
+}
+
+export async function getSlideById(db: D1Database, id: number): Promise<FeaturedSlide | null> {
+	return db.prepare('SELECT * FROM featured_slides WHERE id = ?').bind(id).first<FeaturedSlide>();
+}
+
+export async function createSlide(db: D1Database, slide: {
+	title: string; subtitle: string; cta_text: string; cta_link: string;
+	bg_color: string; text_color: string; image_key: string | null;
+	bg_image_desktop_key: string | null; bg_image_mobile_key: string | null;
+	bg_image_position: string; overlay_opacity: number;
+	product_id: number | null; sort_order: number; active: number;
+}): Promise<number> {
+	const result = await db.prepare(
+		`INSERT INTO featured_slides (title, subtitle, cta_text, cta_link, bg_color, text_color, image_key, bg_image_desktop_key, bg_image_mobile_key, bg_image_position, overlay_opacity, product_id, sort_order, active)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	).bind(
+		slide.title, slide.subtitle, slide.cta_text, slide.cta_link,
+		slide.bg_color, slide.text_color, slide.image_key,
+		slide.bg_image_desktop_key, slide.bg_image_mobile_key,
+		slide.bg_image_position, slide.overlay_opacity,
+		slide.product_id, slide.sort_order, slide.active
+	).run();
+	return result.meta.last_row_id as number;
+}
+
+export async function updateSlide(db: D1Database, id: number, slide: {
+	title: string; subtitle: string; cta_text: string; cta_link: string;
+	bg_color: string; text_color: string; image_key: string | null;
+	bg_image_desktop_key: string | null; bg_image_mobile_key: string | null;
+	bg_image_position: string; overlay_opacity: number;
+	product_id: number | null; sort_order: number; active: number;
+}): Promise<void> {
+	await db.prepare(
+		`UPDATE featured_slides SET title=?, subtitle=?, cta_text=?, cta_link=?, bg_color=?, text_color=?, image_key=?, bg_image_desktop_key=?, bg_image_mobile_key=?, bg_image_position=?, overlay_opacity=?, product_id=?, sort_order=?, active=? WHERE id=?`
+	).bind(
+		slide.title, slide.subtitle, slide.cta_text, slide.cta_link,
+		slide.bg_color, slide.text_color, slide.image_key,
+		slide.bg_image_desktop_key, slide.bg_image_mobile_key,
+		slide.bg_image_position, slide.overlay_opacity,
+		slide.product_id, slide.sort_order, slide.active, id
+	).run();
+}
+
+export async function deleteSlide(db: D1Database, id: number): Promise<void> {
+	await db.prepare('DELETE FROM featured_slides WHERE id = ?').bind(id).run();
+}
+
+// ─── Product Reviews ─────────────────────────────────────
+export async function getProductReviews(db: D1Database, productId: number): Promise<ProductReview[]> {
+	const result = await db.prepare(
+		`SELECT pr.*, c.name AS customer_name
+		 FROM product_reviews pr
+		 JOIN customers c ON c.id = pr.customer_id
+		 WHERE pr.product_id = ?
+		 ORDER BY pr.created_at DESC`
+	).bind(productId).all<ProductReview>();
+	return result.results;
+}
+
+export async function hasCustomerPurchasedProduct(db: D1Database, customerId: number, productId: number): Promise<boolean> {
+	const row = await db.prepare(
+		`SELECT 1 FROM orders o
+		 JOIN order_items oi ON oi.order_id = o.id
+		 WHERE o.customer_id = ? AND oi.product_id = ? AND o.status IN ('confirmed','shipped','delivered')
+		 LIMIT 1`
+	).bind(customerId, productId).first();
+	return !!row;
+}
+
+export async function hasCustomerReviewedProduct(db: D1Database, customerId: number, productId: number): Promise<boolean> {
+	const row = await db.prepare(
+		'SELECT 1 FROM product_reviews WHERE customer_id = ? AND product_id = ? LIMIT 1'
+	).bind(customerId, productId).first();
+	return !!row;
+}
+
+export async function createProductReview(db: D1Database, review: {
+	product_id: number; customer_id: number; rating: number; title: string; body: string;
+}): Promise<void> {
+	await db.prepare(
+		'INSERT INTO product_reviews (product_id, customer_id, rating, title, body) VALUES (?, ?, ?, ?, ?)'
+	).bind(review.product_id, review.customer_id, review.rating, review.title, review.body).run();
+}
+
+export async function getProductImages(db: D1Database, productId: number): Promise<ProductImage[]> {
+	const result = await db.prepare(
+		'SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC'
+	).bind(productId).all<ProductImage>();
+	return result.results;
+}
+
+export async function addProductImage(db: D1Database, productId: number, imageKey: string, sortOrder: number): Promise<number> {
+	const result = await db.prepare(
+		'INSERT INTO product_images (product_id, image_key, sort_order) VALUES (?, ?, ?)'
+	).bind(productId, imageKey, sortOrder).run();
+	return result.meta.last_row_id as number;
+}
+
+export async function deleteProductImage(db: D1Database, imageId: number): Promise<string | null> {
+	const row = await db.prepare('SELECT image_key FROM product_images WHERE id = ?').bind(imageId).first<{ image_key: string }>();
+	if (row) {
+		await db.prepare('DELETE FROM product_images WHERE id = ?').bind(imageId).run();
+		return row.image_key;
+	}
+	return null;
+}
+
+// ─── Admin: Customers ────────────────────────────────────
+export async function getAllCustomers(db: D1Database): Promise<(Customer & { order_count: number; total_spent: number })[]> {
+	const result = await db.prepare(
+		`SELECT c.*, 
+		 COUNT(o.id) as order_count,
+		 COALESCE(SUM(o.total), 0) as total_spent
+		 FROM customers c
+		 LEFT JOIN orders o ON c.id = o.customer_id
+		 GROUP BY c.id
+		 ORDER BY c.created_at DESC`
+	).all<Customer & { order_count: number; total_spent: number }>();
+	return result.results;
+}
+
+// ─── Admin: Reviews ──────────────────────────────────────
+export async function getAllReviews(db: D1Database): Promise<(ProductReview & { product_name: string })[]> {
+	const result = await db.prepare(
+		`SELECT pr.*, c.name AS customer_name, p.name AS product_name
+		 FROM product_reviews pr
+		 JOIN customers c ON c.id = pr.customer_id
+		 JOIN products p ON p.id = pr.product_id
+		 ORDER BY pr.created_at DESC`
+	).all<ProductReview & { product_name: string }>();
+	return result.results;
+}
+
+export async function deleteReview(db: D1Database, reviewId: number): Promise<void> {
+	await db.prepare('DELETE FROM product_reviews WHERE id = ?').bind(reviewId).run();
+}
+
+// ─── Admin: Category CRUD ─────────────────────────────────
+export async function createCategory(db: D1Database, data: {
+	name: string; slug: string; description?: string; icon?: string; image_key?: string | null; sort_order?: number;
+}): Promise<number> {
+	const result = await db.prepare(
+		`INSERT INTO categories (name, slug, description, icon, image_key, sort_order) VALUES (?, ?, ?, ?, ?, ?)`
+	).bind(data.name, data.slug, data.description ?? '', data.icon ?? '', data.image_key ?? null, data.sort_order ?? 0).run();
+	return result.meta.last_row_id as number;
+}
+
+export async function updateCategory(db: D1Database, id: number, data: {
+	name: string; slug: string; description?: string; icon?: string; image_key?: string | null; sort_order?: number;
+}): Promise<void> {
+	await db.prepare(
+		`UPDATE categories SET name = ?, slug = ?, description = ?, icon = ?, image_key = ?, sort_order = ? WHERE id = ?`
+	).bind(data.name, data.slug, data.description ?? '', data.icon ?? '', data.image_key ?? null, data.sort_order ?? 0, id).run();
+}
+
+export async function deleteCategory(db: D1Database, id: number): Promise<void> {
+	await db.prepare('DELETE FROM categories WHERE id = ?').bind(id).run();
+}
+
+// ─── Admin: Subcategory CRUD ──────────────────────────────
+export async function getAllSubcategories(db: D1Database): Promise<(Subcategory & { category_name: string })[]> {
+	const result = await db.prepare(
+		`SELECT s.*, c.name as category_name
+		 FROM subcategories s
+		 JOIN categories c ON s.category_id = c.id
+		 ORDER BY c.sort_order ASC, s.sort_order ASC`
+	).all<Subcategory & { category_name: string }>();
+	return result.results;
+}
+
+export async function createSubcategory(db: D1Database, data: {
+	name: string; slug: string; category_id: number; sort_order?: number;
+}): Promise<number> {
+	const result = await db.prepare(
+		`INSERT INTO subcategories (name, slug, category_id, sort_order) VALUES (?, ?, ?, ?)`
+	).bind(data.name, data.slug, data.category_id, data.sort_order ?? 0).run();
+	return result.meta.last_row_id as number;
+}
+
+export async function updateSubcategory(db: D1Database, id: number, data: {
+	name: string; slug: string; category_id: number; sort_order?: number;
+}): Promise<void> {
+	await db.prepare(
+		`UPDATE subcategories SET name = ?, slug = ?, category_id = ?, sort_order = ? WHERE id = ?`
+	).bind(data.name, data.slug, data.category_id, data.sort_order ?? 0, id).run();
+}
+
+export async function deleteSubcategory(db: D1Database, id: number): Promise<void> {
+	await db.prepare('DELETE FROM subcategories WHERE id = ?').bind(id).run();
 }

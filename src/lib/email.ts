@@ -103,3 +103,29 @@ export async function sendAdminNewOrderNotification(
 	`;
 	await sendEmail(ADMIN_EMAIL, 'Admin', `New Order #${orderId} from ${customerName}`, html);
 }
+
+export async function sendPasswordResetEmail(
+	customerEmail: string,
+	customerName: string,
+	resetUrl: string
+): Promise<void> {
+	const html = `
+		<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+			<div style="text-align:center;margin-bottom:24px">
+				<div style="display:inline-block;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:8px;padding:8px 12px">
+					<span style="color:#fff;font-weight:bold;font-size:16px">G</span>
+				</div>
+			</div>
+			<h2 style="color:#333;text-align:center">Reset Your Password</h2>
+			<p>Hi ${customerName},</p>
+			<p>We received a request to reset the password for your Gadgets Store account. Click the button below to set a new password:</p>
+			<div style="text-align:center;margin:32px 0">
+				<a href="${resetUrl}" style="background:#f97316;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px">Reset Password</a>
+			</div>
+			<p style="color:#666;font-size:13px">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
+			<hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+			<p style="color:#999;font-size:12px;text-align:center">Gadgets Store</p>
+		</div>
+	`;
+	await sendEmail(customerEmail, customerName, 'Reset your password — Gadgets Store', html);
+}

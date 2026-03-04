@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { getCustomerByEmail, createCustomer, createSession } from '$lib/db';
 import { hashPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
+import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.customer) {
@@ -25,8 +26,16 @@ export const actions: Actions = {
 			return fail(400, { error: 'Name, email, and password are required.', name, email, phone });
 		}
 
-		if (password.length < 6) {
-			return fail(400, { error: 'Password must be at least 6 characters.', name, email, phone });
+		if (!isValidEmail(email)) {
+			return fail(400, { error: 'Please enter a valid email address.', name, email, phone });
+		}
+
+		if (phone && !isValidUgandanPhone(phone)) {
+			return fail(400, { error: 'Please enter a valid Ugandan phone number (e.g. 0771234567 or +256771234567).', name, email, phone });
+		}
+
+		if (password.length < 8) {
+			return fail(400, { error: 'Password must be at least 8 characters.', name, email, phone });
 		}
 
 		if (password !== confirmPassword) {

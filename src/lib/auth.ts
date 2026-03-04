@@ -49,6 +49,17 @@ export function generateSessionId(): string {
 	return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+export function generateResetToken(): string {
+	const bytes = crypto.getRandomValues(new Uint8Array(32));
+	return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export function getResetTokenExpiry(minutes = 60): string {
+	const date = new Date();
+	date.setMinutes(date.getMinutes() + minutes);
+	return date.toISOString().replace('T', ' ').replace('Z', '');
+}
+
 export function getSessionExpiry(days = 30): string {
 	const date = new Date();
 	date.setDate(date.getDate() + days);
