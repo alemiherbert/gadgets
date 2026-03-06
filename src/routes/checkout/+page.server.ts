@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getProductById, createOrder, createOrderItem, decrementStock, incrementStock, getOrderItems } from '$lib/db';
+import { getProductById, createOrder, createOrderItems, decrementStock, incrementStock, getOrderItems } from '$lib/db';
 import { sendOrderConfirmation, sendAdminNewOrderNotification } from '$lib/email';
 import type { CartItem, ShippingAddress } from '$lib/types';
 import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
@@ -16,12 +16,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform, locals }) => {
+	default: async ({ request, locals }) => {
 		if (!locals.customer) {
 			throw redirect(303, '/auth/login?redirectTo=%2Fcheckout');
 		}
 
-		const db = platform!.env.DB;
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const name = formData.get('name') as string;
@@ -62,12 +62,17 @@ export const actions: Actions = {
 			return fail(400, { error: 'Your cart is empty.' });
 		}
 
-		// Validate stock for all items
+		// Validate stock for all items (parallel fetch)
 		const stockErrors: string[] = [];
 		const validatedItems: { product: Awaited<ReturnType<typeof getProductById>>; quantity: number }[] = [];
 
-		for (const item of cartItems) {
-			const product = await getProductById(db, item.productId);
+		const productResults = await Promise.all(
+			cartItems.map((item) => getProductById(db, item.productId))
+		);
+
+		for (let i = 0; i < cartItems.length; i++) {
+			const product = productResults[i];
+			const item = cartItems[i];
 			if (!product || !product.active) {
 				stockErrors.push(`${item.name} is no longer available.`);
 				continue;
@@ -120,15 +125,13 @@ export const actions: Actions = {
 			decremented.push({ productId: product!.id, quantity });
 		}
 
-		// Create order items
-		for (const { product, quantity } of validatedItems) {
-			await createOrderItem(db, {
-				order_id: orderId,
-				product_id: product!.id,
-				quantity,
-				price_at_purchase: product!.price
-			});
-		}
+		// Create order items (single batch insert instead of N individual inserts)
+		await createOrderItems(db, validatedItems.map(({ product, quantity }) => ({
+			order_id: orderId,
+			product_id: product!.id,
+			quantity,
+			price_at_purchase: product!.price
+		})));
 
 		// Send emails (non-blocking)
 		const orderItems = await getOrderItems(db, orderId);

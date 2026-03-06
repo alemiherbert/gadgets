@@ -2,8 +2,8 @@ import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getNewArrivals, getFeaturedProducts, getGreatDeals, getBestSellers, getShopProducts } from '$lib/db';
 
-export const GET: RequestHandler = async ({ url, platform }) => {
-	const db = platform!.env.DB;
+export const GET: RequestHandler = async ({ url, locals }) => {
+	const db = locals.db;
 	const type = url.searchParams.get('type') ?? 'all';
 	const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '12'), 50);
 	const offset = parseInt(url.searchParams.get('offset') ?? '0');

@@ -1,11 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { createProduct, getAllCategories, getAllSubcategoriesGrouped, setProductCategories, addProductImage, getAllBrands } from '$lib/db';
+import { createProduct, getAllCategories, getAllSubcategoriesGrouped, setProductCategories, addProductImage, getAllBrands, generateSlug, generateSku } from '$lib/db';
 import { uploadImage, generateImageKey } from '$lib/r2';
 import { parsePriceToCents } from '$lib/utils';
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals, platform }) => {
+	const db = locals.db;
 	const [categories, subcategoriesGrouped, brands] = await Promise.all([
 		getAllCategories(db),
 		getAllSubcategoriesGrouped(db),
@@ -15,8 +15,8 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 
@@ -53,6 +53,12 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid specifications JSON.' });
 		}
 
+		// Generate slug and SKU
+		const [slug, sku] = await Promise.all([
+			generateSlug(db, name),
+			generateSku(db)
+		]);
+
 		let imageKey: string | null = null;
 		if (image && image.size > 0) {
 			imageKey = generateImageKey(image.name);
@@ -61,7 +67,7 @@ export const actions: Actions = {
 		}
 
 		const productId = await createProduct(db, {
-			name, description, price, stock, image_key: imageKey,
+			name, slug, sku, description, price, stock, image_key: imageKey,
 			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, brand_id: brandId, specs: specsJson
 		});
 
@@ -70,9 +76,9 @@ export const actions: Actions = {
 			await setProductCategories(db, productId, categoryIds);
 		}
 
-		// Upload additional images
+		// Upload additional images (max 5)
 		let sortOrder = 1;
-		for (const file of additionalImages) {
+		for (const file of additionalImages.slice(0, 5)) {
 			if (file && file.size > 0) {
 				const key = generateImageKey(file.name);
 				const arrayBuffer = await file.arrayBuffer();

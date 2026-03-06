@@ -3,8 +3,8 @@ import { redirect } from '@sveltejs/kit';
 import { deleteSession } from '$lib/db';
 
 export const actions: Actions = {
-	default: async ({ platform, cookies }) => {
-		const db = platform!.env.DB;
+	default: async ({ locals, cookies }) => {
+		const db = locals.db;
 		const sessionId = cookies.get('session');
 
 		if (sessionId) {

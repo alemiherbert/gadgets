@@ -2,10 +2,12 @@
 	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import ProductCard from '$lib/components/ProductCard.svelte';
 	import type { PageData, ActionData } from './$types';
+	import type { Product } from '$lib/types';
 	import { getImageUrl } from '$lib/r2';
 	import { formatPrice, discountPercent } from '$lib/utils';
 	import { cart } from '$lib/cart.svelte';
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -14,6 +16,9 @@
 	let selectedRating = $state(0);
 	let hoverRating = $state(0);
 	let selectedImage = $state(0);
+	let descriptionExpanded = $state(false);
+
+	const DESC_MAX_LENGTH = 200;
 
 	let existingCartQty = $derived(cart.getItemQuantity(data.product.id));
 	let maxAddable = $derived(Math.max(0, data.product.stock - existingCartQty));
@@ -29,6 +34,37 @@
 
 	let discount = $derived(discountPercent(data.product.price, data.product.compare_at_price));
 
+	let descriptionLong = $derived((data.product.description?.length ?? 0) > DESC_MAX_LENGTH);
+	let displayDescription = $derived(
+		descriptionLong && !descriptionExpanded
+			? data.product.description.slice(0, DESC_MAX_LENGTH).trimEnd() + '…'
+			: data.product.description
+	);
+
+	// ── Recently viewed (localStorage) ──────────────────────
+	type RecentItem = { id: number; slug: string; name: string; image_key: string | null; price: number };
+	const RECENT_KEY = 'gadgets_recently_viewed';
+	const RECENT_MAX = 8;
+	let recentlyViewed = $state<RecentItem[]>([]);
+
+	onMount(() => {
+		// Load + record this product
+		let stored: RecentItem[] = [];
+		try { stored = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch {}
+		stored = stored.filter(p => p.id !== data.product.id);
+		stored.unshift({
+			id: data.product.id,
+			slug: data.product.slug,
+			name: data.product.name,
+			image_key: data.product.image_key,
+			price: data.product.price
+		});
+		if (stored.length > RECENT_MAX + 1) stored = stored.slice(0, RECENT_MAX + 1);
+		localStorage.setItem(RECENT_KEY, JSON.stringify(stored));
+		// Show all except current product
+		recentlyViewed = stored.filter(p => p.id !== data.product.id);
+	});
+
 	let avgRating = $derived(
 		data.reviews.length > 0
 			? data.reviews.reduce((s, r) => s + r.rating, 0) / data.reviews.length
@@ -40,6 +76,7 @@
 		const qty = Math.min(quantity, maxAddable);
 		cart.addItem({
 			id: data.product.id,
+			slug: data.product.slug,
 			name: data.product.name,
 			price: data.product.price,
 			imageUrl: getImageUrl(data.product.image_key),
@@ -66,7 +103,7 @@
 			sku: String(p.id),
 			offers: {
 				'@type': 'Offer',
-				url: `https://gadgets.co.ug/products/${p.id}`,
+				url: `https://gadgets.co.ug/products/${p.slug}`,
 				priceCurrency: 'UGX',
 				price: priceVal,
 				availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -114,14 +151,14 @@
 	<title>{data.product.name} — Gadgets Store</title>
 	<meta name="description" content={data.product.description ? data.product.description.slice(0, 160) : `Buy ${data.product.name} at Gadgets Store Uganda. ${formatPrice(data.product.price)}. Fast delivery across Uganda.`} />
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href="https://gadgets.co.ug/products/{data.product.id}" />
+	<link rel="canonical" href="https://gadgets.co.ug/products/{data.product.slug}" />
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="product" />
 	<meta property="og:title" content="{data.product.name} — Gadgets Store" />
 	<meta property="og:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
 	<meta property="og:image" content="https://gadgets.co.ug{getImageUrl(data.product.image_key)}" />
-	<meta property="og:url" content="https://gadgets.co.ug/products/{data.product.id}" />
+	<meta property="og:url" content="https://gadgets.co.ug/products/{data.product.slug}" />
 	<meta property="og:site_name" content="Gadgets Store Uganda" />
 	<meta property="product:price:amount" content={(data.product.price / 100).toFixed(2)} />
 	<meta property="product:price:currency" content="UGX" />
@@ -183,9 +220,20 @@
 			</div>
 
 			{#if data.product.description}
-				<p class="text-slate-600 leading-relaxed text-balance whitespace-pre-line">
-					{data.product.description}
-				</p>
+				<div>
+					<p class="text-slate-600 leading-relaxed text-balance whitespace-pre-line">
+						{displayDescription}
+					</p>
+					{#if descriptionLong}
+						<button
+							type="button"
+							onclick={() => descriptionExpanded = !descriptionExpanded}
+							class="mt-1 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
+						>
+							{descriptionExpanded ? 'Show less' : 'Show more'}
+						</button>
+					{/if}
+				</div>
 			{/if}
 
 			<div class="">
@@ -341,6 +389,42 @@
 		</div>
 	</div>
 
+	<!-- ── Prev / Next Navigation ───────────────────────────────── -->
+	{#if data.adjacent.prev || data.adjacent.next}
+		<div class="flex items-center justify-between mt-4 mb-2 gap-4">
+			{#if data.adjacent.prev}
+				<a href="/products/{data.adjacent.prev.slug}" class="group flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-slate-50 transition-colors min-w-0 max-w-[45%]">
+					<svg class="h-4 w-4 text-slate-400 group-hover:text-orange-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+					</svg>
+					<div class="h-10 w-10 shrink-0 rounded-sm overflow-hidden bg-slate-100">
+						<img src={getImageUrl(data.adjacent.prev.image_key)} alt={data.adjacent.prev.name} class="h-full w-full object-cover" />
+					</div>
+					<div class="min-w-0">
+						<p class="text-[11px] text-slate-400 uppercase tracking-wider">Previous</p>
+						<p class="text-sm font-medium text-slate-700 group-hover:text-orange-500 truncate transition-colors">{data.adjacent.prev.name}</p>
+					</div>
+				</a>
+			{:else}
+				<div></div>
+			{/if}
+			{#if data.adjacent.next}
+				<a href="/products/{data.adjacent.next.slug}" class="group flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-slate-50 transition-colors min-w-0 max-w-[45%] ml-auto text-right">
+					<div class="min-w-0">
+						<p class="text-[11px] text-slate-400 uppercase tracking-wider">Next</p>
+						<p class="text-sm font-medium text-slate-700 group-hover:text-orange-500 truncate transition-colors">{data.adjacent.next.name}</p>
+					</div>
+					<div class="h-10 w-10 shrink-0 rounded-sm overflow-hidden bg-slate-100">
+						<img src={getImageUrl(data.adjacent.next.image_key)} alt={data.adjacent.next.name} class="h-full w-full object-cover" />
+					</div>
+					<svg class="h-4 w-4 text-slate-400 group-hover:text-orange-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+					</svg>
+				</a>
+			{/if}
+		</div>
+	{/if}
+
 	<!-- ── Reviews Section ───────────────────────────────────────── -->
 	<div class="mt-16 border-t border-slate-100 pt-12">
 		<div class="flex items-end justify-between mb-8 gap-4 flex-wrap">
@@ -472,6 +556,41 @@
 			<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
 				{#each data.recommendations as rec}
 					<ProductCard product={rec} />
+				{/each}
+			</div>
+		</div>
+	{/if}
+
+	<!-- ── Recently Viewed ───────────────────────────────────────── -->
+	{#if recentlyViewed.length > 0}
+		<div class="mt-16 border-t border-slate-100 pt-12">
+			<div class="mb-8">
+				<p class="text-sm font-semibold text-orange-500 uppercase tracking-wider mb-1">Your Browsing History</p>
+				<h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Recently Viewed</h2>
+			</div>
+			<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+				{#each recentlyViewed as item}
+					<a href="/products/{item.slug}" class="group relative flex flex-col h-full transition-all duration-200 overflow-hidden">
+						<div class="relative w-full aspect-square rounded-sm bg-slate-50 overflow-hidden shrink-0">
+							{#if item.image_key}
+								<img
+									src={getImageUrl(item.image_key)}
+									alt={item.name}
+									class="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+								/>
+							{:else}
+								<div class="h-full w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+									<svg class="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
+									</svg>
+								</div>
+							{/if}
+						</div>
+						<div class="flex flex-col px-2 pt-3">
+							<h3 class="text-sm font-medium text-slate-900 line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors">{item.name}</h3>
+							<span class="text-base font-bold text-slate-800">{formatPrice(item.price)}</span>
+						</div>
+					</a>
 				{/each}
 			</div>
 		</div>

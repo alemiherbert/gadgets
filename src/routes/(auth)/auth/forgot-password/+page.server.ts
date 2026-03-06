@@ -5,8 +5,8 @@ import { generateResetToken, getResetTokenExpiry } from '$lib/auth';
 import { sendPasswordResetEmail } from '$lib/email';
 
 export const actions: Actions = {
-	default: async ({ request, platform, url }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, url }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const email = (formData.get('email') as string)?.trim().toLowerCase();
 

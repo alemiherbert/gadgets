@@ -1,19 +1,19 @@
 import type { PageServerLoad } from './$types';
 import { getOrderCounts, getLowStockProducts } from '$lib/db';
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
-	const [counts, lowStock, customerCount, reviewCount] = await Promise.all([
+export const load: PageServerLoad = async ({ locals }) => {
+	const db = locals.db;
+	const [counts, lowStock, customerCountResult, reviewCountResult] = await Promise.all([
 		getOrderCounts(db),
 		getLowStockProducts(db),
-		db.prepare('SELECT COUNT(*) as c FROM customers').first<{ c: number }>(),
-		db.prepare('SELECT COUNT(*) as c FROM product_reviews').first<{ c: number }>()
+		db.from('customers').select('*', { count: 'exact', head: true }),
+		db.from('product_reviews').select('*', { count: 'exact', head: true })
 	]);
 
 	return {
 		counts,
 		lowStock,
-		customerCount: customerCount?.c ?? 0,
-		reviewCount: reviewCount?.c ?? 0
+		customerCount: customerCountResult.count ?? 0,
+		reviewCount: reviewCountResult.count ?? 0
 	};
 };

@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { getNewArrivals, getFeaturedProducts, getAllCategories, getActiveSlides, getGreatDeals, getBestSellers, getPopularBrands } from '$lib/db';
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals }) => {
+	const db = locals.db;
 
 	const [newArrivals, featuredProducts, categories, slides, deals, bestSellers, brands] = await Promise.all([
 		getNewArrivals(db, 12),

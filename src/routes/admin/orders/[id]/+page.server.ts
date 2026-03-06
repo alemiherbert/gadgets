@@ -2,8 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { error } from '@sveltejs/kit';
 import { getOrderById, getOrderItems, updateOrderStatus, incrementStock } from '$lib/db';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ params, locals }) => {
+	const db = locals.db;
 	const orderId = parseInt(params.id);
 	const order = await getOrderById(db, orderId);
 
@@ -18,8 +18,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 };
 
 export const actions: Actions = {
-	updateStatus: async ({ request, platform, params }) => {
-		const db = platform!.env.DB;
+	updateStatus: async ({ request, locals, params }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const status = formData.get('status') as string;
 		const orderId = parseInt(params.id);

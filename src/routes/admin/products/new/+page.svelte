@@ -6,6 +6,7 @@ let { data, form }: { data: PageData; form: ActionData } = $props();
 let submitting = $state(false);
 let imagePreview = $state<string | null>(null);
 let additionalPreviews = $state<string[]>([]);
+let additionalFiles = $state<(File | null)[]>([null, null, null, null, null]);
 
 // Specs key-value editor
 let specRows = $state<{ key: string; value: string }[]>([{ key: '', value: '' }]);
@@ -38,17 +39,18 @@ function handleImageChange(e: Event) {
 	}
 }
 
-function handleAdditionalImages(e: Event) {
+function handleAdditionalImage(e: Event, index: number) {
 	const target = e.target as HTMLInputElement;
-	const files = target.files;
-	if (!files) return;
-	additionalPreviews = [];
-	for (let i = 0; i < files.length; i++) {
+	const file = target.files?.[0];
+	if (file) {
+		additionalFiles[index] = file;
 		const reader = new FileReader();
 		reader.onload = () => {
-			additionalPreviews = [...additionalPreviews, reader.result as string];
+			const newPreviews = [...additionalPreviews];
+			newPreviews[index] = reader.result as string;
+			additionalPreviews = newPreviews;
 		};
-		reader.readAsDataURL(files[i]);
+		reader.readAsDataURL(file);
 	}
 }
 </script>
@@ -180,18 +182,26 @@ function handleAdditionalImages(e: Event) {
 			</div>
 
 			<div class="form-group">
-				<label for="additional_images" class="label">Additional Images</label>
-				<p class="text-xs text-zinc-400 mb-2">Upload multiple images for gallery view on the product page.</p>
-				<input id="additional_images" name="additional_images" type="file" accept="image/*" multiple onchange={handleAdditionalImages} class="text-sm text-zinc-500 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200" />
-				{#if additionalPreviews.length > 0}
-					<div class="flex flex-wrap gap-2 mt-3">
-						{#each additionalPreviews as src, i}
-							<div class="h-16 w-16 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-								<img {src} alt="Additional preview {i + 1}" class="h-full w-full object-cover" />
-							</div>
-						{/each}
-					</div>
-				{/if}
+				<label for="additional_images" class="label">Additional Images (up to 5)</label>
+				<p class="text-xs text-zinc-400 mb-2">Upload up to 5 additional images for the product gallery.</p>
+				<div class="grid grid-cols-5 gap-3">
+					{#each [0,1,2,3,4] as i}
+						<div class="flex flex-col items-center gap-1">
+							{#if additionalPreviews[i]}
+								<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+									<img src={additionalPreviews[i]} alt="Preview {i + 1}" class="h-full w-full object-cover" />
+								</div>
+							{:else}
+								<div class="h-20 w-20 flex items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-zinc-400">
+									<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+									</svg>
+								</div>
+							{/if}
+							<input name="additional_images" type="file" accept="image/*" onchange={(e) => handleAdditionalImage(e, i)} class="w-20 text-[10px] text-zinc-400" />
+						</div>
+					{/each}
+				</div>
 			</div>
 		</div>
 

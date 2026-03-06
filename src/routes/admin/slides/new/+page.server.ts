@@ -4,8 +4,8 @@ import { createSlide } from '$lib/db';
 import { uploadImage, generateImageKey } from '$lib/r2';
 
 export const actions: Actions = {
-	default: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 

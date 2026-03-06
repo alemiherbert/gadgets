@@ -45,7 +45,7 @@ import { formatPrice } from '$lib/utils';
 <div class="flex flex-1 flex-col justify-between">
 <div class="flex justify-between">
 <div>
-<a href="/products/{item.productId}" class="text-sm font-medium text-zinc-900 hover:text-orange-500 transition-colors">
+<a href="/products/{item.slug}" class="text-sm font-medium text-zinc-900 hover:text-orange-500 transition-colors">
 {item.name}
 </a>
 <p class="mt-1 text-sm font-semibold text-zinc-900">{formatPrice(item.price)}</p>

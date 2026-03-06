@@ -35,7 +35,7 @@ class CartStore {
 		return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 	}
 
-	addItem(product: { id: number; name: string; price: number; imageUrl: string; stock?: number }, quantity = 1) {
+	addItem(product: { id: number; slug: string; name: string; price: number; imageUrl: string; stock?: number }, quantity = 1) {
 		const existing = this.items.find(i => i.productId === product.id);
 		const maxStock = product.stock ?? Infinity;
 		if (existing) {
@@ -44,6 +44,7 @@ class CartStore {
 		} else {
 			this.items.push({
 				productId: product.id,
+				slug: product.slug,
 				name: product.name,
 				price: product.price,
 				quantity: Math.min(quantity, maxStock),

@@ -13,15 +13,15 @@ function slugify(text: string): string {
 		.replace(/^-+|-+$/g, '');
 }
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals, platform }) => {
+	const db = locals.db;
 	const brands = await getAllBrands(db);
 	return { brands };
 };
 
 export const actions: Actions = {
-	create: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	create: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 
@@ -45,8 +45,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	update: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	update: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 
@@ -82,8 +82,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	delete: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	delete: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);

@@ -3,6 +3,8 @@
 export interface Product {
 	id: number;
 	name: string;
+	slug: string;
+	sku: string;
 	description: string;
 	price: number; // stored in minor units (sale price)
 	compare_at_price: number | null; // stored in minor units (original price)
@@ -168,6 +170,7 @@ export interface ProductReview {
 
 export interface CartItem {
 	productId: number;
+	slug: string;
 	name: string;
 	price: number; // stored in minor units
 	quantity: number;

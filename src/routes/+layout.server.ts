@@ -1,8 +1,8 @@
 import type { LayoutServerLoad } from './$types';
 import { getAllCategories, getAllSubcategoriesGrouped } from '$lib/db';
 
-export const load: LayoutServerLoad = async ({ locals, platform }) => {
-	const db = platform!.env.DB;
+export const load: LayoutServerLoad = async ({ locals }) => {
+	const db = locals.db;
 	const [categories, subcategoriesGrouped] = await Promise.all([
 		getAllCategories(db),
 		getAllSubcategoriesGrouped(db)

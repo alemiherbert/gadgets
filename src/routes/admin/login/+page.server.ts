@@ -4,8 +4,8 @@ import { getAdminByEmail, createAdminSession } from '$lib/db';
 import { verifyPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
 
 export const actions: Actions = {
-	default: async ({ request, platform, cookies }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, cookies }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const email = (formData.get('email') as string)?.trim().toLowerCase();

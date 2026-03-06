@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { getShopProducts, getAllCategories, getAvailableSpecs, getPriceRange, getSubcategoriesByCategory, getShopBrands } from '$lib/db';
 
-export const load: PageServerLoad = async ({ url, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ url, locals }) => {
+	const db = locals.db;
 
 	const category = url.searchParams.get('category') ?? undefined;
 	const subcategory = url.searchParams.get('subcategory') ?? undefined;

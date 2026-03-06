@@ -3,16 +3,16 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { getSlideById, updateSlide } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ params, locals, platform }) => {
+	const db = locals.db;
 	const slide = await getSlideById(db, parseInt(params.id));
 	if (!slide) throw error(404, 'Slide not found');
 	return { slide };
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform, params }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, platform, params }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const slideId = parseInt(params.id);

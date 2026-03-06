@@ -22,8 +22,8 @@ function slugify(text: string): string {
 		.replace(/^-+|-+$/g, '');
 }
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals, platform }) => {
+	const db = locals.db;
 	const [categories, subcategories] = await Promise.all([
 		getAllCategories(db),
 		getAllSubcategories(db)
@@ -32,8 +32,8 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
-	createCategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	createCategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 
@@ -59,8 +59,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	updateCategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	updateCategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 
@@ -98,8 +98,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	deleteCategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	deleteCategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);
@@ -113,8 +113,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	createSubcategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	createSubcategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const name = (formData.get('name') as string)?.trim();
@@ -131,8 +131,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	updateSubcategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	updateSubcategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const id = parseInt(formData.get('id') as string);
@@ -150,8 +150,8 @@ export const actions: Actions = {
 		return { success: true };
 	},
 
-	deleteSubcategory: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	deleteSubcategory: async ({ request, locals, platform }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);
 

@@ -121,6 +121,18 @@ let remainingImages = $derived(data.images.filter(img => !imagesToDelete.include
 				<input id="name" name="name" type="text" required value={data.product.name} class="input" />
 			</div>
 
+			<div class="grid grid-cols-2 gap-4">
+				<div class="form-group">
+					<label for="sku" class="label">SKU</label>
+					<input id="sku" name="sku" type="text" value={data.product.sku} class="input bg-zinc-50 text-zinc-500" readonly />
+				</div>
+				<div class="form-group">
+					<label for="slug" class="label">Slug</label>
+					<input id="slug" name="slug" type="text" value={data.product.slug} class="input bg-zinc-50 text-zinc-500" readonly />
+					<p class="text-[11px] text-zinc-400 mt-1">Auto-generated when name changes</p>
+				</div>
+			</div>
+
 			<div class="form-group">
 				<label for="description" class="label">Description</label>
 				<textarea id="description" name="description" rows="4" class="textarea">{data.product.description ?? ''}</textarea>
@@ -250,16 +262,28 @@ let remainingImages = $derived(data.images.filter(img => !imagesToDelete.include
 			<!-- Upload new additional images -->
 			<div class="form-group">
 				<label for="additional_images" class="label">Add More Images</label>
-				<p class="text-xs text-zinc-400 mb-2">Upload additional gallery images.</p>
-				<input id="additional_images" name="additional_images" type="file" accept="image/*" multiple onchange={handleAdditionalImages} class="text-sm text-zinc-500 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200" />
-				{#if additionalPreviews.length > 0}
-					<div class="flex flex-wrap gap-2 mt-3">
-						{#each additionalPreviews as src, i}
-							<div class="h-16 w-16 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-								<img {src} alt="Additional preview {i + 1}" class="h-full w-full object-cover" />
+				<p class="text-xs text-zinc-400 mb-2">Upload additional gallery images (up to {Math.max(0, 5 - remainingImages.length)} more, 5 total max).</p>
+				{#if remainingImages.length < 5}
+					<div class="flex flex-wrap gap-3">
+						{#each Array(Math.max(0, 5 - remainingImages.length)) as _, i}
+							<div class="flex flex-col items-center gap-1">
+								{#if additionalPreviews[i]}
+									<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
+										<img src={additionalPreviews[i]} alt="Preview {i + 1}" class="h-full w-full object-cover" />
+									</div>
+								{:else}
+									<div class="h-20 w-20 flex items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-zinc-400">
+										<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+										</svg>
+									</div>
+								{/if}
+								<input name="additional_images" type="file" accept="image/*" onchange={handleAdditionalImages} class="w-20 text-[10px] text-zinc-400" />
 							</div>
 						{/each}
 					</div>
+				{:else}
+					<p class="text-xs text-amber-600">Maximum of 5 additional images reached. Delete existing images to add new ones.</p>
 				{/if}
 			</div>
 		</div>

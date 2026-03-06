@@ -3,13 +3,13 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import {
 	getProductById, updateProduct, getAllCategories, getAllSubcategoriesGrouped,
 	getProductCategoryIds, setProductCategories, getProductImages, addProductImage, deleteProductImage,
-	getAllBrands
+	getAllBrands, generateSlug
 } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
 import { parsePriceToCents } from '$lib/utils';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ params, locals, platform }) => {
+	const db = locals.db;
 	const productId = parseInt(params.id);
 	const [product, categories, subcategoriesGrouped, productCategoryIds, images, brands] = await Promise.all([
 		getProductById(db, productId),
@@ -28,8 +28,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform, params }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, platform, params }) => {
+		const db = locals.db;
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const productId = parseInt(params.id);
@@ -82,8 +82,15 @@ export const actions: Actions = {
 			await uploadImage(bucket, imageKey, arrayBuffer, image.type);
 		}
 
+		// Generate new slug if name changed
+		const existingProduct = await getProductById(db, productId);
+		let slug = existingProduct?.slug ?? '';
+		if (existingProduct && existingProduct.name !== name) {
+			slug = await generateSlug(db, name);
+		}
+
 		await updateProduct(db, productId, {
-			name, description, price, stock, image_key: imageKey, active,
+			name, slug, description, price, stock, image_key: imageKey, active,
 			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, brand_id: brandId, specs: specsJson
 		});
 
@@ -98,12 +105,13 @@ export const actions: Actions = {
 			}
 		}
 
-		// Upload new additional images
+		// Upload new additional images (limit total to 5)
 		const existingImages = await getProductImages(db, productId);
+		const remainingSlots = Math.max(0, 5 - existingImages.length);
 		let sortOrder = existingImages.length > 0
 			? Math.max(...existingImages.map(i => i.sort_order)) + 1
 			: 1;
-		for (const file of additionalImages) {
+		for (const file of additionalImages.slice(0, remainingSlots)) {
 			if (file && file.size > 0) {
 				const key = generateImageKey(file.name);
 				const arrayBuffer = await file.arrayBuffer();

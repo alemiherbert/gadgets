@@ -3,8 +3,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getAdminCount, createAdmin } from '$lib/db';
 import { hashPassword } from '$lib/auth';
 
-export const load: PageServerLoad = async ({ platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals }) => {
+	const db = locals.db;
 	const count = await getAdminCount(db);
 	if (count > 0) {
 		throw redirect(303, '/admin/login');
@@ -13,8 +13,8 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ platform }) => {
-		const db = platform!.env.DB;
+	default: async ({ locals }) => {
+		const db = locals.db;
 
 		const count = await getAdminCount(db);
 		if (count > 0) {

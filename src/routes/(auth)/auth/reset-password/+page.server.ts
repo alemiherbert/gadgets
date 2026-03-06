@@ -3,8 +3,8 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getPasswordResetToken, markResetTokenUsed, updateCustomerPassword, deleteSession } from '$lib/db';
 import { hashPassword } from '$lib/auth';
 
-export const load: PageServerLoad = async ({ url, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ url, locals }) => {
+	const db = locals.db;
 	const token = url.searchParams.get('token');
 
 	if (!token) {
@@ -20,8 +20,8 @@ export const load: PageServerLoad = async ({ url, platform }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const token = formData.get('token') as string;
@@ -50,8 +50,7 @@ export const actions: Actions = {
 		await markResetTokenUsed(db, token);
 
 		// Invalidate all existing sessions for this customer (force re-login)
-		await db.prepare('DELETE FROM sessions WHERE customer_id = ?')
-			.bind(resetToken.customer_id).run();
+		await db.from('sessions').delete().eq('customer_id', resetToken.customer_id);
 
 		throw redirect(303, '/auth/login?reset=success');
 	}

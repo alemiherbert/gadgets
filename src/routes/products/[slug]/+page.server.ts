@@ -1,28 +1,32 @@
 import type { PageServerLoad, Actions } from './$types';
 import {
-	getProductById, getRecommendedProducts, recordProductView,
+	getProductBySlug, getRecommendedProducts, recordProductView,
 	getProductReviews, hasCustomerPurchasedProduct, hasCustomerReviewedProduct, createProductReview,
-	getProductImages
+	getProductImages, getAdjacentProducts
 } from '$lib/db';
 import { error, fail, redirect } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ params, platform, locals }) => {
-	const db = platform!.env.DB;
-	const productId = parseInt(params.id);
-	const product = await getProductById(db, productId);
+export const load: PageServerLoad = async ({ params, locals }) => {
+	const db = locals.db;
+	const product = await getProductBySlug(db, params.slug);
 
 	if (!product || !product.active) {
 		throw error(404, 'Product not found');
 	}
 
-	// Track product view
-	const customerId = locals.customer?.id ?? null;
-	try { await recordProductView(db, productId, customerId); } catch {}
+	const productId = product.id;
 
-	const [recommendations, reviews, images] = await Promise.all([
+	// Track product view (only for logged-in customers to avoid unbounded growth from bots/anonymous)
+	const customerId = locals.customer?.id ?? null;
+	if (customerId) {
+		try { await recordProductView(db, productId, customerId); } catch {}
+	}
+
+	const [recommendations, reviews, images, adjacent] = await Promise.all([
 		getRecommendedProducts(db, productId, 4, customerId),
 		getProductReviews(db, productId),
-		getProductImages(db, productId)
+		getProductImages(db, productId),
+		getAdjacentProducts(db, productId)
 	]);
 
 	let canReview = false;
@@ -36,15 +40,17 @@ export const load: PageServerLoad = async ({ params, platform, locals }) => {
 		hasReviewed = reviewed;
 	}
 
-	return { product, recommendations, reviews, images, canReview, hasReviewed };
+	return { product, recommendations, reviews, images, canReview, hasReviewed, adjacent };
 };
 
 export const actions: Actions = {
-	review: async ({ request, params, platform, locals }) => {
+	review: async ({ request, params, locals }) => {
 		if (!locals.customer) return fail(401, { error: 'You must be logged in to leave a review.' });
 
-		const db = platform!.env.DB;
-		const productId = parseInt(params.id);
+		const db = locals.db;
+		const product = await getProductBySlug(db, params.slug);
+		if (!product) return fail(404, { error: 'Product not found.' });
+		const productId = product.id;
 		const customerId = locals.customer.id;
 
 		const [purchased, reviewed] = await Promise.all([

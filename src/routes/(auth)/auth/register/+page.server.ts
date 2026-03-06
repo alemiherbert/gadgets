@@ -12,8 +12,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform, cookies }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, cookies }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 
 		const name = (formData.get('name') as string)?.trim();

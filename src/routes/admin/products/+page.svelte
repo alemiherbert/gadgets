@@ -34,6 +34,7 @@ Add Product
 <thead>
 <tr class="border-b border-zinc-200 bg-zinc-50">
 <th class="px-4 py-3 text-left font-medium text-zinc-500">Product</th>
+<th class="px-4 py-3 text-left font-medium text-zinc-500">SKU</th>
 <th class="px-4 py-3 text-right font-medium text-zinc-500">Price</th>
 <th class="px-4 py-3 text-right font-medium text-zinc-500">Stock</th>
 <th class="px-4 py-3 text-center font-medium text-zinc-500">Status</th>
@@ -55,6 +56,7 @@ Add Product
 <span class="font-medium text-zinc-900">{product.name}</span>
 </div>
 </td>
+<td class="px-4 py-3 text-left font-mono text-xs text-zinc-500">{product.sku}</td>
 <td class="px-4 py-3 text-right">{formatPrice(product.price)}</td>
 <td class="px-4 py-3 text-right">
 <span class="{product.stock === 0 ? 'text-red-500 font-medium' : product.stock < 5 ? 'text-amber-600' : 'text-zinc-900'}">

@@ -1,8 +1,14 @@
 import type { Handle } from '@sveltejs/kit';
 import { getSession, getAdminSession } from '$lib/db';
+import { getSupabaseClient } from '$lib/supabase';
 
 export const handle: Handle = async ({ event, resolve }) => {
-	const db = event.platform?.env?.DB;
+	const env = event.platform?.env;
+	const db = env ? getSupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : null;
+
+	if (db) {
+		event.locals.db = db;
+	}
 
 	// Customer session
 	const sessionId = event.cookies.get('session');

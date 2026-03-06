@@ -1,5 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 declare global {
 	namespace App {
 		interface Error {
@@ -15,11 +17,13 @@ declare global {
 				id: number;
 				email: string;
 			};
+			db: SupabaseClient;
 		}
 		interface Platform {
 			env: {
-				DB: D1Database;
 				BUCKET: R2Bucket;
+				SUPABASE_URL: string;
+				SUPABASE_SERVICE_ROLE_KEY: string;
 			};
 		}
 	}

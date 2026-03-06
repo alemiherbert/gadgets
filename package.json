@@ -9,7 +9,11 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"deploy": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgets-store-uganda --branch main",
+		"deploy:preview": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgets-store-uganda",
+		"db:push": "npx supabase db push",
+		"db:pull": "npx supabase db pull"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^7.0.0",
@@ -27,6 +31,7 @@
 	},
 	"dependencies": {
 		"@cloudflare/workers-types": "^4.20260227.0",
+		"@supabase/supabase-js": "^2.98.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
 		"wrangler": "^4.67.0"
 	}

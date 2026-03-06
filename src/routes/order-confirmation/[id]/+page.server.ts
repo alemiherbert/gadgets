@@ -2,8 +2,8 @@ import type { PageServerLoad } from './$types';
 import { getOrderById, getOrderItems } from '$lib/db';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ params, platform }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ params, locals }) => {
+	const db = locals.db;
 	const orderId = parseInt(params.id);
 	const order = await getOrderById(db, orderId);
 

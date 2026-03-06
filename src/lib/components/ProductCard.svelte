@@ -17,6 +17,7 @@
 		if (!canAdd) return;
 		cart.addItem({
 			id: product.id,
+			slug: product.slug,
 			name: product.name,
 			price: product.price,
 			imageUrl: getImageUrl(product.image_key),
@@ -26,7 +27,7 @@
 </script>
 
 <a
-	href="/products/{product.id}"
+	href="/products/{product.slug}"
 	class="group relative flex flex-col h-full transition-all duration-200 overflow-hidden"
 >
 	<!-- Image -->

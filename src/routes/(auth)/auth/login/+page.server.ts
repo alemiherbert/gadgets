@@ -14,8 +14,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, platform, cookies, url }) => {
-		const db = platform!.env.DB;
+	default: async ({ request, locals, cookies, url }) => {
+		const db = locals.db;
 		const formData = await request.formData();
 		const redirectTo = url.searchParams.get('redirectTo');
 

@@ -1,11 +1,12 @@
 name = "gadgets-store-uganda"
 compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".svelte-kit/cloudflare"
 
-[[d1_databases]]
-binding = "DB"
-database_name = "gadgets-db"
-database_id = "51d959a6-6fde-47c7-8fe1-2d250bf9a04e"
+[vars]
+# Set these in Cloudflare dashboard or with `wrangler secret put`
+# SUPABASE_URL = "https://your-project.supabase.co"
+# SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key"
 
 [[r2_buckets]]
 bucket_name = "gadgets-images"

@@ -1,8 +1,8 @@
 import type { PageServerLoad } from './$types';
 import { getAllOrders } from '$lib/db';
 
-export const load: PageServerLoad = async ({ platform, url }) => {
-	const db = platform!.env.DB;
+export const load: PageServerLoad = async ({ locals, url }) => {
+	const db = locals.db;
 	const status = url.searchParams.get('status') || 'all';
 	const orders = await getAllOrders(db, status);
 
