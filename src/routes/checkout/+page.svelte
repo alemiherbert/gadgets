@@ -6,6 +6,8 @@ import { enhance } from '$app/forms';
 
 let { data, form }: { data: PageData; form: ActionData } = $props();
 let submitting = $state(false);
+let cityValue = $state('');
+let kampalaShipping = $derived(cityValue.trim().toLowerCase() === 'kampala');
 </script>
 
 <svelte:head>
@@ -79,7 +81,7 @@ Logged in as <span class="font-medium text-slate-900">{data.customer.email}</spa
 <div class="grid grid-cols-2 gap-4">
 <div class="form-group">
 <label for="city" class="label text-orange-600">City / Town</label>
-<input id="city" name="city" type="text" required minlength="2" class="input" placeholder="Kampala" />
+<input id="city" name="city" type="text" required minlength="2" class="input" placeholder="Kampala" bind:value={cityValue} />
 </div>
 <div class="form-group">
 <label for="state" class="label text-orange-600">District</label>
@@ -146,7 +148,11 @@ Logged in as <span class="font-medium text-slate-900">{data.customer.email}</spa
 </div>
 <div class="flex justify-between text-slate-600">
 <span>Shipping</span>
-<span class="font-medium text-slate-900">{cart.total >= 7500 ? 'Free' : formatPrice(500)}</span>
+{#if kampalaShipping}
+<span class="font-medium text-slate-900">{formatPrice(550000)}</span>
+{:else}
+<span class="font-medium text-amber-600 text-xs">Confirmed on phone</span>
+{/if}
 </div>
 </div>
 
@@ -154,7 +160,11 @@ Logged in as <span class="font-medium text-slate-900">{data.customer.email}</spa
 
 <div class="flex justify-between text-base font-bold text-slate-900 mb-6">
 <span>Total</span>
-<span>{formatPrice(cart.total >= 7500 ? cart.total : cart.total + 500)}</span>
+{#if kampalaShipping}
+<span>{formatPrice(cart.total + 550000)}</span>
+{:else}
+<span>{formatPrice(cart.total)} <span class="text-xs font-normal text-slate-500">+ shipping</span></span>
+{/if}
 </div>
 
 <!-- Submit (desktop) -->

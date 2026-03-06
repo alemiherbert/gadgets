@@ -9,6 +9,16 @@
 --   Then visit /admin/setup in the browser to create the admin account.
 
 -- ─── Categories ──────────────────────────────────────────
+-- ─── Brands ───────────────────────────────────────────────
+INSERT INTO brands (name, slug, logo_key, sort_order) VALUES
+  ('Apple', 'apple', NULL, 1),
+  ('Samsung', 'samsung', NULL, 2),
+  ('Sony', 'sony', NULL, 3),
+  ('HP', 'hp', NULL, 4),
+  ('Dell', 'dell', NULL, 5),
+  ('Anker', 'anker', NULL, 6),
+  ('Logitech', 'logitech', NULL, 7),
+  ('Xiaomi', 'xiaomi', NULL, 8);
 INSERT INTO categories (name, slug, description, icon, sort_order) VALUES
   ('Computing & Laptops', 'computing-laptops', 'MacBooks, Windows Laptops, Desktops & Monitors', '/img/categories/computing.avif', 1),
   ('Phones & Tablets', 'phones-tablets', 'iPhones, Android devices, iPads & Samsung Tabs', '/img/categories/phones.avif', 2),
@@ -69,17 +79,17 @@ INSERT INTO subcategories (name, slug, category_id, sort_order) VALUES
 -- Example products (optional - for demo purposes)
 -- subcategory_id references: 15=earbuds, 2=windows-laptops, 3=desktops, 1=macbooks,
 -- 6=iphones, 21=power-banks, 12=bluetooth-speakers, 29=laptop-bags, 30=webcams, 27=mice, 26=keyboards
-INSERT INTO products (name, description, price, compare_at_price, stock, image_key, active, featured, sales_count, specs, subcategory_id) VALUES
-  ('Wireless Earbuds', 'Premium wireless earbuds with noise cancellation and 24hr battery life.', 3999, 4999, 50, NULL, 1, 1, 120, '{"Connectivity":"Bluetooth 5.3","Battery":"24 hours","Noise Cancellation":"Active (ANC)","Driver Size":"12mm","Water Resistance":"IPX5"}', 15),
-  ('Smart Watch', 'Fitness tracker with heart rate monitor, GPS, and water resistance.', 9999, 12999, 30, NULL, 1, 1, 85, '{"Display":"1.4\" AMOLED","Battery":"7 days","Water Resistance":"5 ATM","Connectivity":"Bluetooth 5.0","Sensors":"Heart Rate, SpO2, GPS"}', NULL),
-  ('USB-C Hub', '7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader, and PD charging.', 2499, 3499, 100, NULL, 1, 0, 200, '{"Ports":"7-in-1","HDMI":"4K@60Hz","USB":"2x USB 3.0","Card Reader":"SD/microSD","Power Delivery":"100W"}', 28),
-  ('Mechanical Keyboard', 'Compact 75% layout with hot-swappable switches and RGB backlight.', 5999, 7999, 25, NULL, 1, 1, 60, '{"Layout":"75% Compact","Switches":"Hot-Swappable","Backlight":"RGB","Connectivity":"USB-C / Bluetooth","Battery":"4000mAh"}', 26),
-  ('Phone Stand', 'Adjustable aluminum phone and tablet stand. Works with all devices.', 1999, NULL, 200, NULL, 1, 0, 150, '{"Material":"Aluminum","Adjustable":"Yes","Compatibility":"4-13 inch devices","Weight":"280g","Color":"Silver"}', 28),
-  ('Portable Charger', '20000mAh power bank with fast charging. Charges 3 devices simultaneously.', 2499, 2999, 75, NULL, 1, 0, 300, '{"Capacity":"20000mAh","Ports":"USB-C, 2x USB-A","Fast Charging":"PD 20W + QC 3.0","Weight":"350g","Charges":"3 devices"}', 21),
-  ('Bluetooth Speaker', 'Waterproof portable speaker with 360-degree sound and 12hr battery.', 3499, 4499, 40, NULL, 1, 1, 95, '{"Power":"20W","Battery":"12 hours","Water Resistance":"IPX7","Connectivity":"Bluetooth 5.0","Driver":"Full-range 360°"}', 12),
-  ('Laptop Sleeve', 'Premium neoprene laptop sleeve fits 13-15 inch laptops. Shock-resistant.', 1499, 1999, 150, NULL, 1, 0, 180, '{"Material":"Neoprene","Size":"13-15 inch","Protection":"Shock-resistant","Pockets":"1 accessory pocket","Weight":"180g"}', 29),
-  ('Webcam HD', '1080p HD webcam with built-in microphone and auto-focus.', 4499, 5999, 35, NULL, 1, 0, 70, '{"Resolution":"1080p Full HD","Frame Rate":"30fps","Microphone":"Built-in Stereo","Focus":"Auto-focus","Connectivity":"USB 2.0"}', 30),
-  ('Wireless Mouse', 'Ergonomic wireless mouse with silent clicks and USB-C charging.', 1999, 2499, 90, NULL, 1, 0, 110, '{"Connectivity":"2.4GHz + Bluetooth","DPI":"800-4000","Buttons":"6","Battery":"Rechargeable (USB-C)","Weight":"75g"}', 27);
+INSERT INTO products (name, description, price, compare_at_price, stock, image_key, active, featured, sales_count, specs, subcategory_id, brand_id) VALUES
+  ('Wireless Earbuds', 'Premium wireless earbuds with noise cancellation and 24hr battery life.', 399900, 499900, 50, NULL, 1, 1, 120, '{"Connectivity":"Bluetooth 5.3","Battery":"24 hours","Noise Cancellation":"Active (ANC)","Driver Size":"12mm","Water Resistance":"IPX5"}', 15, 3),
+  ('Smart Watch', 'Fitness tracker with heart rate monitor, GPS, and water resistance.', 999900, 1299900, 30, NULL, 1, 1, 85, '{"Display":"1.4\" AMOLED","Battery":"7 days","Water Resistance":"5 ATM","Connectivity":"Bluetooth 5.0","Sensors":"Heart Rate, SpO2, GPS"}', NULL, 8),
+  ('USB-C Hub', '7-in-1 USB-C hub with HDMI, USB 3.0, SD card reader, and PD charging.', 249900, 349900, 100, NULL, 1, 0, 200, '{"Ports":"7-in-1","HDMI":"4K@60Hz","USB":"2x USB 3.0","Card Reader":"SD/microSD","Power Delivery":"100W"}', 28, 6),
+  ('Mechanical Keyboard', 'Compact 75% layout with hot-swappable switches and RGB backlight.', 599900, 799900, 25, NULL, 1, 1, 60, '{"Layout":"75% Compact","Switches":"Hot-Swappable","Backlight":"RGB","Connectivity":"USB-C / Bluetooth","Battery":"4000mAh"}', 26, 7),
+  ('Phone Stand', 'Adjustable aluminum phone and tablet stand. Works with all devices.', 199900, NULL, 200, NULL, 1, 0, 150, '{"Material":"Aluminum","Adjustable":"Yes","Compatibility":"4-13 inch devices","Weight":"280g","Color":"Silver"}', 28, 6),
+  ('Portable Charger', '20000mAh power bank with fast charging. Charges 3 devices simultaneously.', 249900, 299900, 75, NULL, 1, 0, 300, '{"Capacity":"20000mAh","Ports":"USB-C, 2x USB-A","Fast Charging":"PD 20W + QC 3.0","Weight":"350g","Charges":"3 devices"}', 21, 6),
+  ('Bluetooth Speaker', 'Waterproof portable speaker with 360-degree sound and 12hr battery.', 349900, 449900, 40, NULL, 1, 1, 95, '{"Power":"20W","Battery":"12 hours","Water Resistance":"IPX7","Connectivity":"Bluetooth 5.0","Driver":"Full-range 360°"}', 12, 3),
+  ('Laptop Sleeve', 'Premium neoprene laptop sleeve fits 13-15 inch laptops. Shock-resistant.', 149900, 199900, 150, NULL, 1, 0, 180, '{"Material":"Neoprene","Size":"13-15 inch","Protection":"Shock-resistant","Pockets":"1 accessory pocket","Weight":"180g"}', 29, 6),
+  ('Webcam HD', '1080p HD webcam with built-in microphone and auto-focus.', 449900, 599900, 35, NULL, 1, 0, 70, '{"Resolution":"1080p Full HD","Frame Rate":"30fps","Microphone":"Built-in Stereo","Focus":"Auto-focus","Connectivity":"USB 2.0"}', 30, 4),
+  ('Wireless Mouse', 'Ergonomic wireless mouse with silent clicks and USB-C charging.', 199900, 249900, 90, NULL, 1, 0, 110, '{"Connectivity":"2.4GHz + Bluetooth","DPI":"800-4000","Buttons":"6","Battery":"Rechargeable (USB-C)","Weight":"75g"}', 27, 7);
 
 -- Product-Category mappings
 INSERT INTO product_categories (product_id, category_id) VALUES

@@ -15,6 +15,7 @@ let shopSearchQuery = $state('');
 // Collapsible filter sections
 let openSections = $state<Record<string, boolean>>({
 categories: true,
+brands: false,
 price: true,
 sort: false,
 });
@@ -94,6 +95,18 @@ function setSubcategory(slug: string | null) {
 		u.searchParams.set('subcategory', slug);
 	} else {
 		u.searchParams.delete('subcategory');
+	}
+	u.searchParams.delete('page');
+	goto(u.pathname + u.search, { invalidateAll: true });
+	mobileFiltersOpen = false;
+}
+
+function setBrand(slug: string | null) {
+	const u = new URL($page.url);
+	if (slug) {
+		u.searchParams.set('brand', slug);
+	} else {
+		u.searchParams.delete('brand');
 	}
 	u.searchParams.delete('page');
 	goto(u.pathname + u.search, { invalidateAll: true });
@@ -181,6 +194,13 @@ let crumbs = $derived.by(() => {
 			{ label: data.categories.find(c => c.slug === data.activeCategory)?.name ?? '' },
 		];
 	}
+	if (data.activeBrand) {
+		return [
+			{ label: 'Home', href: '/' },
+			{ label: 'Shop', href: '/shop' },
+			{ label: data.brands.find(b => b.slug === data.activeBrand)?.name ?? '' },
+		];
+	}
 	return [
 		{ label: 'Home', href: '/' },
 		{ label: 'Shop' },
@@ -192,6 +212,7 @@ let activeFilterCount = $derived.by(() => {
 	let count = 0;
 	if (data.activeCategory) count++;
 	if (data.activeSubcategory) count++;
+	if (data.activeBrand) count++;
 	if (data.activeMinPrice !== null || data.activeMaxPrice !== null) count++;
 	count += Object.values(data.activeSpecFilters).reduce((sum, v) => sum + v.length, 0);
 	return count;
@@ -266,12 +287,11 @@ All Products
 <!-- Toolbar: search bar + sort + mobile filter toggle -->
 <div class="flex flex-col gap-4 mb-6">
 
-<!-- Search bar + Sort on same row -->
-<div class="hidden md:flex lg:flex items-center gap-3">
-<!-- Mobile filter toggle -->
+<!-- Mobile toolbar: filter + sort -->
+<div class="flex items-center gap-2 md:hidden">
 <button
 onclick={() => mobileFiltersOpen = true}
-class="h-10 lg:hidden inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shrink-0"
+class="h-10 inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shrink-0"
 >
 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
@@ -281,7 +301,57 @@ Filters
 <span class="bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{activeFilterCount}</span>
 {/if}
 </button>
+<div class="relative flex-1 shrink-0">
+<label for="sort-select-mobile" class="sr-only">Sort by</label>
+<select
+id="sort-select-mobile"
+value={data.activeSort}
+onchange={(e) => setSort((e.target as HTMLSelectElement).value)}
+class="h-10 w-full appearance-none rounded-sm border border-slate-200 bg-white pl-3 pr-8 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 cursor-pointer"
+>
+{#each sortOptions as opt}
+<option value={opt.value}>{opt.label}</option>
+{/each}
+</select>
+<svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+</svg>
+</div>
+</div>
 
+<!-- Mobile search bar -->
+<form onsubmit={applySearch} class="relative md:hidden">
+<svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+</svg>
+<input
+type="text"
+bind:value={shopSearchQuery}
+placeholder="Search products..."
+class="w-full h-10 pl-10 pr-20 rounded-sm border border-slate-200 bg-white text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
+/>
+{#if shopSearchQuery}
+<button
+type="button"
+onclick={() => { shopSearchQuery = ''; applySearch(); }}
+class="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+aria-label="Clear search"
+>
+<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+</svg>
+</button>
+{/if}
+<button
+type="submit"
+class="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-3 py-1.5 rounded-sm transition-colors"
+>
+Search
+</button>
+</form>
+
+<!-- Desktop: search bar + sort -->
+<div class="hidden md:flex items-center gap-3">
 <!-- Search bar (grows to fill) -->
 <form onsubmit={applySearch} class="relative flex-1 min-w-0">
 <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -355,6 +425,16 @@ onclick={() => setSubcategory(null)}
 class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
 >
 {data.subcategories.find(s => s.slug === data.activeSubcategory)?.name}
+<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+</button>
+{/if}
+
+{#if data.activeBrand}
+<button
+onclick={() => setBrand(null)}
+class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
+>
+{data.brands.find(b => b.slug === data.activeBrand)?.name}
 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
 </button>
 {/if}
@@ -455,6 +535,39 @@ class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 t
 </button>
 {/each}
 </div>
+</div>
+{/if}
+
+<!-- Brands filter -->
+{#if data.brands.length > 0}
+<div class="mb-4 border-b border-slate-100 pb-4">
+<button onclick={() => toggleSection('brands')} class="flex items-center justify-between w-full text-left mb-2">
+<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Brands</h3>
+<svg class="h-4 w-4 text-slate-400 transition-transform {openSections.brands ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+</svg>
+</button>
+{#if openSections.brands}
+<div class="space-y-0.5">
+<button
+onclick={() => setBrand(null)}
+class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeBrand === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
+>
+<span>All Brands</span>
+</button>
+{#each data.brands as brand}
+<button
+onclick={() => setBrand(brand.slug)}
+class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeBrand === brand.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
+>
+<span class="truncate">{brand.name}</span>
+{#if brand.product_count !== undefined}
+<span class="text-xs {data.activeBrand === brand.slug ? 'text-orange-500' : 'text-slate-400'}">{brand.product_count}</span>
+{/if}
+</button>
+{/each}
+</div>
+{/if}
 </div>
 {/if}
 
@@ -688,6 +801,32 @@ class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5
 <span class="truncate">{sub.name}</span>
 {#if sub.product_count !== undefined}
 <span class="text-xs text-slate-400">{sub.product_count}</span>
+{/if}
+</button>
+{/each}
+</div>
+</div>
+{/if}
+
+<!-- Brands (mobile) -->
+{#if data.brands.length > 0}
+<div class="mb-5">
+<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Brands</h3>
+<div class="space-y-0.5">
+<button
+onclick={() => setBrand(null)}
+class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeBrand === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
+>
+<span>All Brands</span>
+</button>
+{#each data.brands as brand}
+<button
+onclick={() => setBrand(brand.slug)}
+class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeBrand === brand.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
+>
+<span class="truncate">{brand.name}</span>
+{#if brand.product_count !== undefined}
+<span class="text-xs text-slate-400">{brand.product_count}</span>
 {/if}
 </button>
 {/each}

@@ -13,7 +13,9 @@ CREATE TABLE IF NOT EXISTS products (
   sales_count INTEGER NOT NULL DEFAULT 0,
   specs TEXT NOT NULL DEFAULT '{}', -- JSON object of product specifications
   subcategory_id INTEGER, -- FK to subcategories
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  brand_id INTEGER,       -- FK to brands
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (brand_id) REFERENCES brands(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -76,6 +78,16 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
   admin_id INTEGER NOT NULL,
   expires_at TEXT NOT NULL,
   FOREIGN KEY (admin_id) REFERENCES admins(id)
+);
+
+-- ─── Brands ──────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS brands (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL UNIQUE,
+  slug TEXT NOT NULL UNIQUE,
+  logo_key TEXT,              -- R2 object key for brand logo
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- ─── Categories ──────────────────────────────────────────

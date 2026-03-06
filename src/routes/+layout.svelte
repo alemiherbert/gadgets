@@ -58,7 +58,7 @@ function toggleSearch() {
 {#if !hideChrome}
 
 <!-- Navigation -->
-<header class="sticky top-0 z-50 w-full bg-gradient-to-r from-slate-800 to-slate-700 backdrop-blur">
+<header class="sticky top-0 z-50 w-full bg-gradient-to-r from-slate-700 via-slate-800 to-slate-700 backdrop-blur">
 <div class="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
 
 <!-- Mobile hamburger -->
@@ -234,7 +234,7 @@ aria-label="Shopping cart"
 {#if mobileMenuOpen}
 <div class="fixed inset-0 bg-black/50 z-50 lg:hidden" onclick={() => mobileMenuOpen = false} aria-hidden="true"></div>
 <div class="fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl lg:hidden flex flex-col">
-<div class="flex items-center justify-between px-4 h-14 border-b border-orange-100">
+<div class="flex items-center justify-between px-4 h-16 border-b border-orange-100">
 <a href="/" class="flex items-center gap-2" onclick={() => mobileMenuOpen = false}>
 <div class="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-orange-500 to-orange-600">
 <span class="text-xs font-bold text-white">G</span>
@@ -294,8 +294,8 @@ aria-label="Shopping cart"
 <button type="submit" class="text-sm text-slate-500 hover:text-orange-600 bg-transparent border-none cursor-pointer font-[inherit]">Sign out</button>
 </form>
 {:else}
-<a href="/auth/login" onclick={() => mobileMenuOpen = false} class="block w-full text-center btn btn-primary mb-2">Sign in</a>
-<a href="/auth/register" onclick={() => mobileMenuOpen = false} class="block w-full text-center btn btn-outline">Create account</a>
+<a href="/auth/login" onclick={() => mobileMenuOpen = false} class="block w-full text-center text-white btn bg-orange-400 mb-2">Sign in</a>
+<a href="/auth/register" onclick={() => mobileMenuOpen = false} class="block w-full text-center text-orange-400 btn btn-outline">Create account</a>
 {/if}
 </div>
 </div>
@@ -331,8 +331,8 @@ aria-label="Shopping cart"
 <h4 class="text-sm font-semibold text-slate-100 mb-3">Shop</h4>
 <ul class="space-y-2.5">
 <li><a href="/shop" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">All Products</a></li>
-<li><a href="/shop" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Search</a></li>
-<li><a href="/cart" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Cart</a></li>
+<li><a href="/shop" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Browse & Search</a></li>
+<li><a href="/cart" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Shopping Cart</a></li>
 <li><a href="/account" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">My Orders</a></li>
 </ul>
 </div>
@@ -340,17 +340,19 @@ aria-label="Shopping cart"
 <div>
 <h4 class="text-sm font-semibold text-slate-100 mb-3">Account</h4>
 <ul class="space-y-2.5">
-<li><a href="/auth/login" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Sign in</a></li>
-<li><a href="/auth/register" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Create account</a></li>
+<li><a href="/auth/login" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Sign In</a></li>
+<li><a href="/auth/register" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">Create Account</a></li>
+<li><a href="/account" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">My Account</a></li>
 </ul>
 </div>
 <!-- Support -->
 <div>
 <h4 class="text-sm font-semibold text-slate-100 mb-3">Support</h4>
 <ul class="space-y-2.5">
-<li><span class="text-sm text-slate-400">support@gadgets.store</span></li>
-<li><span class="text-sm text-slate-400">Pay on delivery</span></li>
-<li><span class="text-sm text-slate-400">Free returns within 30 days</span></li>
+<li><a href="mailto:support@gadgets.co.ug" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">support@gadgets.co.ug</a></li>
+<li><a href="tel:+256700000000" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">+256 700 000 000</a></li>
+<li><span class="text-sm text-slate-400">Cash on Delivery</span></li>
+<li><span class="text-sm text-slate-400">Free returns within 14 days</span></li>
 </ul>
 </div>
 </div>

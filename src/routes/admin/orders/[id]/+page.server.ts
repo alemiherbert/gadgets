@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error } from '@sveltejs/kit';
-import { getOrderById, getOrderItems, updateOrderStatus } from '$lib/db';
+import { getOrderById, getOrderItems, updateOrderStatus, incrementStock } from '$lib/db';
 
 export const load: PageServerLoad = async ({ params, platform }) => {
 	const db = platform!.env.DB;
@@ -27,6 +27,17 @@ export const actions: Actions = {
 		const validStatuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 		if (!validStatuses.includes(status)) {
 			throw error(400, 'Invalid status');
+		}
+
+		// If cancelling, restore stock for all order items
+		if (status === 'cancelled') {
+			const order = await getOrderById(db, orderId);
+			if (order && order.status !== 'cancelled') {
+				const items = await getOrderItems(db, orderId);
+				for (const item of items) {
+					await incrementStock(db, item.product_id, item.quantity);
+				}
+			}
 		}
 
 		await updateOrderStatus(db, orderId, status);

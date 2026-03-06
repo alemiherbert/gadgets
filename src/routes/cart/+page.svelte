@@ -5,6 +5,8 @@ import { formatPrice } from '$lib/utils';
 
 <svelte:head>
 <title>Shopping Cart — Gadgets Store</title>
+<meta name="description" content="Review your shopping cart at Gadgets Store Uganda. Fast delivery across Uganda on electronics, audio, wearables and more." />
+<meta name="robots" content="noindex, follow" />
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
@@ -63,7 +65,8 @@ aria-label="Decrease quantity"
 <span class="flex h-8 w-8 items-center justify-center border-x border-zinc-200 text-sm font-medium text-zinc-900">{item.quantity}</span>
 <button
 onclick={() => cart.updateQuantity(item.productId, item.quantity + 1)}
-class="flex h-8 w-8 items-center justify-center text-zinc-500 hover:text-orange-600 hover:bg-orange-50 rounded-r-lg transition-colors"
+disabled={item.stock != null && item.quantity >= item.stock}
+class="flex h-8 w-8 items-center justify-center text-zinc-500 hover:text-orange-600 hover:bg-orange-50 rounded-r-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-zinc-500 disabled:hover:bg-transparent"
 aria-label="Increase quantity"
 >
 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
@@ -95,22 +98,22 @@ Remove
 </div>
 <div class="flex justify-between text-zinc-600">
 <span>Shipping</span>
-<span class="font-medium text-zinc-900">{cart.total >= 7500 ? 'Free' : formatPrice(500)}</span>
+<span class="font-medium text-zinc-600 text-xs">Calculated at checkout</span>
 </div>
 </div>
 
 <div class="separator my-4"></div>
 
 <div class="flex justify-between text-base font-bold text-zinc-900 mb-6">
-<span>Total</span>
-<span>{formatPrice(cart.total >= 7500 ? cart.total : cart.total + 500)}</span>
+<span>Subtotal</span>
+<span>{formatPrice(cart.total)}</span>
 </div>
 
 <a href="/checkout" class="btn text-white border-none bg-orange-500 hover:bg-orange-600 rounded-sm w-full h-11 font-semibold">
 Proceed to Checkout
 </a>
 
-<a href="/#products" class="btn btn-ghost  w-full mt-2 rounded-sm text-orange-500 hover:text-orange-600 text-sm">
+<a href="/shop" class="btn btn-ghost  w-full mt-2 rounded-sm text-orange-500 hover:text-orange-600 text-sm">
 Continue Shopping
 </a>
 </div>

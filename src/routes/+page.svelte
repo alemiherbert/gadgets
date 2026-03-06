@@ -334,8 +334,47 @@ View all deals
 </a>
 </div>
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
-{#each data.deals as product}
+{#each data.deals as product, i}
+<div class={i >= 6 ? 'hidden lg:block' : ''}>
 <ProductCard {product} />
+</div>
+{/each}
+</div>
+</div>
+</section>
+{/if}
+
+<!-- ── Shop by Brand ─────────────────────────────────────────────────── -->
+{#if data.brands.length > 0}
+<section class="py-10 bg-white">
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<p class="text-sm font-semibold text-orange-500 uppercase tracking-wider mb-1">Top Brands</p>
+<h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Shop by Brand</h2>
+</div>
+<a href="/shop" class="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors">
+View all
+<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+</a>
+</div>
+<div class="flex flex-wrap gap-3">
+{#each data.brands as brand}
+<a
+href="/shop?brand={brand.slug}"
+class="group relative h-10 w-32 sm:h-12 sm:w-36 rounded-sm overflow-hidden border border-slate-200 bg-slate-800 hover:shadow-lg hover:border-orange-400 transition-all duration-200"
+>
+	<!-- Background image -->
+	{#if brand.logo_key}
+		<img src={getImageUrl(brand.logo_key)} alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+	{/if}
+	<!-- Dark overlay -->
+	<div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors duration-200"></div>
+	<!-- Brand name -->
+	<div class="relative h-full flex items-center justify-center px-2">
+		<span class="text-white text-sm font-semibold text-center leading-tight drop-shadow-sm">{brand.name}</span>
+	</div>
+</a>
 {/each}
 </div>
 </div>

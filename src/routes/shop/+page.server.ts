@@ -1,11 +1,12 @@
 import type { PageServerLoad } from './$types';
-import { getShopProducts, getAllCategories, getAvailableSpecs, getPriceRange, getSubcategoriesByCategory } from '$lib/db';
+import { getShopProducts, getAllCategories, getAvailableSpecs, getPriceRange, getSubcategoriesByCategory, getShopBrands } from '$lib/db';
 
 export const load: PageServerLoad = async ({ url, platform }) => {
 	const db = platform!.env.DB;
 
 	const category = url.searchParams.get('category') ?? undefined;
 	const subcategory = url.searchParams.get('subcategory') ?? undefined;
+	const brand = url.searchParams.get('brand') ?? undefined;
 	const sort = url.searchParams.get('sort') ?? 'newest';
 	const search = url.searchParams.get('q') ?? undefined;
 	const page = Math.max(1, parseInt(url.searchParams.get('page') ?? '1'));
@@ -32,10 +33,11 @@ export const load: PageServerLoad = async ({ url, platform }) => {
 
 	const hasSpecFilters = Object.keys(specFilters).length > 0;
 
-	const [{ products, total }, categories, availableSpecs, priceRange, subcategories] = await Promise.all([
+	const [{ products, total }, categories, availableSpecs, priceRange, subcategories, brands] = await Promise.all([
 		getShopProducts(db, {
 			categorySlug: category,
 			subcategorySlug: subcategory,
+			brandSlug: brand,
 			search,
 			minPrice,
 			maxPrice,
@@ -48,6 +50,7 @@ export const load: PageServerLoad = async ({ url, platform }) => {
 		getAvailableSpecs(db, subcategory),
 		getPriceRange(db, category),
 		category ? getSubcategoriesByCategory(db, category) : Promise.resolve([]),
+		getShopBrands(db, { categorySlug: category, subcategorySlug: subcategory }),
 	]);
 
 	const totalPages = Math.ceil(total / limit);
@@ -56,11 +59,13 @@ export const load: PageServerLoad = async ({ url, platform }) => {
 		products,
 		categories,
 		subcategories,
+		brands,
 		total,
 		page,
 		totalPages,
 		activeCategory: category ?? null,
 		activeSubcategory: subcategory ?? null,
+		activeBrand: brand ?? null,
 		activeSort: sort,
 		activeSearch: search ?? '',
 		activeMinPrice: minPrice ?? null,

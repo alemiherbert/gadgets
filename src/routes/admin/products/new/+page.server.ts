@@ -1,16 +1,17 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { createProduct, getAllCategories, getAllSubcategoriesGrouped, setProductCategories, addProductImage } from '$lib/db';
+import { createProduct, getAllCategories, getAllSubcategoriesGrouped, setProductCategories, addProductImage, getAllBrands } from '$lib/db';
 import { uploadImage, generateImageKey } from '$lib/r2';
 import { parsePriceToCents } from '$lib/utils';
 
 export const load: PageServerLoad = async ({ platform }) => {
 	const db = platform!.env.DB;
-	const [categories, subcategoriesGrouped] = await Promise.all([
+	const [categories, subcategoriesGrouped, brands] = await Promise.all([
 		getAllCategories(db),
-		getAllSubcategoriesGrouped(db)
+		getAllSubcategoriesGrouped(db),
+		getAllBrands(db)
 	]);
-	return { categories, subcategoriesGrouped };
+	return { categories, subcategoriesGrouped, brands };
 };
 
 export const actions: Actions = {
@@ -26,6 +27,7 @@ export const actions: Actions = {
 		const stock = parseInt(formData.get('stock') as string) || 0;
 		const featured = formData.get('featured') === 'on' ? 1 : 0;
 		const subcategoryId = formData.get('subcategory_id') ? parseInt(formData.get('subcategory_id') as string) : null;
+		const brandId = formData.get('brand_id') ? parseInt(formData.get('brand_id') as string) : null;
 		const categoryIds = formData.getAll('category_ids').map(id => parseInt(id as string)).filter(n => !isNaN(n));
 		const specsJson = (formData.get('specs_json') as string)?.trim() || '{}';
 		const image = formData.get('image') as File | null;
@@ -60,7 +62,7 @@ export const actions: Actions = {
 
 		const productId = await createProduct(db, {
 			name, description, price, stock, image_key: imageKey,
-			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, specs: specsJson
+			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, brand_id: brandId, specs: specsJson
 		});
 
 		// Set categories

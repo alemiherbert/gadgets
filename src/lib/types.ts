@@ -13,6 +13,7 @@ export interface Product {
 	sales_count: number;
 	specs: string; // JSON string of product specifications
 	subcategory_id: number | null;
+	brand_id: number | null;
 	created_at: string;
 }
 
@@ -33,6 +34,16 @@ export interface Category {
 	description: string;
 	icon: string;
 	image_key: string | null;
+	sort_order: number;
+	product_count?: number;
+	created_at: string;
+}
+
+export interface Brand {
+	id: number;
+	name: string;
+	slug: string;
+	logo_key: string | null;
 	sort_order: number;
 	product_count?: number;
 	created_at: string;
@@ -161,6 +172,7 @@ export interface CartItem {
 	price: number; // stored in minor units
 	quantity: number;
 	imageUrl: string;
+	stock?: number; // max available quantity (set at add-time)
 }
 
 export interface ShippingAddress {

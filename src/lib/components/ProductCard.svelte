@@ -8,14 +8,19 @@
 
 	const discount = $derived(discountPercent(product.price, product.compare_at_price));
 
+	let existingQty = $derived(cart.getItemQuantity(product.id));
+	let canAdd = $derived(product.stock > existingQty);
+
 	function quickAdd(e: MouseEvent) {
 		e.preventDefault();
 		e.stopPropagation();
+		if (!canAdd) return;
 		cart.addItem({
 			id: product.id,
 			name: product.name,
 			price: product.price,
-			imageUrl: getImageUrl(product.image_key)
+			imageUrl: getImageUrl(product.image_key),
+			stock: product.stock
 		});
 	}
 </script>
@@ -55,7 +60,7 @@
 		{/if}
 
 		<!-- Quick add button -->
-		{#if product.stock > 0}
+		{#if product.stock > 0 && canAdd}
 			<button
 				onclick={quickAdd}
 				class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 bg-orange-500 hover:bg-orange-600 text-white rounded-sm p-2 shadow-lg transition-all duration-200 translate-y-1 group-hover:translate-y-0"
@@ -65,19 +70,25 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
 				</svg>
 			</button>
+		{:else if product.stock > 0 && !canAdd}
+			<div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 bg-orange-400 text-white rounded-sm p-2 shadow-lg transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+				<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+				</svg>
+			</div>
 		{/if}
 	</div>
 
 	<!-- Info -->
 	<div class="flex flex-col px-2 pt-3">
-		<h3 class="font-medium text-slate-900 line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors">
+		<h3 class="text-sm font-medium text-slate-900 line-clamp-2 leading-snug group-hover:text-orange-500 transition-colors">
 			{product.name}
 		</h3>
 		<div class="flex flex-col gap-1">
 			<div class="flex flex-col gap-0.5">
-				<span class="text-lg font-bold text-slate-800">{formatPrice(product.price)}</span>
+				<span class="text-base font-bold text-slate-800">{formatPrice(product.price)}</span>
 				{#if product.compare_at_price && product.compare_at_price > product.price}
-					<span class="text-sm text-slate-400 line-through">{formatPrice(product.compare_at_price)}</span>
+					<span class="text-xs text-slate-400 line-through">{formatPrice(product.compare_at_price)}</span>
 				{/if}
 			</div>
 		</div>

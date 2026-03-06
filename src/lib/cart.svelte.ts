@@ -35,17 +35,20 @@ class CartStore {
 		return this.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 	}
 
-	addItem(product: { id: number; name: string; price: number; imageUrl: string }, quantity = 1) {
+	addItem(product: { id: number; name: string; price: number; imageUrl: string; stock?: number }, quantity = 1) {
 		const existing = this.items.find(i => i.productId === product.id);
+		const maxStock = product.stock ?? Infinity;
 		if (existing) {
-			existing.quantity += quantity;
+			if (product.stock !== undefined) existing.stock = product.stock;
+			existing.quantity = Math.min(existing.quantity + quantity, maxStock);
 		} else {
 			this.items.push({
 				productId: product.id,
 				name: product.name,
 				price: product.price,
-				quantity,
-				imageUrl: product.imageUrl
+				quantity: Math.min(quantity, maxStock),
+				imageUrl: product.imageUrl,
+				stock: product.stock
 			});
 		}
 		saveCart(this.items);
@@ -58,9 +61,15 @@ class CartStore {
 		}
 		const item = this.items.find(i => i.productId === productId);
 		if (item) {
-			item.quantity = quantity;
+			const maxStock = item.stock ?? Infinity;
+			item.quantity = Math.min(quantity, maxStock);
 			saveCart(this.items);
 		}
+	}
+
+	getItemQuantity(productId: number): number {
+		const item = this.items.find(i => i.productId === productId);
+		return item?.quantity ?? 0;
 	}
 
 	removeItem(productId: number) {

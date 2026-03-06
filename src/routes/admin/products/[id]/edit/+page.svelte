@@ -184,6 +184,16 @@ let remainingImages = $derived(data.images.filter(img => !imagesToDelete.include
 					{/each}
 				</select>
 			</div>
+
+			<div class="form-group">
+				<label for="brand_id" class="label">Brand</label>
+				<select id="brand_id" name="brand_id" class="input">
+					<option value="">— None —</option>
+					{#each data.brands as brand}
+						<option value={brand.id} selected={data.product.brand_id === brand.id}>{brand.name}</option>
+					{/each}
+				</select>
+			</div>
 		</div>
 
 		<!-- Images card -->

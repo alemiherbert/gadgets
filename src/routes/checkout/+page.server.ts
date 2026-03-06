@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getProductById, createOrder, createOrderItem, decrementStock, getOrderItems } from '$lib/db';
+import { getProductById, createOrder, createOrderItem, decrementStock, incrementStock, getOrderItems } from '$lib/db';
 import { sendOrderConfirmation, sendAdminNewOrderNotification } from '$lib/email';
 import type { CartItem, ShippingAddress } from '$lib/types';
 import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
@@ -88,7 +88,10 @@ export const actions: Actions = {
 		}
 
 		// Calculate total
-		const total = validatedItems.reduce((sum, { product, quantity }) => sum + product!.price * quantity, 0);
+		const subtotal = validatedItems.reduce((sum, { product, quantity }) => sum + product!.price * quantity, 0);
+		const isKampala = city.trim().toLowerCase() === 'kampala';
+		const shipping = isKampala ? 550000 : 0; // 5,500 UGX in cents for Kampala; outside Kampala confirmed on phone
+		const total = subtotal + shipping;
 
 		const address: ShippingAddress = { street, city, state };
 
@@ -103,7 +106,21 @@ export const actions: Actions = {
 			notes
 		});
 
-		// Create order items and decrement stock
+		// Decrement stock atomically — if any item fails (race condition), roll back
+		const decremented: { productId: number; quantity: number }[] = [];
+		for (const { product, quantity } of validatedItems) {
+			const success = await decrementStock(db, product!.id, quantity);
+			if (!success) {
+				// Roll back already-decremented items
+				for (const dec of decremented) {
+					await incrementStock(db, dec.productId, dec.quantity);
+				}
+				return fail(400, { error: `Sorry, ${product!.name} just went out of stock. Please update your cart and try again.` });
+			}
+			decremented.push({ productId: product!.id, quantity });
+		}
+
+		// Create order items
 		for (const { product, quantity } of validatedItems) {
 			await createOrderItem(db, {
 				order_id: orderId,
@@ -111,7 +128,6 @@ export const actions: Actions = {
 				quantity,
 				price_at_purchase: product!.price
 			});
-			await decrementStock(db, product!.id, quantity);
 		}
 
 		// Send emails (non-blocking)

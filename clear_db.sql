@@ -12,5 +12,6 @@ DROP TABLE IF EXISTS search_history;
 DROP TABLE IF EXISTS featured_slides;
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS brands;
 DROP TABLE IF EXISTS admin_sessions;
 DROP TABLE IF EXISTS admins;

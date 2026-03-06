@@ -1,4 +1,4 @@
-import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session, Category, Subcategory, SearchHistoryItem, FeaturedSlide, PasswordResetToken, ProductReview, ProductImage } from './types';
+import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session, Category, Subcategory, Brand, SearchHistoryItem, FeaturedSlide, PasswordResetToken, ProductReview, ProductImage } from './types';
 
 // ─── Products ────────────────────────────────────────────
 export async function getActiveProducts(db: D1Database): Promise<Product[]> {
@@ -56,6 +56,7 @@ export async function getBestSellers(db: D1Database, limit = 8, offset = 0): Pro
 export async function getShopProducts(db: D1Database, options: {
 	categorySlug?: string;
 	subcategorySlug?: string;
+	brandSlug?: string;
 	search?: string;
 	minPrice?: number;
 	maxPrice?: number;
@@ -64,7 +65,7 @@ export async function getShopProducts(db: D1Database, options: {
 	limit?: number;
 	offset?: number;
 }): Promise<{ products: Product[]; total: number }> {
-	const { categorySlug, subcategorySlug, search, minPrice, maxPrice, specFilters, sort = 'newest', limit = 48, offset = 0 } = options;
+	const { categorySlug, subcategorySlug, brandSlug, search, minPrice, maxPrice, specFilters, sort = 'newest', limit = 48, offset = 0 } = options;
 
 	let orderBy = 'p.created_at DESC';
 	if (sort === 'price-asc') orderBy = 'p.price ASC';
@@ -82,8 +83,17 @@ export async function getShopProducts(db: D1Database, options: {
 	}
 
 	if (search) {
-		conditions.push('(p.name LIKE ? OR p.description LIKE ?)');
-		bindings.push(`%${search}%`, `%${search}%`);
+		// Split search into individual terms for AND matching
+		const terms = search.split(/\s+/).filter(t => t.length > 0);
+		if (terms.length > 0) {
+			const termConditions = terms.map(() =>
+				`(p.name LIKE ? OR p.description LIKE ? OR p.specs LIKE ? OR EXISTS (SELECT 1 FROM brands br WHERE br.id = p.brand_id AND br.name LIKE ?) OR EXISTS (SELECT 1 FROM subcategories sc WHERE sc.id = p.subcategory_id AND sc.name LIKE ?))`
+			);
+			conditions.push(`(${termConditions.join(' AND ')})`);
+			for (const term of terms) {
+				bindings.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
+			}
+		}
 	}
 
 	if (minPrice !== undefined) {
@@ -107,11 +117,18 @@ export async function getShopProducts(db: D1Database, options: {
 		}
 	}
 
+	// Brand filter
+	if (brandSlug) {
+		conditions.push('b.slug = ?');
+		bindings.push(brandSlug);
+	}
+
 	const whereClause = conditions.join(' AND ');
+	const brandJoin = brandSlug ? 'JOIN brands b ON p.brand_id = b.id' : '';
 
 	// When filtering by subcategory, join the subcategories table
 	if (subcategorySlug) {
-		const joinClause = `JOIN subcategories s ON p.subcategory_id = s.id`;
+		const joinClause = `JOIN subcategories s ON p.subcategory_id = s.id ${brandJoin}`;
 
 		const countSql = `SELECT COUNT(*) as total FROM products p ${joinClause} WHERE ${whereClause}`;
 		const querySql = `SELECT p.* FROM products p ${joinClause} WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
@@ -125,11 +142,13 @@ export async function getShopProducts(db: D1Database, options: {
 		const countSql = `SELECT COUNT(*) as total FROM products p
 			JOIN product_categories pc ON p.id = pc.product_id
 			JOIN categories c ON pc.category_id = c.id
+			${brandJoin}
 			WHERE ${whereClause} AND c.slug = ?`;
 
 		const querySql = `SELECT p.* FROM products p
 			JOIN product_categories pc ON p.id = pc.product_id
 			JOIN categories c ON pc.category_id = c.id
+			${brandJoin}
 			WHERE ${whereClause} AND c.slug = ?
 			ORDER BY ${orderBy}
 			LIMIT ? OFFSET ?`;
@@ -139,8 +158,8 @@ export async function getShopProducts(db: D1Database, options: {
 		return { products: result.results, total: countResult?.total ?? 0 };
 	}
 
-	const countSql = `SELECT COUNT(*) as total FROM products p WHERE ${whereClause}`;
-	const querySql = `SELECT * FROM products p WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+	const countSql = `SELECT COUNT(*) as total FROM products p ${brandJoin} WHERE ${whereClause}`;
+	const querySql = `SELECT p.* FROM products p ${brandJoin} WHERE ${whereClause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
 
 	const countResult = await db.prepare(countSql).bind(...bindings).first<{ total: number }>();
 	const result = await db.prepare(querySql).bind(...bindings, limit, offset).all<Product>();
@@ -196,21 +215,44 @@ export async function getPriceRange(db: D1Database, categorySlug?: string): Prom
 }
 
 export async function searchProducts(db: D1Database, query: string, categoryId?: number): Promise<Product[]> {
+	// Split into terms for AND matching
+	const terms = query.split(/\s+/).filter(t => t.length > 0);
+	if (terms.length === 0) return [];
+
+	const termConditions = terms.map(() =>
+		`(p.name LIKE ? OR p.description LIKE ? OR p.specs LIKE ? OR EXISTS (SELECT 1 FROM brands br WHERE br.id = p.brand_id AND br.name LIKE ?) OR EXISTS (SELECT 1 FROM subcategories sc WHERE sc.id = p.subcategory_id AND sc.name LIKE ?))`
+	);
+	const searchWhere = termConditions.join(' AND ');
+	const searchBindings: string[] = [];
+	for (const term of terms) {
+		searchBindings.push(`%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`, `%${term}%`);
+	}
+
+	// Relevance: name exact > name contains > brand > description
+	const relevanceOrder = `
+		CASE
+			WHEN LOWER(p.name) = LOWER(?) THEN 1
+			WHEN LOWER(p.name) LIKE LOWER(?) THEN 2
+			WHEN EXISTS (SELECT 1 FROM brands br WHERE br.id = p.brand_id AND br.name LIKE ?) THEN 3
+			ELSE 4
+		END, p.sales_count DESC`;
+	const relevanceBindings = [query, `%${query}%`, `%${query}%`];
+
 	if (categoryId) {
 		const result = await db.prepare(
 			`SELECT p.* FROM products p
 			 JOIN product_categories pc ON p.id = pc.product_id
 			 WHERE p.active = 1 AND pc.category_id = ?
-			 AND (p.name LIKE ? OR p.description LIKE ?)
-			 ORDER BY p.created_at DESC`
-		).bind(categoryId, `%${query}%`, `%${query}%`).all<Product>();
+			 AND (${searchWhere})
+			 ORDER BY ${relevanceOrder}`
+		).bind(categoryId, ...searchBindings, ...relevanceBindings).all<Product>();
 		return result.results;
 	}
 	const result = await db.prepare(
-		`SELECT * FROM products WHERE active = 1
-		 AND (name LIKE ? OR description LIKE ?)
-		 ORDER BY created_at DESC`
-	).bind(`%${query}%`, `%${query}%`).all<Product>();
+		`SELECT p.* FROM products p WHERE p.active = 1
+		 AND (${searchWhere})
+		 ORDER BY ${relevanceOrder}`
+	).bind(...searchBindings, ...relevanceBindings).all<Product>();
 	return result.results;
 }
 
@@ -235,56 +277,118 @@ export async function getProductsByCategorySlug(db: D1Database, slug: string): P
 	return result.results;
 }
 
-export async function getRecommendedProducts(db: D1Database, productId: number, limit = 4): Promise<Product[]> {
-	// Get products from the same categories, excluding the current product
-	const result = await db.prepare(
-		`SELECT DISTINCT p.* FROM products p
-		 JOIN product_categories pc ON p.id = pc.product_id
-		 WHERE p.active = 1 AND p.id != ?
-		 AND pc.category_id IN (
-			SELECT category_id FROM product_categories WHERE product_id = ?
-		 )
-		 ORDER BY p.featured DESC, p.created_at DESC
-		 LIMIT ?`
-	).bind(productId, productId, limit).all<Product>();
-	// Fall back to popular products if not enough recommendations
-	if (result.results.length < limit) {
-		const fallback = await db.prepare(
-			`SELECT * FROM products WHERE active = 1 AND id != ?
-			 ORDER BY featured DESC, created_at DESC LIMIT ?`
-		).bind(productId, limit - result.results.length).all<Product>();
-		const existingIds = new Set(result.results.map(p => p.id));
-		for (const p of fallback.results) {
-			if (!existingIds.has(p.id)) result.results.push(p);
+export async function getRecommendedProducts(db: D1Database, productId: number, limit = 4, customerId: number | null = null): Promise<Product[]> {
+	const seen = new Set<number>([productId]);
+	const results: Product[] = [];
+
+	// 1. Products frequently bought together (co-purchased)
+	try {
+		const coPurchased = await db.prepare(
+			`SELECT p.* FROM products p
+			 WHERE p.active = 1 AND p.id != ?
+			 AND p.id IN (
+				SELECT oi2.product_id FROM order_items oi1
+				JOIN order_items oi2 ON oi1.order_id = oi2.order_id
+				WHERE oi1.product_id = ? AND oi2.product_id != ?
+				GROUP BY oi2.product_id
+				ORDER BY COUNT(*) DESC
+				LIMIT ?
+			 )`
+		).bind(productId, productId, productId, limit).all<Product>();
+		for (const p of coPurchased.results) {
+			if (!seen.has(p.id)) { results.push(p); seen.add(p.id); }
 		}
+	} catch {}
+
+	// 2. Products viewed by customers who also viewed this product (collaborative filtering)
+	if (results.length < limit && customerId) {
+		try {
+			const coViewed = await db.prepare(
+				`SELECT p.* FROM products p
+				 WHERE p.active = 1 AND p.id != ?
+				 AND p.id IN (
+					SELECT pv2.product_id FROM product_views pv1
+					JOIN product_views pv2 ON pv1.customer_id = pv2.customer_id
+					WHERE pv1.product_id = ? AND pv2.product_id != ?
+					AND pv1.customer_id IS NOT NULL
+					GROUP BY pv2.product_id
+					ORDER BY COUNT(*) DESC
+					LIMIT ?
+				 )
+				 ORDER BY p.sales_count DESC
+				 LIMIT ?`
+			).bind(productId, productId, productId, limit * 2, limit - results.length).all<Product>();
+			for (const p of coViewed.results) {
+				if (!seen.has(p.id)) { results.push(p); seen.add(p.id); }
+			}
+		} catch {}
 	}
-	return result.results.slice(0, limit);
+
+	// 3. Same category products (original logic)
+	if (results.length < limit) {
+		try {
+			const sameCategory = await db.prepare(
+				`SELECT DISTINCT p.* FROM products p
+				 JOIN product_categories pc ON p.id = pc.product_id
+				 WHERE p.active = 1 AND p.id != ?
+				 AND pc.category_id IN (
+					SELECT category_id FROM product_categories WHERE product_id = ?
+				 )
+				 ORDER BY p.sales_count DESC, p.featured DESC, p.created_at DESC
+				 LIMIT ?`
+			).bind(productId, productId, limit * 2).all<Product>();
+			for (const p of sameCategory.results) {
+				if (!seen.has(p.id)) { results.push(p); seen.add(p.id); }
+				if (results.length >= limit) break;
+			}
+		} catch {}
+	}
+
+	// 4. Popular / trending products fallback
+	if (results.length < limit) {
+		try {
+			const popular = await db.prepare(
+				`SELECT p.* FROM products p
+				 LEFT JOIN product_views pv ON p.id = pv.product_id AND pv.created_at > datetime('now', '-30 days')
+				 WHERE p.active = 1 AND p.id != ?
+				 GROUP BY p.id
+				 ORDER BY COUNT(pv.id) DESC, p.sales_count DESC, p.featured DESC
+				 LIMIT ?`
+			).bind(productId, limit * 2).all<Product>();
+			for (const p of popular.results) {
+				if (!seen.has(p.id)) { results.push(p); seen.add(p.id); }
+				if (results.length >= limit) break;
+			}
+		} catch {}
+	}
+
+	return results.slice(0, limit);
 }
 
 export async function createProduct(db: D1Database, product: {
 	name: string; description: string; price: number; stock: number; image_key: string | null;
-	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; specs?: string;
+	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; brand_id?: number | null; specs?: string;
 }): Promise<number> {
 	const result = await db.prepare(
-		'INSERT INTO products (name, description, price, compare_at_price, stock, image_key, featured, subcategory_id, specs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+		'INSERT INTO products (name, description, price, compare_at_price, stock, image_key, featured, subcategory_id, brand_id, specs) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
 	).bind(
 		product.name, product.description, product.price, product.compare_at_price ?? null,
 		product.stock, product.image_key, product.featured ?? 0,
-		product.subcategory_id ?? null, product.specs ?? '{}'
+		product.subcategory_id ?? null, product.brand_id ?? null, product.specs ?? '{}'
 	).run();
 	return result.meta.last_row_id as number;
 }
 
 export async function updateProduct(db: D1Database, id: number, product: {
 	name: string; description: string; price: number; stock: number; image_key: string | null; active: number;
-	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; specs?: string;
+	compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; brand_id?: number | null; specs?: string;
 }): Promise<void> {
 	await db.prepare(
-		'UPDATE products SET name = ?, description = ?, price = ?, compare_at_price = ?, stock = ?, image_key = ?, active = ?, featured = ?, subcategory_id = ?, specs = ? WHERE id = ?'
+		'UPDATE products SET name = ?, description = ?, price = ?, compare_at_price = ?, stock = ?, image_key = ?, active = ?, featured = ?, subcategory_id = ?, brand_id = ?, specs = ? WHERE id = ?'
 	).bind(
 		product.name, product.description, product.price, product.compare_at_price ?? null,
 		product.stock, product.image_key, product.active, product.featured ?? 0,
-		product.subcategory_id ?? null, product.specs ?? '{}', id
+		product.subcategory_id ?? null, product.brand_id ?? null, product.specs ?? '{}', id
 	).run();
 }
 
@@ -292,9 +396,15 @@ export async function deleteProduct(db: D1Database, id: number): Promise<void> {
 	await db.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
 }
 
-export async function decrementStock(db: D1Database, productId: number, quantity: number): Promise<void> {
-	await db.prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?')
+export async function decrementStock(db: D1Database, productId: number, quantity: number): Promise<boolean> {
+	const result = await db.prepare('UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?')
 		.bind(quantity, productId, quantity).run();
+	return (result.meta.changes ?? 0) > 0;
+}
+
+export async function incrementStock(db: D1Database, productId: number, quantity: number): Promise<void> {
+	await db.prepare('UPDATE products SET stock = stock + ? WHERE id = ?')
+		.bind(quantity, productId).run();
 }
 
 export async function getLowStockProducts(db: D1Database, threshold = 5): Promise<Product[]> {
@@ -789,4 +899,106 @@ export async function updateSubcategory(db: D1Database, id: number, data: {
 
 export async function deleteSubcategory(db: D1Database, id: number): Promise<void> {
 	await db.prepare('DELETE FROM subcategories WHERE id = ?').bind(id).run();
+}
+
+// ─── Brands ──────────────────────────────────────────────
+export async function getAllBrands(db: D1Database): Promise<Brand[]> {
+	const result = await db.prepare(
+		`SELECT b.*, COUNT(p.id) as product_count
+		 FROM brands b
+		 LEFT JOIN products p ON b.id = p.brand_id AND p.active = 1
+		 GROUP BY b.id
+		 ORDER BY b.sort_order ASC`
+	).all<Brand>();
+	return result.results;
+}
+
+export async function getPopularBrands(db: D1Database, limit = 12): Promise<Brand[]> {
+	const result = await db.prepare(
+		`SELECT b.*, COUNT(p.id) as product_count, COALESCE(SUM(p.sales_count), 0) as total_sales
+		 FROM brands b
+		 LEFT JOIN products p ON b.id = p.brand_id AND p.active = 1
+		 GROUP BY b.id
+		 HAVING product_count > 0
+		 ORDER BY total_sales DESC
+		 LIMIT ?`
+	).bind(limit).all<Brand>();
+	return result.results;
+}
+
+export async function getShopBrands(db: D1Database, options?: {
+	categorySlug?: string;
+	subcategorySlug?: string;
+}): Promise<Brand[]> {
+	const categorySlug = options?.categorySlug;
+	const subcategorySlug = options?.subcategorySlug;
+
+	if (subcategorySlug) {
+		// Brands that have products in this subcategory
+		const result = await db.prepare(
+			`SELECT b.*, COUNT(p.id) as product_count
+			 FROM brands b
+			 JOIN products p ON b.id = p.brand_id AND p.active = 1
+			 JOIN subcategories s ON p.subcategory_id = s.id
+			 WHERE s.slug = ?
+			 GROUP BY b.id
+			 ORDER BY SUM(p.sales_count) DESC`
+		).bind(subcategorySlug).all<Brand>();
+		return result.results;
+	}
+
+	if (categorySlug) {
+		// Brands that have products in this category
+		const result = await db.prepare(
+			`SELECT b.*, COUNT(p.id) as product_count
+			 FROM brands b
+			 JOIN products p ON b.id = p.brand_id AND p.active = 1
+			 JOIN product_categories pc ON p.id = pc.product_id
+			 JOIN categories c ON pc.category_id = c.id
+			 WHERE c.slug = ?
+			 GROUP BY b.id
+			 ORDER BY SUM(p.sales_count) DESC`
+		).bind(categorySlug).all<Brand>();
+		return result.results;
+	}
+
+	// Default: top 6 brands by total sales
+	const result = await db.prepare(
+		`SELECT b.*, COUNT(p.id) as product_count
+		 FROM brands b
+		 JOIN products p ON b.id = p.brand_id AND p.active = 1
+		 GROUP BY b.id
+		 ORDER BY SUM(p.sales_count) DESC
+		 LIMIT 6`
+	).all<Brand>();
+	return result.results;
+}
+
+export async function getBrandBySlug(db: D1Database, slug: string): Promise<Brand | null> {
+	return db.prepare('SELECT * FROM brands WHERE slug = ?').bind(slug).first<Brand>();
+}
+
+export async function getBrandById(db: D1Database, id: number): Promise<Brand | null> {
+	return db.prepare('SELECT * FROM brands WHERE id = ?').bind(id).first<Brand>();
+}
+
+export async function createBrand(db: D1Database, data: {
+	name: string; slug: string; logo_key?: string | null; sort_order?: number;
+}): Promise<number> {
+	const result = await db.prepare(
+		`INSERT INTO brands (name, slug, logo_key, sort_order) VALUES (?, ?, ?, ?)`
+	).bind(data.name, data.slug, data.logo_key ?? null, data.sort_order ?? 0).run();
+	return result.meta.last_row_id as number;
+}
+
+export async function updateBrand(db: D1Database, id: number, data: {
+	name: string; slug: string; logo_key?: string | null; sort_order?: number;
+}): Promise<void> {
+	await db.prepare(
+		`UPDATE brands SET name = ?, slug = ?, logo_key = ?, sort_order = ? WHERE id = ?`
+	).bind(data.name, data.slug, data.logo_key ?? null, data.sort_order ?? 0, id).run();
+}
+
+export async function deleteBrand(db: D1Database, id: number): Promise<void> {
+	await db.prepare('DELETE FROM brands WHERE id = ?').bind(id).run();
 }

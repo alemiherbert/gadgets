@@ -80,8 +80,8 @@ cart.clear();
 
 <div class="flex flex-col sm:flex-row gap-3 mt-8">
 {#if data.order.customer_id}
-<a href="/account" class="btn btn-primary flex-1">View My Orders</a>
+<a href="/account" class="btn bg-orange-500 hover:bg-orange-600 text-white border-none rounded-sm flex-1">View My Orders</a>
 {/if}
-<a href="/" class="btn btn-outline flex-1">Continue Shopping</a>
+<a href="/shop" class="btn border-orange-500 text-orange-500 hover:bg-orange-50 rounded-sm flex-1">Continue Shopping</a>
 </div>
 </div>

@@ -16,7 +16,7 @@ let { data }: { data: PageData } = $props();
 <p class="text-sm text-zinc-500 mt-1">Welcome back, {data.customer.name}</p>
 </div>
 <form method="POST" action="/auth/logout">
-<button type="submit" class="btn btn-outline btn-sm">Sign Out</button>
+<button type="submit" class="btn btn-sm bg-orange-500 hover:bg-orange-600 text-white border-none rounded-sm">Sign Out</button>
 </form>
 </div>
 
@@ -41,7 +41,7 @@ let { data }: { data: PageData } = $props();
 {#if data.orders.length === 0}
 <div class="card p-8 text-center">
 <p class="text-sm text-zinc-500">You haven't placed any orders yet.</p>
-<a href="/#products" class="btn btn-primary mt-4">Start Shopping</a>
+<a href="/shop" class="btn bg-orange-500 hover:bg-orange-600 text-white border-none rounded-sm mt-4">Start Shopping</a>
 </div>
 {:else}
 <div class="space-y-4">

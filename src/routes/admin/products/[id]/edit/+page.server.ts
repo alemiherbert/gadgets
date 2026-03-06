@@ -2,7 +2,8 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
 import {
 	getProductById, updateProduct, getAllCategories, getAllSubcategoriesGrouped,
-	getProductCategoryIds, setProductCategories, getProductImages, addProductImage, deleteProductImage
+	getProductCategoryIds, setProductCategories, getProductImages, addProductImage, deleteProductImage,
+	getAllBrands
 } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
 import { parsePriceToCents } from '$lib/utils';
@@ -10,19 +11,20 @@ import { parsePriceToCents } from '$lib/utils';
 export const load: PageServerLoad = async ({ params, platform }) => {
 	const db = platform!.env.DB;
 	const productId = parseInt(params.id);
-	const [product, categories, subcategoriesGrouped, productCategoryIds, images] = await Promise.all([
+	const [product, categories, subcategoriesGrouped, productCategoryIds, images, brands] = await Promise.all([
 		getProductById(db, productId),
 		getAllCategories(db),
 		getAllSubcategoriesGrouped(db),
 		getProductCategoryIds(db, productId),
-		getProductImages(db, productId)
+		getProductImages(db, productId),
+		getAllBrands(db)
 	]);
 
 	if (!product) {
 		throw error(404, 'Product not found');
 	}
 
-	return { product, categories, subcategoriesGrouped, productCategoryIds, images };
+	return { product, categories, subcategoriesGrouped, productCategoryIds, images, brands };
 };
 
 export const actions: Actions = {
@@ -40,6 +42,7 @@ export const actions: Actions = {
 		const active = formData.get('active') === 'on' ? 1 : 0;
 		const featured = formData.get('featured') === 'on' ? 1 : 0;
 		const subcategoryId = formData.get('subcategory_id') ? parseInt(formData.get('subcategory_id') as string) : null;
+		const brandId = formData.get('brand_id') ? parseInt(formData.get('brand_id') as string) : null;
 		const categoryIds = formData.getAll('category_ids').map(id => parseInt(id as string)).filter(n => !isNaN(n));
 		const specsJson = (formData.get('specs_json') as string)?.trim() || '{}';
 		const image = formData.get('image') as File | null;
@@ -81,7 +84,7 @@ export const actions: Actions = {
 
 		await updateProduct(db, productId, {
 			name, description, price, stock, image_key: imageKey, active,
-			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, specs: specsJson
+			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, brand_id: brandId, specs: specsJson
 		});
 
 		// Update categories

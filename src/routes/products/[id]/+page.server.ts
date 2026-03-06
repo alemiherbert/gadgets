@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params, platform, locals }) => {
 	try { await recordProductView(db, productId, customerId); } catch {}
 
 	const [recommendations, reviews, images] = await Promise.all([
-		getRecommendedProducts(db, productId, 4),
+		getRecommendedProducts(db, productId, 4, customerId),
 		getProductReviews(db, productId),
 		getProductImages(db, productId)
 	]);

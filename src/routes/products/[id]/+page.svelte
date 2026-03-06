@@ -15,6 +15,9 @@
 	let hoverRating = $state(0);
 	let selectedImage = $state(0);
 
+	let existingCartQty = $derived(cart.getItemQuantity(data.product.id));
+	let maxAddable = $derived(Math.max(0, data.product.stock - existingCartQty));
+
 	let allImages = $derived(
 		[data.product.image_key, ...data.images.map((img) => img.image_key)].filter(Boolean) as string[]
 	);
@@ -33,19 +36,107 @@
 	);
 
 	function addToCart() {
+		if (maxAddable <= 0) return;
+		const qty = Math.min(quantity, maxAddable);
 		cart.addItem({
 			id: data.product.id,
 			name: data.product.name,
 			price: data.product.price,
-			imageUrl: getImageUrl(data.product.image_key)
-		}, quantity);
+			imageUrl: getImageUrl(data.product.image_key),
+			stock: data.product.stock
+		}, qty);
 		added = true;
+		quantity = 1;
 		setTimeout(() => (added = false), 2000);
 	}
+
+
+
+	// SEO structured data
+	let jsonLd = $derived.by(() => {
+		const p = data.product;
+		const priceVal = (p.price / 100).toFixed(2);
+
+		const productSchema: Record<string, any> = {
+			'@context': 'https://schema.org',
+			'@type': 'Product',
+			name: p.name,
+			description: p.description || p.name,
+			image: allImages.map(k => getImageUrl(k)),
+			sku: String(p.id),
+			offers: {
+				'@type': 'Offer',
+				url: `https://gadgets.co.ug/products/${p.id}`,
+				priceCurrency: 'UGX',
+				price: priceVal,
+				availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+				itemCondition: 'https://schema.org/NewCondition'
+			}
+		};
+
+		if (p.compare_at_price && p.compare_at_price > p.price) {
+			productSchema.offers.priceValidUntil = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+		}
+
+		if (data.reviews.length > 0) {
+			productSchema.aggregateRating = {
+				'@type': 'AggregateRating',
+				ratingValue: avgRating.toFixed(1),
+				reviewCount: data.reviews.length,
+				bestRating: 5,
+				worstRating: 1
+			};
+			productSchema.review = data.reviews.slice(0, 5).map(r => ({
+				'@type': 'Review',
+				author: { '@type': 'Person', name: r.customer_name },
+				datePublished: r.created_at,
+				reviewRating: { '@type': 'Rating', ratingValue: r.rating, bestRating: 5 },
+				reviewBody: r.body ?? '',
+				...(r.title ? { name: r.title } : {})
+			}));
+		}
+
+		const breadcrumbSchema = {
+			'@context': 'https://schema.org',
+			'@type': 'BreadcrumbList',
+			itemListElement: [
+				{ '@type': 'ListItem', position: 1, name: 'Home', item: '/' },
+				{ '@type': 'ListItem', position: 2, name: 'Shop', item: '/shop' },
+				{ '@type': 'ListItem', position: 3, name: p.name }
+			]
+		};
+
+		return JSON.stringify([productSchema, breadcrumbSchema]);
+	});
 </script>
 
 <svelte:head>
 	<title>{data.product.name} — Gadgets Store</title>
+	<meta name="description" content={data.product.description ? data.product.description.slice(0, 160) : `Buy ${data.product.name} at Gadgets Store Uganda. ${formatPrice(data.product.price)}. Fast delivery across Uganda.`} />
+	<meta name="robots" content="index, follow" />
+	<link rel="canonical" href="https://gadgets.co.ug/products/{data.product.id}" />
+
+	<!-- Open Graph -->
+	<meta property="og:type" content="product" />
+	<meta property="og:title" content="{data.product.name} — Gadgets Store" />
+	<meta property="og:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
+	<meta property="og:image" content="https://gadgets.co.ug{getImageUrl(data.product.image_key)}" />
+	<meta property="og:url" content="https://gadgets.co.ug/products/{data.product.id}" />
+	<meta property="og:site_name" content="Gadgets Store Uganda" />
+	<meta property="product:price:amount" content={(data.product.price / 100).toFixed(2)} />
+	<meta property="product:price:currency" content="UGX" />
+	<meta property="product:availability" content={data.product.stock > 0 ? 'in stock' : 'out of stock'} />
+
+	<!-- Twitter Card -->
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="{data.product.name} — Gadgets Store" />
+	<meta name="twitter:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
+	<meta name="twitter:image" content="https://gadgets.co.ug{getImageUrl(data.product.image_key)}" />
+	<meta name="twitter:site" content="@gadgetsug" />
+
+	<!-- JSON-LD Structured Data -->
+	{@html `<script type="application/ld+json">${jsonLd}</script>`}
+
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
 	<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=swap" rel="stylesheet">
@@ -116,22 +207,6 @@
 				{/if}
 			</div>
 
-			<!-- Product image thumbnails -->
-			{#if allImages.length > 1}
-			<div class="mt-auto flex gap-2 overflow-x-auto pt-2 border-t border-slate-100 pb-1">
-					{#each allImages as key, i}
-						<button
-							type="button"
-							onclick={() => (selectedImage = i)}
-							aria-label="View image {i + 1}"
-							class="relative shrink-0 h-16 w-16 rounded-sm overflow-hidden filter-blur-xs transition-all duration-150 cursor-pointer
-								{i === selectedImage ? 'filter-blur-xs' : 'filter-none hover:border-orange-300 opacity-70 hover:opacity-100'}"
-						>
-							<img src={getImageUrl(key)} alt="{data.product.name} - view {i + 1}" class="h-full w-full object-cover" />
-						</button>
-					{/each}
-				</div>
-			{/if}
 		</div>
 
 		<!-- ② Main image -->
@@ -149,6 +224,23 @@
 					<span class="absolute top-4 left-4 badge border-none bg-red-500 text-white">Sold Out</span>
 				{:else if data.product.stock < 5}
 					<span class="absolute top-4 left-4 badge border-none bg-amber-100 text-amber-700 border-amber-200">{data.product.stock} left</span>
+				{/if}
+
+				<!-- Image thumbnails inset bottom-left -->
+				{#if allImages.length > 1}
+					<div class="absolute bottom-3 left-3 flex gap-1.5">
+						{#each allImages as key, i}
+							<button
+								type="button"
+								onclick={() => (selectedImage = i)}
+								aria-label="View image {i + 1}"
+								class="h-12 w-12 rounded-sm overflow-hidden border-1 bg-slate-50 transition-all duration-150 cursor-pointer shadow-sm
+									{i === selectedImage ? 'border-orange-500 ring-1 ring-orange-300' : 'border-white/80 opacity-75 hover:opacity-100 hover:border-orange-300'}"
+							>
+								<img src={getImageUrl(key)} alt="{data.product.name} - view {i + 1}" class="h-full w-full object-cover" />
+							</button>
+						{/each}
+					</div>
 				{/if}
 			</div>
 		</div>
@@ -171,55 +263,76 @@
 			{/if}
 
 			{#if data.product.stock > 0}
-				<div class="space-y-3">
-					<div class="flex items-center gap-3">
-						<span class="text-sm font-medium text-slate-700">Qty</span>
-						<div class="flex items-center rounded-sm border border-slate-200 overflow-hidden">
-							<button
-								onclick={() => quantity = Math.max(1, quantity - 1)}
-								class="flex h-10 w-10 items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-								aria-label="Decrease"
-							>
-								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/>
-								</svg>
-							</button>
-							<input
-								type="number"
-								bind:value={quantity}
-								min="1"
-								max={data.product.stock}
-								class="h-10 w-14 border-x border-slate-200 text-center text-sm font-semibold text-slate-900 focus:outline-none bg-white"
-							/>
-							<button
-								onclick={() => quantity = Math.min(data.product.stock, quantity + 1)}
-								class="flex h-10 w-10 items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-								aria-label="Increase"
-							>
-								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-								</svg>
-							</button>
+				{#if maxAddable > 0}
+					<div class="space-y-3">
+						<div class="flex items-center gap-3">
+							<span class="text-sm font-medium text-slate-700">Qty</span>
+							<div class="flex items-center rounded-sm border border-slate-200 overflow-hidden">
+								<button
+									onclick={() => quantity = Math.max(1, quantity - 1)}
+									class="flex h-10 w-10 items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+									aria-label="Decrease"
+									disabled={quantity <= 1}
+								>
+									<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"/>
+									</svg>
+								</button>
+								<input
+									type="number"
+									bind:value={quantity}
+									min="1"
+									max={maxAddable}
+									class="h-10 w-14 border-x border-slate-200 text-center text-sm font-semibold text-slate-900 focus:outline-none bg-white"
+								/>
+								<button
+									onclick={() => quantity = Math.min(maxAddable, quantity + 1)}
+									class="flex h-10 w-10 items-center justify-center text-slate-500 hover:bg-orange-50 hover:text-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+									aria-label="Increase"
+									disabled={quantity >= maxAddable}
+								>
+									<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+									</svg>
+								</button>
+							</div>
 						</div>
-					</div>
 
-					<button
-						onclick={addToCart}
-						class="w-full h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
-					>
-						{#if added}
-							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-							</svg>
-							Added to Cart!
-						{:else}
-							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
-							</svg>
-							Add to Cart
+						{#if existingCartQty > 0}
+							<p class="text-xs text-slate-500">{existingCartQty} already in cart · {maxAddable} more available</p>
 						{/if}
-					</button>
-				</div>
+
+						<button
+							onclick={addToCart}
+							class="w-full h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
+						>
+							{#if added}
+								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+								</svg>
+								Added to Cart!
+							{:else}
+								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+								</svg>
+								Add to Cart
+							{/if}
+						</button>
+					</div>
+				{:else}
+					<div class="space-y-2">
+						<p class="text-xs text-slate-500">{existingCartQty} item{existingCartQty !== 1 ? 's' : ''} in your cart</p>
+						<a
+							href="/checkout"
+							class="w-full h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
+						>
+							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
+							</svg>
+							Proceed to Checkout
+						</a>
+					</div>
+				{/if}
 			{:else}
 				<div class="h-12 rounded-sm bg-slate-200 text-slate-900 font-semibold text-base flex items-center justify-center">
 					Sold Out
