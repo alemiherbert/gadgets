@@ -173,19 +173,20 @@ if (error) throw error;
 return data as string;
 }
 
-export async function generateSku(db: SupabaseClient): Promise<string> {
-const { data, error } = await db.rpc('generate_product_sku');
+export async function generateSku(db: SupabaseClient, prefix: string = 'A'): Promise<string> {
+const { data, error } = await db.rpc('generate_product_sku', { _prefix: prefix });
 if (error) throw error;
 return data as string;
 }
 
 export async function updateProduct(db: SupabaseClient, id: number, product: {
-name: string; slug: string; description: string; price: number; stock: number; image_key: string | null; active: number;
+name: string; slug: string; sku: string; description: string; price: number; stock: number; image_key: string | null; active: number;
 compare_at_price?: number | null; featured?: number; subcategory_id?: number | null; brand_id?: number | null; specs?: string;
 }): Promise<void> {
 const { error } = await db.from('products').update({
 name: product.name,
 slug: product.slug,
+sku: product.sku,
 description: product.description,
 price: product.price,
 compare_at_price: product.compare_at_price ?? null,

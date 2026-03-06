@@ -124,7 +124,8 @@ let remainingImages = $derived(data.images.filter(img => !imagesToDelete.include
 			<div class="grid grid-cols-2 gap-4">
 				<div class="form-group">
 					<label for="sku" class="label">SKU</label>
-					<input id="sku" name="sku" type="text" value={data.product.sku} class="input bg-zinc-50 text-zinc-500" readonly />
+					<input id="sku" name="sku" type="text" value={data.product.sku} class="input" pattern="[A-Za-z][0-9]{'{5}'}" title="One letter followed by 5 digits (e.g. A12345)" />
+					<p class="text-[11px] text-zinc-400 mt-1">Letter prefix + 5 digits (e.g. A12345)</p>
 				</div>
 				<div class="form-group">
 					<label for="slug" class="label">Slug</label>

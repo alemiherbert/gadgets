@@ -95,6 +95,15 @@ function handleAdditionalImage(e: Event, index: number) {
 			</div>
 
 			<div class="form-group">
+				<label for="store_prefix" class="label">Store</label>
+				<select id="store_prefix" name="store_prefix" class="input">
+					<option value="A">A — Abanista</option>
+					<option value="B">B — Store B</option>
+				</select>
+				<p class="text-[11px] text-zinc-400 mt-1">SKU prefix letter identifying the source store</p>
+			</div>
+
+			<div class="form-group">
 				<label for="description" class="label">Description</label>
 				<textarea id="description" name="description" rows="4" class="textarea" placeholder="Describe the product..."></textarea>
 			</div>

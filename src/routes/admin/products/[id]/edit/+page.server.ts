@@ -45,6 +45,7 @@ export const actions: Actions = {
 		const brandId = formData.get('brand_id') ? parseInt(formData.get('brand_id') as string) : null;
 		const categoryIds = formData.getAll('category_ids').map(id => parseInt(id as string)).filter(n => !isNaN(n));
 		const specsJson = (formData.get('specs_json') as string)?.trim() || '{}';
+		const skuInput = (formData.get('sku') as string)?.trim();
 		const image = formData.get('image') as File | null;
 		const existingImageKey = formData.get('existing_image_key') as string;
 		const additionalImages = formData.getAll('additional_images') as File[];
@@ -52,6 +53,11 @@ export const actions: Actions = {
 
 		if (!name || !priceStr) {
 			return fail(400, { error: 'Name and price are required.' });
+		}
+
+		// Validate SKU format if provided
+		if (skuInput && !/^[A-Za-z]\d{5}$/.test(skuInput)) {
+			return fail(400, { error: 'SKU must be one letter followed by 5 digits (e.g. A12345).' });
 		}
 
 		const price = parsePriceToCents(priceStr);
@@ -89,8 +95,11 @@ export const actions: Actions = {
 			slug = await generateSlug(db, name);
 		}
 
+		// Use provided SKU or keep existing
+		const sku = skuInput || existingProduct?.sku || '';
+
 		await updateProduct(db, productId, {
-			name, slug, description, price, stock, image_key: imageKey, active,
+			name, slug, sku, description, price, stock, image_key: imageKey, active,
 			compare_at_price: compareAtPrice, featured, subcategory_id: subcategoryId, brand_id: brandId, specs: specsJson
 		});
 

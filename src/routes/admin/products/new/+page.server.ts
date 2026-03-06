@@ -30,6 +30,7 @@ export const actions: Actions = {
 		const brandId = formData.get('brand_id') ? parseInt(formData.get('brand_id') as string) : null;
 		const categoryIds = formData.getAll('category_ids').map(id => parseInt(id as string)).filter(n => !isNaN(n));
 		const specsJson = (formData.get('specs_json') as string)?.trim() || '{}';
+		const storePrefix = ((formData.get('store_prefix') as string)?.trim().toUpperCase() || 'A').charAt(0);
 		const image = formData.get('image') as File | null;
 		const additionalImages = formData.getAll('additional_images') as File[];
 
@@ -56,7 +57,7 @@ export const actions: Actions = {
 		// Generate slug and SKU
 		const [slug, sku] = await Promise.all([
 			generateSlug(db, name),
-			generateSku(db)
+			generateSku(db, storePrefix)
 		]);
 
 		let imageKey: string | null = null;

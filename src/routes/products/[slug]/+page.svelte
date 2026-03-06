@@ -394,9 +394,6 @@
 		<div class="flex items-center justify-between mt-4 mb-2 gap-4">
 			{#if data.adjacent.prev}
 				<a href="/products/{data.adjacent.prev.slug}" class="group flex items-center gap-3 rounded-sm px-3 py-2 hover:bg-slate-50 transition-colors min-w-0 max-w-[45%]">
-					<svg class="h-4 w-4 text-slate-400 group-hover:text-orange-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
-					</svg>
 					<div class="h-10 w-10 shrink-0 rounded-sm overflow-hidden bg-slate-100">
 						<img src={getImageUrl(data.adjacent.prev.image_key)} alt={data.adjacent.prev.name} class="h-full w-full object-cover" />
 					</div>
@@ -417,9 +414,6 @@
 					<div class="h-10 w-10 shrink-0 rounded-sm overflow-hidden bg-slate-100">
 						<img src={getImageUrl(data.adjacent.next.image_key)} alt={data.adjacent.next.name} class="h-full w-full object-cover" />
 					</div>
-					<svg class="h-4 w-4 text-slate-400 group-hover:text-orange-500 shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-						<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
-					</svg>
 				</a>
 			{/if}
 		</div>
