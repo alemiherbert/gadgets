@@ -1,0 +1,1044 @@
+#!/usr/bin/env python3
+"""
+Migrate scraped abanista.com data → Supabase + R2.
+
+Steps:
+  1. Reorganize 17 WC categories → 6 new categories + subcategories
+  2. Convert all product images → WebP (quality=80, max 1200px)
+  3. Rename with nanoid (8 chars)
+  4. Upload to R2 via wrangler
+  5. Clear old seed data from DB
+  6. Insert brands, categories, subcategories, products, product_images, product_categories
+
+Usage:
+  cd data && source .venv/bin/activate
+        python migrate.py                                # Auto-map existing WebP files + upload + DB
+    python migrate.py --convert-images               # Rebuild WebP + image_map, then upload + DB
+    python migrate.py --images-only                  # Image upload only (no DB)
+        python migrate.py --db-only                      # DB only (uses existing image refs)
+        python migrate.py --no-image-map                 # Ignore image_map.json and build from products
+    python migrate.py --products-file abanista/tech_products_clean.json
+    python migrate.py --image-map-file abanista/image_map.json
+"""
+
+import argparse
+import json
+import os
+import re
+import string
+import subprocess
+import sys
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from io import BytesIO
+
+from PIL import Image
+import requests
+
+# ── Paths ─────────────────────────────────────────────────
+SCRIPT_DIR   = os.path.dirname(os.path.abspath(__file__))
+ABANISTA_DIR = os.path.join(SCRIPT_DIR, "abanista")
+WEBP_DIR     = os.path.join(ABANISTA_DIR, "images_webp")
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
+# ── Supabase ──────────────────────────────────────────────
+SUPABASE_URL = "https://xplhaaslnrpaqqrpxkbm.supabase.co"
+SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
+
+# ── R2 ────────────────────────────────────────────────────
+R2_BUCKET = "gadgets-images"
+
+# ── Image config ──────────────────────────────────────────
+WEBP_QUALITY = 80
+MAX_WIDTH    = 1200
+MAX_HEIGHT   = 1200
+IMG_WORKERS  = 8
+MAX_IMAGES_PER_PRODUCT = 6
+
+# ── nanoid (custom, no deps) ─────────────────────────────
+_NANOID_ALPHABET = string.ascii_lowercase + string.digits
+def nanoid(size=8):
+    import secrets
+    return ''.join(secrets.choice(_NANOID_ALPHABET) for _ in range(size))
+
+
+# ═══════════════════════════════════════════════════════════
+#  CATEGORY MAPPING: 17 WC categories → 6 new categories
+# ═══════════════════════════════════════════════════════════
+#
+# The 6 new categories match the store's focus as a
+# gadgets/appliances store in Uganda:
+#
+#  1. Home & Kitchen         — all home appliances, kitchen, laundry, cooling
+#  2. Electronics & Audio    — TVs, speakers, phones, computers, projectors, audio
+#  3. Energy & Power         — solar, generators, batteries, inverters, lighting
+#  4. Health & Beauty        — personal care, hair, skin, health
+#  5. Office & Computing     — printers, scanners, computers, laptops, monitors
+#  6. Tools & Outdoor        — DIY, automotive, garden, sports, furniture
+
+NEW_CATEGORIES = [
+    {
+        "name": "Home & Kitchen",
+        "slug": "home-kitchen",
+        "description": "Refrigerators, Cookers, Washing Machines, Air Conditioners, Kitchen Appliances & more",
+        "sort_order": 1,
+    },
+    {
+        "name": "Electronics & Audio",
+        "slug": "electronics-audio",
+        "description": "TVs, Phones, Speakers, Headphones, Cameras, Gaming & more",
+        "sort_order": 2,
+    },
+    {
+        "name": "Energy & Power",
+        "slug": "energy-power",
+        "description": "Solar Panels, Generators, Batteries, Inverters, Power Banks & Lighting",
+        "sort_order": 3,
+    },
+    {
+        "name": "Health & Beauty",
+        "slug": "health-beauty",
+        "description": "Hair Care, Skin Care, Personal Care Appliances, Health Products & more",
+        "sort_order": 4,
+    },
+    {
+        "name": "Office & Computing",
+        "slug": "office-computing",
+        "description": "Laptops, Monitors, Printers, Scanners, Computer Accessories & more",
+        "sort_order": 5,
+    },
+    {
+        "name": "Tools & Outdoor",
+        "slug": "tools-outdoor",
+        "description": "Power Tools, Automotive Tools, Pressure Washers, Garden & Sports Equipment",
+        "sort_order": 6,
+    },
+]
+
+# Map every WC category slug → one of the 6 new category slugs
+WC_TO_NEW_CATEGORY = {
+    # ─── Home & Kitchen ─────────────────────────────────
+    "refrigerators": "home-kitchen",
+    "chest-freezers": "home-kitchen",
+    "upright-freezers": "home-kitchen",
+    "built-in-freezers": "home-kitchen",
+    "built-in-fridges": "home-kitchen",
+    "display-coolers": "home-kitchen",
+    "display-freezers": "home-kitchen",
+    "portable-freezers": "home-kitchen",
+    "wine-coolers": "home-kitchen",
+    "chillers": "home-kitchen",
+    "cookers": "home-kitchen",
+    "gas-stoves": "home-kitchen",
+    "hobs": "home-kitchen",
+    "hotplates": "home-kitchen",
+    "ovens": "home-kitchen",
+    "mini-ovens": "home-kitchen",
+    "hoods": "home-kitchen",
+    "microwaves-built-in": "home-kitchen",
+    "microwave-ovens": "home-kitchen",
+    "domestic-washers": "home-kitchen",
+    "washing-machines": "home-kitchen",
+    "washing-machine-accessories": "home-kitchen",
+    "washer-dryer-combos": "home-kitchen",
+    "tumble-dryers": "home-kitchen",
+    "commercial-washers": "home-kitchen",
+    "commercial-dryers": "home-kitchen",
+    "laundry": "home-kitchen",
+    "dishwashers": "home-kitchen",
+    "built-in-dishwashers": "home-kitchen",
+    "air-conditioners": "home-kitchen",
+    "ac-components": "home-kitchen",
+    "air-coolers": "home-kitchen",
+    "air-curtains": "home-kitchen",
+    "air-purifiers": "home-kitchen",
+    "fans": "home-kitchen",
+    "dehumidifiers": "home-kitchen",
+    "humidifiers": "home-kitchen",
+    "space-heaters": "home-kitchen",
+    "heating-cooling": "home-kitchen",
+    "water-dispensers": "home-kitchen",
+    "water-heaters": "home-kitchen",
+    "vacuum-cleaners": "home-kitchen",
+    "steam-cleaners": "home-kitchen",
+    "spot-cleaners": "home-kitchen",
+    "garment-steamers": "home-kitchen",
+    "irons": "home-kitchen",
+    "sewing-machines": "home-kitchen",
+    "blenders": "home-kitchen",
+    "hand-blenders": "home-kitchen",
+    "smoothie-blenders": "home-kitchen",
+    "choppers": "home-kitchen",
+    "food-processors": "home-kitchen",
+    "kitchen-mixers": "home-kitchen",
+    "juicers": "home-kitchen",
+    "slow-juicers": "home-kitchen",
+    "kettles": "home-kitchen",
+    "coffee-makers": "home-kitchen",
+    "coffee-machines": "home-kitchen",
+    "coffee-grinders": "home-kitchen",
+    "coffee-makers-built-in": "home-kitchen",
+    "bread-toasters": "home-kitchen",
+    "breadmakers": "home-kitchen",
+    "sandwich-toasters": "home-kitchen",
+    "waffle-makers": "home-kitchen",
+    "panini-grills": "home-kitchen",
+    "doughnut-makers": "home-kitchen",
+    "omelette-makers": "home-kitchen",
+    "pizza-makers": "home-kitchen",
+    "roti-makers": "home-kitchen",
+    "candy-makers": "home-kitchen",
+    "popcorn-poppers": "home-kitchen",
+    "rice-cookers": "home-kitchen",
+    "pressure-cookers": "home-kitchen",
+    "multi-cookers": "home-kitchen",
+    "deep-fryers": "home-kitchen",
+    "air-fryers": "home-kitchen",
+    "food-steamers": "home-kitchen",
+    "egg-boilers": "home-kitchen",
+    "mincers": "home-kitchen",
+    "food-dehydrators": "home-kitchen",
+    "food-warmers": "home-kitchen",
+    "food-containers": "home-kitchen",
+    "flasks": "home-kitchen",
+    "kitchen-tools-utensils": "home-kitchen",
+    "kitchen-scales": "home-kitchen",
+    "weighing-scales": "home-kitchen",
+    "bathroom-scales": "home-kitchen",
+    "kitchen-dining": "home-kitchen",
+    "smart-home": "home-kitchen",
+    "smart-adaptors": "home-kitchen",
+    "insect-killers": "home-kitchen",
+    "icemakers": "home-kitchen",
+    "lpg-gas-cylinders": "home-kitchen",
+    "bathroom-accessories": "home-kitchen",
+    "mattresses": "home-kitchen",
+    "furniture": "home-kitchen",
+    "barbecue-grills": "home-kitchen",
+    "baby-accessories": "home-kitchen",
+    "supermarket": "home-kitchen",
+
+    # ─── Electronics & Audio ─────────────────────────────
+    "smart-tvs": "electronics-audio",
+    "digital-tvs": "electronics-audio",
+    "tv-accessories": "electronics-audio",
+    "commercial-displays": "electronics-audio",
+    "home-theatres": "electronics-audio",
+    "dvd": "electronics-audio",
+    "dvd-audio-systems": "electronics-audio",
+    "one-box-systems": "electronics-audio",
+    "soundbars": "electronics-audio",
+    "speakers": "electronics-audio",
+    "portable-speakers": "electronics-audio",
+    "party-speakers": "electronics-audio",
+    "earbud-headphones": "electronics-audio",
+    "earbuds": "electronics-audio",
+    "in-ear": "electronics-audio",
+    "on-ear": "electronics-audio",
+    "over-ear": "electronics-audio",
+    "microphones": "electronics-audio",
+    "voice-recorders": "electronics-audio",
+    "phones": "electronics-audio",
+    "phone-accessories": "electronics-audio",
+    "watches": "electronics-audio",
+    "cameras": "electronics-audio",
+    "camera-optics": "electronics-audio",
+    "projectors": "electronics-audio",
+    "consoles": "electronics-audio",
+    "electronics": "electronics-audio",
+    "cables-switches": "electronics-audio",
+    "electricals": "electronics-audio",
+
+    # ─── Energy & Power ──────────────────────────────────
+    "power-banks": "energy-power",
+    "power-generators": "energy-power",
+    "petrol-generators": "energy-power",
+    "inverter-generators": "energy-power",
+    "inverters-chargers": "energy-power",
+    "batteries": "energy-power",
+    "voltage-regulators": "energy-power",
+    "solar-kits-bundles": "energy-power",
+    "solar-lighting": "energy-power",
+    "lighting-accessories": "energy-power",
+    "services": "energy-power",
+
+    # ─── Health & Beauty ─────────────────────────────────
+    "hair-care": "health-beauty",
+    "hair-clippers": "health-beauty",
+    "hair-dryers": "health-beauty",
+    "hair-styling-tools": "health-beauty",
+    "skin-care-products": "health-beauty",
+    "health-care-products": "health-beauty",
+    "personal-care-appliances": "health-beauty",
+    "health-beauty": "health-beauty",
+    "massage-relaxation": "health-beauty",
+    "bags": "health-beauty",
+    "mens-clothing": "health-beauty",
+    "mens-shoes": "health-beauty",
+    "sports-wear": "health-beauty",
+
+    # ─── Office & Computing ──────────────────────────────
+    "computers": "office-computing",
+    "laptops": "office-computing",
+    "monitors": "office-computing",
+    "computer-accessories": "office-computing",
+    "hard-drives": "office-computing",
+    "printers": "office-computing",
+    "inkjet-printers": "office-computing",
+    "laserjet-printers": "office-computing",
+    "photo-printers": "office-computing",
+    "printer-accessories": "office-computing",
+    "scanners": "office-computing",
+
+    # ─── Tools & Outdoor ─────────────────────────────────
+    "auto-tools": "tools-outdoor",
+    "automotive": "tools-outdoor",
+    "car-vehicle-electronics": "tools-outdoor",
+    "drills": "tools-outdoor",
+    "hammers": "tools-outdoor",
+    "saws": "tools-outdoor",
+    "ppe": "tools-outdoor",
+    "blowers": "tools-outdoor",
+    "pressure-washers": "tools-outdoor",
+    "ladders": "tools-outdoor",
+    "scooters-equipment": "tools-outdoor",
+    "skateboards-scooters": "tools-outdoor",
+    "skates": "tools-outdoor",
+}
+
+# Subcategory definitions: for each new category, the subcategories
+# and which WC slugs map into them.
+# If a WC slug isn't explicitly here, we auto-create a subcategory from WC name.
+NEW_SUBCATEGORIES = {
+    "home-kitchen": [
+        {"name": "Refrigeration", "slug": "refrigeration",
+         "wc_slugs": ["refrigerators", "chest-freezers", "upright-freezers", "built-in-freezers",
+                      "built-in-fridges", "display-coolers", "display-freezers", "portable-freezers",
+                      "wine-coolers", "chillers"]},
+        {"name": "Cookers & Ovens", "slug": "cookers-ovens",
+         "wc_slugs": ["cookers", "gas-stoves", "hobs", "hotplates", "ovens", "mini-ovens",
+                      "hoods", "microwaves-built-in", "microwave-ovens", "lpg-gas-cylinders"]},
+        {"name": "Laundry & Cleaning", "slug": "laundry-cleaning",
+         "wc_slugs": ["domestic-washers", "washing-machines", "washing-machine-accessories",
+                      "washer-dryer-combos", "tumble-dryers", "commercial-washers", "commercial-dryers",
+                      "laundry", "dishwashers", "built-in-dishwashers", "vacuum-cleaners",
+                      "steam-cleaners", "spot-cleaners", "garment-steamers", "irons", "sewing-machines"]},
+        {"name": "Cooling & Air Quality", "slug": "cooling-air-quality",
+         "wc_slugs": ["air-conditioners", "ac-components", "air-coolers", "air-curtains",
+                      "air-purifiers", "fans", "dehumidifiers", "humidifiers", "space-heaters",
+                      "heating-cooling"]},
+        {"name": "Kitchen Appliances", "slug": "kitchen-appliances",
+         "wc_slugs": ["blenders", "hand-blenders", "smoothie-blenders", "choppers",
+                      "food-processors", "kitchen-mixers", "juicers", "slow-juicers",
+                      "kettles", "coffee-makers", "coffee-machines", "coffee-grinders",
+                      "coffee-makers-built-in", "bread-toasters", "sandwich-toasters",
+                      "waffle-makers", "panini-grills", "doughnut-makers", "omelette-makers",
+                      "pizza-makers", "roti-makers", "candy-makers", "popcorn-poppers",
+                      "breadmakers",
+                      "rice-cookers", "pressure-cookers", "multi-cookers", "deep-fryers",
+                      "air-fryers", "food-steamers", "egg-boilers", "mincers",
+                      "food-dehydrators", "food-warmers", "food-containers", "flasks",
+                      "kitchen-tools-utensils", "kitchen-scales", "kitchen-dining",
+                      "icemakers", "barbecue-grills"]},
+        {"name": "Water & Beverage", "slug": "water-beverage",
+         "wc_slugs": ["water-dispensers", "water-heaters"]},
+        {"name": "Home & Living", "slug": "home-living",
+         "wc_slugs": ["smart-home", "smart-adaptors", "insect-killers",
+                      "bathroom-accessories", "bathroom-scales", "weighing-scales",
+                      "mattresses", "furniture", "baby-accessories", "supermarket"]},
+    ],
+    "electronics-audio": [
+        {"name": "TVs & Displays", "slug": "tvs-displays",
+         "wc_slugs": ["smart-tvs", "digital-tvs", "tv-accessories", "commercial-displays",
+                      "projectors"]},
+        {"name": "Audio & Sound", "slug": "audio-sound",
+         "wc_slugs": ["home-theatres", "dvd", "dvd-audio-systems", "one-box-systems",
+                      "soundbars", "speakers", "portable-speakers", "party-speakers"]},
+        {"name": "Headphones & Earbuds", "slug": "headphones-earbuds",
+         "wc_slugs": ["earbud-headphones", "earbuds", "in-ear", "on-ear", "over-ear",
+                      "microphones", "voice-recorders"]},
+        {"name": "Phones & Accessories", "slug": "phones-accessories",
+         "wc_slugs": ["phones", "phone-accessories", "watches"]},
+        {"name": "Cameras & Optics", "slug": "cameras-optics",
+         "wc_slugs": ["cameras", "camera-optics"]},
+        {"name": "Gaming", "slug": "gaming",
+         "wc_slugs": ["consoles"]},
+        {"name": "Cables & Electrical", "slug": "cables-electrical",
+         "wc_slugs": ["cables-switches", "electricals", "electronics"]},
+    ],
+    "energy-power": [
+        {"name": "Power Banks", "slug": "power-banks",
+         "wc_slugs": ["power-banks"]},
+        {"name": "Generators", "slug": "generators",
+         "wc_slugs": ["power-generators", "petrol-generators", "inverter-generators"]},
+        {"name": "Solar Solutions", "slug": "solar-solutions",
+         "wc_slugs": ["solar-kits-bundles", "solar-lighting"]},
+        {"name": "Inverters & Batteries", "slug": "inverters-batteries",
+         "wc_slugs": ["inverters-chargers", "batteries", "voltage-regulators"]},
+        {"name": "Lighting", "slug": "lighting",
+         "wc_slugs": ["lighting-accessories", "services"]},
+    ],
+    "health-beauty": [
+        {"name": "Hair Care", "slug": "hair-care",
+         "wc_slugs": ["hair-care", "hair-clippers", "hair-dryers", "hair-styling-tools"]},
+        {"name": "Skin & Health", "slug": "skin-health",
+         "wc_slugs": ["skin-care-products", "health-care-products", "personal-care-appliances",
+                      "health-beauty", "massage-relaxation"]},
+        {"name": "Fashion & Bags", "slug": "fashion-bags",
+         "wc_slugs": ["bags", "mens-clothing", "mens-shoes", "sports-wear"]},
+    ],
+    "office-computing": [
+        {"name": "Laptops & Computers", "slug": "laptops-computers",
+         "wc_slugs": ["computers", "laptops", "computer-accessories", "hard-drives"]},
+        {"name": "Monitors", "slug": "monitors",
+         "wc_slugs": ["monitors"]},
+        {"name": "Printers & Scanners", "slug": "printers-scanners",
+         "wc_slugs": ["printers", "inkjet-printers", "laserjet-printers", "photo-printers",
+                      "printer-accessories", "scanners"]},
+    ],
+    "tools-outdoor": [
+        {"name": "Automotive", "slug": "automotive",
+         "wc_slugs": ["auto-tools", "automotive", "car-vehicle-electronics"]},
+        {"name": "Power Tools", "slug": "power-tools",
+         "wc_slugs": ["drills", "hammers", "saws", "blowers", "pressure-washers", "ladders", "ppe"]},
+        {"name": "Sports & Recreation", "slug": "sports-recreation",
+         "wc_slugs": ["scooters-equipment", "skateboards-scooters", "skates"]},
+    ],
+}
+
+
+# Build reverse lookup: wc_slug → subcategory slug
+def _build_wc_to_subcat():
+    mapping = {}
+    for cat_slug, subcats in NEW_SUBCATEGORIES.items():
+        for sub in subcats:
+            for wc_slug in sub["wc_slugs"]:
+                mapping[wc_slug] = sub["slug"]
+    return mapping
+
+WC_TO_SUBCATEGORY = _build_wc_to_subcat()
+
+
+# ═══════════════════════════════════════════════════════════
+#  IMAGE CONVERSION
+# ═══════════════════════════════════════════════════════════
+
+def convert_image_to_webp(src_path: str, dst_path: str) -> bool:
+    """Convert any image to WebP, resizing if too large."""
+    try:
+        with Image.open(src_path) as img:
+            # Convert RGBA/P → RGB for WebP
+            if img.mode in ("RGBA", "P"):
+                img = img.convert("RGB")
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
+            # Resize if larger than max
+            if img.width > MAX_WIDTH or img.height > MAX_HEIGHT:
+                img.thumbnail((MAX_WIDTH, MAX_HEIGHT), Image.LANCZOS)
+            os.makedirs(os.path.dirname(dst_path), exist_ok=True)
+            img.save(dst_path, "WEBP", quality=WEBP_QUALITY)
+            return True
+    except Exception as e:
+        print(f"  [WARN] Failed to convert {src_path}: {e}", file=sys.stderr)
+        return False
+
+
+def process_images(products: list[dict]) -> dict:
+    """
+    Convert all product images to WebP with nanoid names.
+
+    Returns: { product_wc_id: [{"r2_key": "products/<nanoid>.webp", "webp_path": "...", "sort": 0}, ...] }
+    """
+    os.makedirs(WEBP_DIR, exist_ok=True)
+    img_dir = os.path.join(ABANISTA_DIR, "images", "products")
+
+    # Build task list
+    tasks = []  # (wc_id, sort_order, src_path, r2_key, webp_path)
+    for p in products:
+        wc_id = p["wc_id"]
+        for i, img in enumerate(p.get("images", [])[:MAX_IMAGES_PER_PRODUCT]):
+            local_path = img.get("local_path")
+            if not local_path:
+                continue
+            src_path = os.path.join(ABANISTA_DIR, local_path)
+            if not os.path.exists(src_path):
+                continue
+            nid = nanoid(8)
+            r2_key = f"products/{nid}.webp"
+            webp_path = os.path.join(WEBP_DIR, f"{nid}.webp")
+            tasks.append((wc_id, i, src_path, r2_key, webp_path))
+
+    print(f"  Converting {len(tasks)} images to WebP...")
+    result = {}  # wc_id → list of image info
+    done = 0
+
+    def _convert(task):
+        wc_id, sort_order, src, r2_key, webp = task
+        ok = convert_image_to_webp(src, webp)
+        return wc_id, sort_order, r2_key, webp, ok
+
+    with ThreadPoolExecutor(max_workers=IMG_WORKERS) as executor:
+        futures = {executor.submit(_convert, t): t for t in tasks}
+        for future in as_completed(futures):
+            done += 1
+            wc_id, sort_order, r2_key, webp_path, ok = future.result()
+            if ok:
+                result.setdefault(wc_id, []).append({
+                    "r2_key": r2_key,
+                    "webp_path": webp_path,
+                    "sort": sort_order,
+                })
+            if done % 200 == 0 or done == len(tasks):
+                print(f"  [{done}/{len(tasks)}] converted")
+
+    # Sort by original order
+    for wc_id in result:
+        result[wc_id].sort(key=lambda x: x["sort"])
+
+    return result
+
+
+def cap_image_map(image_map: dict, max_images: int = MAX_IMAGES_PER_PRODUCT) -> dict:
+    """Ensure no product has more than max_images images."""
+    capped = {}
+    trimmed_products = 0
+    for wc_id, images in image_map.items():
+        ordered = sorted(images, key=lambda x: x.get("sort", 0))
+        if len(ordered) > max_images:
+            trimmed_products += 1
+        capped[wc_id] = ordered[:max_images]
+    if trimmed_products:
+        print(f"  Trimmed images to max {max_images} for {trimmed_products} products")
+    return capped
+
+
+def _safe_key_part(name: str) -> str:
+    base = re.sub(r"[^a-zA-Z0-9._-]+", "-", name).strip("-")
+    return base.lower()[:80] or "img"
+
+
+def _resolve_existing_webp(local_path: str) -> str | None:
+    """Resolve a product image local path to an existing WebP file on disk."""
+    if not local_path:
+        return None
+
+    abs_path = os.path.join(ABANISTA_DIR, local_path)
+    if abs_path.lower().endswith(".webp") and os.path.exists(abs_path):
+        return abs_path
+
+    stem, _ = os.path.splitext(abs_path)
+    webp_path = f"{stem}.webp"
+    if os.path.exists(webp_path):
+        return webp_path
+
+    return None
+
+
+def build_image_map_from_products(products: list[dict]) -> dict:
+    """Build image map directly from product images using existing WebP files only."""
+    image_map = {}
+    total_found = 0
+    total_missing = 0
+
+    for p in products:
+        wc_id = p.get("wc_id")
+        images = p.get("images", [])[:MAX_IMAGES_PER_PRODUCT]
+        mapped = []
+
+        for i, img in enumerate(images):
+            local_path = img.get("local_path", "")
+            webp_path = _resolve_existing_webp(local_path)
+            if not webp_path:
+                total_missing += 1
+                continue
+
+            filename = _safe_key_part(os.path.basename(webp_path))
+            r2_key = f"products/{wc_id}-{i+1}-{filename}"
+            if not r2_key.endswith(".webp"):
+                r2_key = f"{r2_key}.webp"
+
+            mapped.append({
+                "r2_key": r2_key,
+                "webp_path": webp_path,
+                "sort": i,
+            })
+            total_found += 1
+
+        if wc_id is not None:
+            image_map[int(wc_id)] = mapped
+
+    print(f"  Built image refs from products: {total_found} found, {total_missing} missing")
+    return cap_image_map(image_map, MAX_IMAGES_PER_PRODUCT)
+
+
+# ═══════════════════════════════════════════════════════════
+#  R2 UPLOAD
+# ═══════════════════════════════════════════════════════════
+
+import boto3
+from botocore.config import Config as BotoConfig
+
+CF_ACCOUNT_ID = "d19907edfc7aa7af1dbb6547cb6adbfe"
+R2_ENDPOINT = f"https://{CF_ACCOUNT_ID}.r2.cloudflarestorage.com"
+R2_ACCESS_KEY = os.environ.get("R2_ACCESS_KEY", "aff25b9b4467cef4bc0733db098cdeeb")
+R2_SECRET_KEY = os.environ.get("R2_SECRET_KEY", "86d5b78897a1e4e7f5b55a48ce2c702d45194a0435ff229a8884a705a4f75d80")
+R2_UPLOAD_WORKERS = 20
+
+
+def _get_s3_client():
+    """Create a boto3 S3 client for R2."""
+    return boto3.client(
+        "s3",
+        endpoint_url=R2_ENDPOINT,
+        aws_access_key_id=R2_ACCESS_KEY,
+        aws_secret_access_key=R2_SECRET_KEY,
+        region_name="auto",
+        config=BotoConfig(retries={"max_attempts": 3, "mode": "adaptive"}),
+    )
+
+
+def _upload_one_s3(args):
+    """Upload a single file to R2 via S3 API."""
+    r2_key, webp_path, client = args
+    client.upload_file(
+        webp_path, R2_BUCKET, r2_key,
+        ExtraArgs={"ContentType": "image/webp"},
+    )
+    return r2_key
+
+
+def upload_to_r2(image_map: dict) -> int:
+    """Upload all WebP images to R2 via S3-compatible API (parallel)."""
+    all_files = []
+    for wc_id, images in image_map.items():
+        for img in images:
+            webp_path = img.get("webp_path")
+            if not webp_path:
+                # Backward compatibility for old image_map.json format.
+                fname = img["r2_key"].replace("products/", "")
+                webp_path = os.path.join(WEBP_DIR, fname)
+            if not os.path.exists(webp_path):
+                continue
+            all_files.append((img["r2_key"], webp_path))
+
+    if not all_files:
+        print("  [WARN] No WebP files found to upload")
+        return 0
+
+    # Check what's already uploaded
+    print(f"  Checking existing objects in R2...")
+    client = _get_s3_client()
+    existing = set()
+    try:
+        paginator = client.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=R2_BUCKET, Prefix="products/"):
+            for obj in page.get("Contents", []):
+                existing.add(obj["Key"])
+        print(f"  {len(existing)} already in R2")
+    except Exception as e:
+        print(f"  [WARN] Could not list R2 objects: {e}")
+
+    pending = [(k, p) for k, p in all_files if k not in existing]
+    if not pending:
+        print("  All images already uploaded!")
+        return len(all_files)
+
+    print(f"  Uploading {len(pending)} images ({R2_UPLOAD_WORKERS} workers)...")
+    uploaded = 0
+    failed = 0
+    start = time.time()
+
+    with ThreadPoolExecutor(max_workers=R2_UPLOAD_WORKERS) as pool:
+        # Each thread gets its own client to avoid connection issues
+        futures = {
+            pool.submit(_upload_one_s3, (r2_key, webp_path, _get_s3_client())): r2_key
+            for r2_key, webp_path in pending
+        }
+        for future in as_completed(futures):
+            r2_key = futures[future]
+            try:
+                future.result()
+                uploaded += 1
+            except Exception as e:
+                print(f"  [R2 ERR] {r2_key}: {e}", file=sys.stderr)
+                failed += 1
+            done = uploaded + failed
+            if done % 200 == 0:
+                elapsed = time.time() - start
+                rate = done / elapsed if elapsed > 0 else 0
+                eta = (len(pending) - done) / rate if rate > 0 else 0
+                print(f"  [{done}/{len(pending)}] {rate:.0f} img/s, ETA {eta:.0f}s")
+
+    elapsed = time.time() - start
+    print(f"  R2 upload complete: {uploaded} ok, {failed} failed ({elapsed:.0f}s)")
+    return uploaded + len(existing)
+
+
+# ═══════════════════════════════════════════════════════════
+#  DATABASE OPERATIONS
+# ═══════════════════════════════════════════════════════════
+
+def supabase_request(method: str, table: str, data=None, params=None):
+    """Make a direct Supabase REST API call."""
+    url = f"{SUPABASE_URL}/rest/v1/{table}"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+    }
+    if params:
+        url += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+
+    resp = requests.request(method, url, headers=headers, json=data, timeout=30)
+    if resp.status_code >= 400:
+        raise Exception(f"Supabase {method} {table}: {resp.status_code} {resp.text[:200]}")
+    try:
+        return resp.json()
+    except Exception:
+        return None
+
+
+def supabase_rpc(fn_name: str, params: dict = None):
+    """Call a Supabase RPC function."""
+    url = f"{SUPABASE_URL}/rest/v1/rpc/{fn_name}"
+    headers = {
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}",
+        "Content-Type": "application/json",
+    }
+    resp = requests.post(url, headers=headers, json=params or {}, timeout=30)
+    if resp.status_code >= 400:
+        raise Exception(f"Supabase RPC {fn_name}: {resp.status_code} {resp.text[:200]}")
+    try:
+        return resp.json()
+    except Exception:
+        return None
+
+
+def clear_old_data():
+    """Delete all existing seed data (products, categories, brands, slides)."""
+    print("  Clearing old data...")
+    # Order matters: delete dependents first
+    # Tables with composite keys need different filters
+    composite_key_tables = {"product_categories": "product_id", "product_views": "id"}
+    for table in ["product_images", "product_categories", "product_views",
+                  "search_history", "order_items", "orders",
+                  "featured_slides", "products", "subcategories",
+                  "categories", "brands"]:
+        try:
+            col = composite_key_tables.get(table, "id")
+            supabase_request("DELETE", table, params={col: "gt.0"})
+            print(f"    Cleared {table}")
+        except Exception as e:
+            print(f"    [WARN] {table}: {e}")
+
+
+def insert_brands(products: list[dict]) -> dict:
+    """Insert brands and return {brand_slug: brand_id}."""
+    seen = {}
+    for p in products:
+        b = p.get("brand")
+        if b and b["slug"] not in seen:
+            seen[b["slug"]] = b["name"]
+
+    brands = [{"name": name, "slug": slug, "sort_order": i + 1}
+              for i, (slug, name) in enumerate(sorted(seen.items(), key=lambda x: x[1]))]
+
+    print(f"  Inserting {len(brands)} brands...")
+    result = supabase_request("POST", "brands", data=brands)
+    return {r["slug"]: r["id"] for r in result}
+
+
+def insert_categories() -> dict:
+    """Insert the 6 new categories. Returns {slug: id}."""
+    cats = [{k: v for k, v in c.items()} for c in NEW_CATEGORIES]
+    print(f"  Inserting {len(cats)} categories...")
+    result = supabase_request("POST", "categories", data=cats)
+    return {r["slug"]: r["id"] for r in result}
+
+
+def insert_subcategories(category_ids: dict) -> dict:
+    """Insert subcategories. Returns {subcat_slug: subcat_id}."""
+    rows = []
+    sort = 0
+    for cat_slug, subcats in NEW_SUBCATEGORIES.items():
+        cat_id = category_ids[cat_slug]
+        for sub in subcats:
+            sort += 1
+            rows.append({
+                "name": sub["name"],
+                "slug": sub["slug"],
+                "category_id": cat_id,
+                "sort_order": sort,
+            })
+
+    print(f"  Inserting {len(rows)} subcategories...")
+    result = supabase_request("POST", "subcategories", data=rows)
+    return {r["slug"]: r["id"] for r in result}
+
+
+def determine_product_mapping(product: dict, category_ids: dict, subcat_ids: dict, brand_ids: dict):
+    """Determine new category, subcategory, brand for a product."""
+    # Find the best WC category slug
+    wc_cat_slugs = [c["slug"] for c in product.get("categories", [])]
+
+    # Map to new category
+    new_cat_slug = None
+    new_subcat_slug = None
+    for wc_slug in wc_cat_slugs:
+        if wc_slug in WC_TO_NEW_CATEGORY:
+            new_cat_slug = WC_TO_NEW_CATEGORY[wc_slug]
+            break
+
+    # Map to new subcategory (most specific WC category)
+    for wc_slug in wc_cat_slugs:
+        if wc_slug in WC_TO_SUBCATEGORY:
+            new_subcat_slug = WC_TO_SUBCATEGORY[wc_slug]
+            break
+
+    # Fallback: if no category matched, default to "home-kitchen" (largest)
+    if not new_cat_slug:
+        new_cat_slug = "home-kitchen"
+
+    cat_id = category_ids.get(new_cat_slug)
+    subcat_id = subcat_ids.get(new_subcat_slug) if new_subcat_slug else None
+
+    # Brand
+    brand = product.get("brand")
+    brand_id = brand_ids.get(brand["slug"]) if brand else None
+
+    return cat_id, subcat_id, brand_id
+
+
+def insert_products(products: list[dict], image_map: dict,
+                    category_ids: dict, subcat_ids: dict, brand_ids: dict):
+    """Insert all products with images — batched for speed."""
+    print(f"  Inserting {len(products)} products...")
+
+    # Generate unique SKUs upfront
+    import secrets
+    used_skus = set()
+    def gen_sku():
+        while True:
+            sku = "A" + ''.join(secrets.choice(string.digits) for _ in range(5))
+            if sku not in used_skus:
+                used_skus.add(sku)
+                return sku
+
+    # Deduplicate slugs upfront
+    used_slugs = set()
+    def unique_slug(base_slug: str, wc_id) -> str:
+        slug = base_slug[:120] or f"product-{wc_id}"
+        if slug not in used_slugs:
+            used_slugs.add(slug)
+            return slug
+        counter = 2
+        while f"{slug}-{counter}" in used_slugs:
+            counter += 1
+        final = f"{slug}-{counter}"
+        used_slugs.add(final)
+        return final
+
+    batch_size = 200
+    total_images = 0
+    total_cat_links = 0
+    start_time = time.time()
+
+    for start in range(0, len(products), batch_size):
+        batch = products[start:start + batch_size]
+        product_rows = []
+
+        for p in batch:
+            cat_id, subcat_id, brand_id = determine_product_mapping(
+                p, category_ids, subcat_ids, brand_ids)
+
+            wc_id = p["wc_id"]
+            images = image_map.get(wc_id, [])
+            main_image_key = images[0]["r2_key"] if images else None
+
+            product_rows.append({
+                "name": p["name"][:255],
+                "slug": unique_slug(p.get("slug", ""), wc_id),
+                "sku": gen_sku(),
+                "description": p.get("description", "")[:5000],
+                "price": p.get("price", 0),
+                "compare_at_price": p.get("compare_at_price"),
+                "stock": 10,
+                "image_key": main_image_key,
+                "active": 1,
+                "featured": 0,
+                "specs": json.dumps(p.get("specs", {})),
+                "subcategory_id": subcat_id,
+                "brand_id": brand_id,
+                "_wc_id": wc_id,
+                "_cat_id": cat_id,
+            })
+
+        # Insert products batch
+        insert_data = [{k: v for k, v in r.items() if not k.startswith("_")}
+                       for r in product_rows]
+        try:
+            result = supabase_request("POST", "products", data=insert_data)
+        except Exception as e:
+            print(f"  [ERR] batch {start}: {e}")
+            continue
+
+        # Collect all product_categories and product_images for bulk insert
+        cat_rows = []
+        img_rows = []
+        for i, row in enumerate(result):
+            pid = row["id"]
+            pr = product_rows[i]
+            if pr["_cat_id"]:
+                cat_rows.append({"product_id": pid, "category_id": pr["_cat_id"]})
+            images = image_map.get(pr["_wc_id"], [])
+            for img in images[1:]:  # skip first (already main image_key)
+                img_rows.append({"product_id": pid, "image_key": img["r2_key"],
+                                 "sort_order": img["sort"]})
+
+        # Bulk insert product_categories
+        if cat_rows:
+            try:
+                supabase_request("POST", "product_categories", data=cat_rows)
+                total_cat_links += len(cat_rows)
+            except Exception as e:
+                print(f"  [WARN] product_categories batch: {e}")
+
+        # Bulk insert product_images
+        if img_rows:
+            try:
+                supabase_request("POST", "product_images", data=img_rows)
+                total_images += len(img_rows)
+            except Exception as e:
+                print(f"  [WARN] product_images batch: {e}")
+
+        done = min(start + batch_size, len(products))
+        elapsed = time.time() - start_time
+        rate = done / elapsed if elapsed > 0 else 0
+        print(f"  [{done}/{len(products)}] {rate:.1f} products/s")
+
+    print(f"  Total: {len(products)} products, {total_images} extra images, {total_cat_links} category links")
+
+
+# ═══════════════════════════════════════════════════════════
+#  MAIN
+# ═══════════════════════════════════════════════════════════
+
+def load_products(products_file: str):
+    path = products_file if os.path.isabs(products_file) else os.path.join(SCRIPT_DIR, products_file)
+    with open(path) as f:
+        products = json.load(f)
+    return products
+
+
+def save_image_map(image_map: dict, image_map_file: str):
+    path = image_map_file if os.path.isabs(image_map_file) else os.path.join(SCRIPT_DIR, image_map_file)
+    # Convert for serialization (remove webp_path)
+    serializable = {}
+    for wc_id, images in image_map.items():
+        serializable[str(wc_id)] = [{"r2_key": img["r2_key"], "sort": img["sort"]} for img in images]
+    with open(path, "w") as f:
+        json.dump(serializable, f, indent=2)
+    print(f"  Saved image map: {path}")
+
+
+def load_image_map(image_map_file: str):
+    path = image_map_file if os.path.isabs(image_map_file) else os.path.join(SCRIPT_DIR, image_map_file)
+    with open(path) as f:
+        data = json.load(f)
+    # Convert keys back to int
+    mapped = {int(k): v for k, v in data.items()}
+    return cap_image_map(mapped, MAX_IMAGES_PER_PRODUCT)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Migrate products, images, and metadata to Supabase + R2")
+    parser.add_argument("--images-only", action="store_true", help="Upload images only (no DB operations)")
+    parser.add_argument("--db-only", action="store_true", help="Run DB migration only (use existing image map)")
+    parser.add_argument(
+        "--convert-images",
+        action="store_true",
+        help="Convert source images to WebP and regenerate image map before upload",
+    )
+    parser.add_argument(
+        "--products-file",
+        default="abanista/products.json",
+        help="Path to input products JSON (relative to data/ or absolute)",
+    )
+    parser.add_argument(
+        "--image-map-file",
+        default="abanista/image_map.json",
+        help="Path to image map JSON (relative to data/ or absolute)",
+    )
+    parser.add_argument(
+        "--no-image-map",
+        action="store_true",
+        help="Do not read image_map.json; build image refs from product images",
+    )
+    args = parser.parse_args()
+
+    images_only = args.images_only
+    db_only = args.db_only
+
+    if not SUPABASE_KEY and not images_only:
+        print("ERROR: Set SUPABASE_SERVICE_ROLE_KEY env var")
+        print("  export SUPABASE_SERVICE_ROLE_KEY='eyJ...'")
+        sys.exit(1)
+
+    products = load_products(args.products_file)
+    print(f"Loaded {len(products)} products\n")
+
+    # ── Phase 1: Images ──────────────────────────────────
+    if not db_only:
+        if args.convert_images:
+            print("Phase 1: Converting images to WebP...")
+            image_map = process_images(products)
+            image_map = cap_image_map(image_map, MAX_IMAGES_PER_PRODUCT)
+            save_image_map(image_map, args.image_map_file)
+            total_webp = sum(len(v) for v in image_map.values())
+            print(f"  {total_webp} WebP images ready\n")
+        else:
+            image_map_path = args.image_map_file if os.path.isabs(args.image_map_file) else os.path.join(SCRIPT_DIR, args.image_map_file)
+            if args.no_image_map or not os.path.exists(image_map_path):
+                print("Phase 1: Building image refs from products (no image map, no conversion)...")
+                image_map = build_image_map_from_products(products)
+            else:
+                print("Phase 1: Loading existing image map (no conversion)...")
+                image_map = load_image_map(args.image_map_file)
+            total_webp = sum(len(v) for v in image_map.values())
+            print(f"  {total_webp} mapped WebP images ready\n")
+
+        print("Phase 2: Uploading to R2...")
+        upload_to_r2(image_map)
+        print()
+
+    if images_only:
+        print("Done (images only)")
+        return
+
+    # ── Phase 2: Database ────────────────────────────────
+    if db_only:
+        image_map_path = args.image_map_file if os.path.isabs(args.image_map_file) else os.path.join(SCRIPT_DIR, args.image_map_file)
+        if args.no_image_map or not os.path.exists(image_map_path):
+            print("Phase 1: Building image refs from products (db-only mode)...")
+            image_map = build_image_map_from_products(products)
+        else:
+            image_map = load_image_map(args.image_map_file)
+
+    print("Phase 3: Database migration...")
+    clear_old_data()
+
+    brand_ids = insert_brands(products)
+    category_ids = insert_categories()
+    subcat_ids = insert_subcategories(category_ids)
+
+    print(f"  Brands: {len(brand_ids)}, Categories: {len(category_ids)}, Subcategories: {len(subcat_ids)}")
+
+    insert_products(products, image_map, category_ids, subcat_ids, brand_ids)
+
+    print("\n✓ Migration complete!")
+
+
+if __name__ == "__main__":
+    main()

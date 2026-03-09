@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getCustomerByEmail, createSession } from '$lib/db';
 import { verifyPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
 import { isValidEmail } from '$lib/utils';
+import { logSecurityEvent, getClientIP, getUserAgent } from '$lib/monitoring';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.customer) {
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies, url }) => {
+	default: async ({ request, locals, cookies, url, platform }) => {
 		const db = locals.db;
 		const formData = await request.formData();
 		const redirectTo = url.searchParams.get('redirectTo');
@@ -32,11 +33,36 @@ export const actions: Actions = {
 
 		const customer = await getCustomerByEmail(db, email);
 		if (!customer) {
+			// Log failed login attempt
+			await logSecurityEvent(platform?.env?.SECURITY_LOGS_KV || null, {
+				type: 'failed_login',
+				severity: 'medium',
+				userType: 'customer',
+				ip: getClientIP(request),
+				userAgent: getUserAgent(request),
+				path: url.pathname,
+				method: request.method,
+				details: { email, reason: 'user_not_found' }
+			});
+
 			return fail(400, { error: 'Invalid email or password.', email });
 		}
 
 		const valid = await verifyPassword(password, customer.password_hash);
 		if (!valid) {
+			// Log failed login attempt
+			await logSecurityEvent(platform?.env?.SECURITY_LOGS_KV || null, {
+				type: 'failed_login',
+				severity: 'medium',
+				userId: customer.id,
+				userType: 'customer',
+				ip: getClientIP(request),
+				userAgent: getUserAgent(request),
+				path: url.pathname,
+				method: request.method,
+				details: { email, reason: 'invalid_password' }
+			});
+
 			return fail(400, { error: 'Invalid email or password.', email });
 		}
 

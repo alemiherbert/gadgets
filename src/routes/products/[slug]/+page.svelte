@@ -5,6 +5,7 @@
 	import type { Product } from '$lib/types';
 	import { getImageUrl } from '$lib/r2';
 	import { formatPrice, discountPercent } from '$lib/utils';
+	import { renderMarkdown, markdownExcerpt } from '$lib/markdown';
 	import { cart } from '$lib/cart.svelte';
 	import { enhance } from '$app/forms';
 	import { onMount } from 'svelte';
@@ -17,6 +18,7 @@
 	let hoverRating = $state(0);
 	let selectedImage = $state(0);
 	let descriptionExpanded = $state(false);
+	let specsExpanded = $state(false);
 
 	const DESC_MAX_LENGTH = 200;
 
@@ -32,14 +34,19 @@
 		catch { return []; }
 	});
 
+	let visibleSpecs = $derived(specsExpanded ? specs : specs.slice(0, 8));
+	let hasMoreSpecs = $derived(specs.length > 8);
+
 	let discount = $derived(discountPercent(data.product.price, data.product.compare_at_price));
 
-	let descriptionLong = $derived((data.product.description?.length ?? 0) > DESC_MAX_LENGTH);
-	let displayDescription = $derived(
+	let descriptionText = $derived(data.product.description ?? '');
+	let descriptionLong = $derived((descriptionText?.length ?? 0) > DESC_MAX_LENGTH);
+	let displayDescriptionMarkdown = $derived(
 		descriptionLong && !descriptionExpanded
-			? data.product.description.slice(0, DESC_MAX_LENGTH).trimEnd() + '…'
-			: data.product.description
+			? markdownExcerpt(descriptionText, DESC_MAX_LENGTH)
+			: descriptionText
 	);
+	let displayDescriptionHtml = $derived(renderMarkdown(displayDescriptionMarkdown));
 
 	// ── Recently viewed (localStorage) ──────────────────────
 	type RecentItem = { id: number; slug: string; name: string; image_key: string | null; price: number };
@@ -221,14 +228,12 @@
 
 			{#if data.product.description}
 				<div>
-					<p class="text-slate-600 leading-relaxed text-balance whitespace-pre-line">
-						{displayDescription}
-					</p>
+					<div class="markdown-content text-slate-700 text-sm sm:text-base leading-relaxed">{@html displayDescriptionHtml}</div>
 					{#if descriptionLong}
 						<button
 							type="button"
 							onclick={() => descriptionExpanded = !descriptionExpanded}
-							class="mt-1 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
+							class="mt-2 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors cursor-pointer"
 						>
 							{descriptionExpanded ? 'Show less' : 'Show more'}
 						</button>
@@ -263,6 +268,8 @@
 				<img
 					src={getImageUrl(allImages[selectedImage] ?? data.product.image_key)}
 					alt={data.product.name}
+					loading="eager"
+					fetchpriority="high"
 					class="h-full w-full object-cover transition-opacity duration-200"
 				/>
 				{#if discount > 0}
@@ -285,7 +292,7 @@
 								class="h-12 w-12 rounded-sm overflow-hidden border-1 bg-slate-50 transition-all duration-150 cursor-pointer shadow-sm
 									{i === selectedImage ? 'border-orange-500 ring-1 ring-orange-300' : 'border-white/80 opacity-75 hover:opacity-100 hover:border-orange-300'}"
 							>
-								<img src={getImageUrl(key)} alt="{data.product.name} - view {i + 1}" class="h-full w-full object-cover" />
+								<img src={getImageUrl(key)} alt="{data.product.name} - view {i + 1}" loading="lazy" decoding="async" class="h-full w-full object-cover" />
 							</button>
 						{/each}
 					</div>
@@ -300,12 +307,35 @@
 				<div>
 					<h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Specifications</h3>
 					<div class="divide-y divide-slate-100 rounded-sm border border-slate-100 overflow-hidden">
-						{#each specs as [key, val]}
+						{#each visibleSpecs as [key, val]}
 							<div class="flex gap-3 px-4 py-2.5 bg-white hover:bg-slate-50 transition-colors">
 								<span class="text-sm text-slate-500 min-w-[110px] shrink-0">{key}</span>
 								<span class="text-sm font-medium text-slate-800">{val}</span>
 							</div>
 						{/each}
+						{#if hasMoreSpecs && !specsExpanded}
+							<button
+								type="button"
+								onclick={() => specsExpanded = true}
+								class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-orange-50 transition-colors text-sm font-medium text-orange-600 hover:text-orange-700 border-t border-slate-100"
+							>
+								<span>Show {specs.length - 8} more spec{specs.length - 8 !== 1 ? 's' : ''}</span>
+								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+								</svg>
+							</button>
+						{:else if hasMoreSpecs && specsExpanded}
+							<button
+								type="button"
+								onclick={() => specsExpanded = false}
+								class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-orange-50 transition-colors text-sm font-medium text-orange-600 hover:text-orange-700 border-t border-slate-100"
+							>
+								<span>Show less</span>
+								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>
+								</svg>
+							</button>
+						{/if}
 					</div>
 				</div>
 			{/if}
@@ -590,3 +620,63 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	:global(.markdown-content h1),
+	:global(.markdown-content h2),
+	:global(.markdown-content h3),
+	:global(.markdown-content h4),
+	:global(.markdown-content h5),
+	:global(.markdown-content h6) {
+		margin: 0.75rem 0 0.4rem;
+		font-weight: 700;
+		line-height: 1.25;
+		color: #0f172a;
+	}
+
+	:global(.markdown-content p) {
+		margin: 0.5rem 0;
+	}
+
+	:global(.markdown-content ul),
+	:global(.markdown-content ol) {
+		margin: 0.5rem 0 0.5rem 1.2rem;
+		padding-left: 0.4rem;
+	}
+
+	:global(.markdown-content ul) {
+		list-style: disc;
+	}
+
+	:global(.markdown-content ol) {
+		list-style: decimal;
+	}
+
+	:global(.markdown-content li) {
+		margin: 0.2rem 0;
+	}
+
+	:global(.markdown-content code) {
+		background: #f1f5f9;
+		color: #1e293b;
+		padding: 0.1rem 0.3rem;
+		border-radius: 0.2rem;
+		font-size: 0.9em;
+	}
+
+	:global(.markdown-content blockquote) {
+		margin: 0.6rem 0;
+		padding-left: 0.7rem;
+		border-left: 3px solid #fb923c;
+		color: #475569;
+	}
+
+	:global(.markdown-content a) {
+		color: #ea580c;
+		text-decoration: underline;
+	}
+
+	:global(.markdown-content a:hover) {
+		color: #c2410c;
+	}
+</style>

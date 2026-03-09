@@ -1,0 +1,237 @@
+nohup: ignoring input
+Output: /home/alemi/gadgets/data/abanista
+
+  Categories cached: 17 top-level, 178 subcategories
+
+Fetching products (per_page=100, delay=0.5s)...
+  Page 1 done — 100 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (100 items)
+  Page 2 done — 200 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (200 items)
+  Page 3 done — 300 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (300 items)
+  Page 4 done — 400 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (400 items)
+  Page 5 done — 500 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (500 items)
+  Page 6 done — 600 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (600 items)
+  Page 7 done — 700 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (700 items)
+  Page 8 done — 800 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (800 items)
+  Page 9 done — 900 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (900 items)
+  Page 10 done — 1000 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1000 items)
+  Page 11 done — 1100 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1100 items)
+  Page 12 done — 1200 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1200 items)
+  Page 13 done — 1300 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1300 items)
+  Page 14 done — 1400 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1400 items)
+  Page 15 done — 1500 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1500 items)
+  Page 16 done — 1600 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1600 items)
+  Page 17 done — 1700 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1700 items)
+  Page 18 done — 1800 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1800 items)
+  Page 19 done — 1900 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (1900 items)
+  Page 20 done — 2000 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2000 items)
+  Page 21 done — 2100 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2100 items)
+  Page 22 done — 2200 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2200 items)
+  Page 23 done — 2300 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2300 items)
+  Page 24 done — 2400 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2400 items)
+  Page 25 done — 2500 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2500 items)
+  Page 26 done — 2600 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2600 items)
+  Page 27 done — 2700 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2700 items)
+  Page 28 done — 2800 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2800 items)
+  Page 29 done — 2900 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (2900 items)
+  Page 30 done — 3000 products so far
+  Saved /home/alemi/gadgets/data/abanista/products.json (3000 items)
+  Total: 3056 products
+  Saved /home/alemi/gadgets/data/abanista/products.json (3056 items)
+  Saved /home/alemi/gadgets/data/abanista/brands.json (159 items)
+
+159 unique brands extracted
+
+Downloading product images...
+  [50/8026] images downloaded
+  [100/8026] images downloaded
+  [150/8026] images downloaded
+  [200/8026] images downloaded
+  [250/8026] images downloaded
+  [300/8026] images downloaded
+  [350/8026] images downloaded
+  [400/8026] images downloaded
+  [450/8026] images downloaded
+  [500/8026] images downloaded
+  [550/8026] images downloaded
+  [600/8026] images downloaded
+  [650/8026] images downloaded
+  [700/8026] images downloaded
+  [750/8026] images downloaded
+  [800/8026] images downloaded
+  [850/8026] images downloaded
+  [900/8026] images downloaded
+  [950/8026] images downloaded
+  [1000/8026] images downloaded
+  [1050/8026] images downloaded
+  [1100/8026] images downloaded
+  [1150/8026] images downloaded
+  [1200/8026] images downloaded
+  [1250/8026] images downloaded
+  [1300/8026] images downloaded
+  [1350/8026] images downloaded
+  [1400/8026] images downloaded
+  [1450/8026] images downloaded
+  [1500/8026] images downloaded
+  [1550/8026] images downloaded
+  [1600/8026] images downloaded
+  [1650/8026] images downloaded
+  [1700/8026] images downloaded
+  [1750/8026] images downloaded
+  [1800/8026] images downloaded
+  [1850/8026] images downloaded
+  [1900/8026] images downloaded
+  [1950/8026] images downloaded
+  [2000/8026] images downloaded
+  [2050/8026] images downloaded
+  [2100/8026] images downloaded
+  [2150/8026] images downloaded
+  [2200/8026] images downloaded
+  [2250/8026] images downloaded
+  [2300/8026] images downloaded
+  [2350/8026] images downloaded
+  [2400/8026] images downloaded
+  [2450/8026] images downloaded
+  [2500/8026] images downloaded
+  [2550/8026] images downloaded
+  [2600/8026] images downloaded
+  [2650/8026] images downloaded
+  [2700/8026] images downloaded
+  [2750/8026] images downloaded
+  [2800/8026] images downloaded
+  [2850/8026] images downloaded
+  [2900/8026] images downloaded
+  [2950/8026] images downloaded
+  [3000/8026] images downloaded
+  [3050/8026] images downloaded
+  [3100/8026] images downloaded
+  [3150/8026] images downloaded
+  [3200/8026] images downloaded
+  [3250/8026] images downloaded
+  [3300/8026] images downloaded
+  [3350/8026] images downloaded
+  [3400/8026] images downloaded
+  [3450/8026] images downloaded
+  [3500/8026] images downloaded
+  [3550/8026] images downloaded
+  [3600/8026] images downloaded
+  [3650/8026] images downloaded
+  [3700/8026] images downloaded
+  [3750/8026] images downloaded
+  [3800/8026] images downloaded
+  [3850/8026] images downloaded
+  [3900/8026] images downloaded
+  [3950/8026] images downloaded
+  [4000/8026] images downloaded
+  [4050/8026] images downloaded
+  [4100/8026] images downloaded
+  [4150/8026] images downloaded
+  [4200/8026] images downloaded
+  [4250/8026] images downloaded
+  [4300/8026] images downloaded
+  [4350/8026] images downloaded
+  [4400/8026] images downloaded
+  [4450/8026] images downloaded
+  [4500/8026] images downloaded
+  [4550/8026] images downloaded
+  [4600/8026] images downloaded
+  [4650/8026] images downloaded
+  [4700/8026] images downloaded
+  [4750/8026] images downloaded
+  [4800/8026] images downloaded
+  [4850/8026] images downloaded
+  [4900/8026] images downloaded
+  [4950/8026] images downloaded
+  [5000/8026] images downloaded
+  [5050/8026] images downloaded
+  [5100/8026] images downloaded
+  [5150/8026] images downloaded
+  [5200/8026] images downloaded
+  [5250/8026] images downloaded
+  [5300/8026] images downloaded
+  [5350/8026] images downloaded
+  [5400/8026] images downloaded
+  [5450/8026] images downloaded
+  [5500/8026] images downloaded
+  [5550/8026] images downloaded
+  [5600/8026] images downloaded
+  [5650/8026] images downloaded
+  [5700/8026] images downloaded
+  [5750/8026] images downloaded
+  [5800/8026] images downloaded
+  [5850/8026] images downloaded
+  [5900/8026] images downloaded
+  [5950/8026] images downloaded
+  [6000/8026] images downloaded
+  [6050/8026] images downloaded
+  [6100/8026] images downloaded
+  [6150/8026] images downloaded
+  [6200/8026] images downloaded
+  [6250/8026] images downloaded
+  [6300/8026] images downloaded
+  [6350/8026] images downloaded
+  [6400/8026] images downloaded
+  [6450/8026] images downloaded
+  [6500/8026] images downloaded
+  [6550/8026] images downloaded
+  [6600/8026] images downloaded
+  [6650/8026] images downloaded
+  [6700/8026] images downloaded
+  [6750/8026] images downloaded
+  [6800/8026] images downloaded
+  [6850/8026] images downloaded
+  [6900/8026] images downloaded
+  [6950/8026] images downloaded
+  [7000/8026] images downloaded
+  [7050/8026] images downloaded
+  [7100/8026] images downloaded
+  [7150/8026] images downloaded
+  [7200/8026] images downloaded
+  [7250/8026] images downloaded
+  [7300/8026] images downloaded
+  [7350/8026] images downloaded
+  [7400/8026] images downloaded
+  [7450/8026] images downloaded
+  [7500/8026] images downloaded
+  [7550/8026] images downloaded
+  [7600/8026] images downloaded
+  [7650/8026] images downloaded
+  [7700/8026] images downloaded
+  [7750/8026] images downloaded
+  [7800/8026] images downloaded
+  [7850/8026] images downloaded
+  [7900/8026] images downloaded
+  [7950/8026] images downloaded
+  [8000/8026] images downloaded
+  [8026/8026] images downloaded
+  Saved /home/alemi/gadgets/data/abanista/products.json (3056 items)
+
+Done! 3056 products, 159 brands, 17 top-level categories

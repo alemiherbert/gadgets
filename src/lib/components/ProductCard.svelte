@@ -36,6 +36,8 @@
 			<img
 				src={getImageUrl(product.image_key)}
 				alt={product.name}
+				loading="lazy"
+				decoding="async"
 				class="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
 			/>
 		{:else}

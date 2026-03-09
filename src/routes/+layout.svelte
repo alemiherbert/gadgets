@@ -53,6 +53,48 @@ function toggleSearch() {
 
 <svelte:head>
 <title>Gadgets Store</title>
+<!-- Global Site Structured Data -->
+{@html `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Gadgets Store Uganda",
+  "url": "https://gadgets.co.ug",
+  "logo": "https://gadgets.co.ug/img/logo.png",
+  "description": "Premium electronics and tech accessories in Uganda",
+  "address": {
+    "@type": "PostalAddress",
+    "addressCountry": "UG",
+    "addressLocality": "Kampala"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Customer Service",
+    "email": "support@gadgets.co.ug"
+  },
+  "sameAs": [
+    "https://twitter.com/gadgetsug",
+    "https://www.facebook.com/gadgetsug",
+    "https://www.instagram.com/gadgetsug"
+  ]
+}
+</script>`}
+{@html `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Gadgets Store Uganda",
+  "url": "https://gadgets.co.ug",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://gadgets.co.ug/shop?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>`}
 </svelte:head>
 
 {#if !hideChrome}

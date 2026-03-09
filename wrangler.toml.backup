@@ -14,10 +14,10 @@ binding = "BUCKET"
 
 [[kv_namespaces]]
 binding = "RATE_LIMIT_KV"
-id = "7ec58b2d74d740ab9ff38dc54ff75500"
-preview_id = "573177bc5ed041fa9dabcd8924fd8945"
+id = "placeholder"
+preview_id = "placeholder"
 
 [[kv_namespaces]]
 binding = "SECURITY_LOGS_KV"
-id = "8c0d802965da42a3af4e76babf0600db"
-preview_id = "5ee9666f1c744f698b4a59c1327b333b"
+id = "placeholder"
+preview_id = "placeholder"

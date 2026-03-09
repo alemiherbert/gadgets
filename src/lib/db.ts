@@ -40,6 +40,16 @@ db.from('products').select('*').eq('slug', slug)
 );
 }
 
+export async function getSitemapProducts(db: SupabaseClient): Promise<{ slug: string; updated_at: string | null; created_at: string }[]> {
+const { data, error } = await db
+	.from('products')
+	.select('slug, updated_at, created_at')
+	.eq('active', 1)
+	.order('created_at', { ascending: false });
+if (error) throw error;
+return (data ?? []) as { slug: string; updated_at: string | null; created_at: string }[];
+}
+
 export async function getNewArrivals(db: SupabaseClient, limit = 8): Promise<Product[]> {
 return many<Product>(
 db.from('products').select('*').eq('active', 1).order('created_at', { ascending: false }).limit(limit)
@@ -654,6 +664,12 @@ db.from('product_images').select('*').eq('product_id', productId).order('sort_or
 );
 }
 
+export async function getProductImageKeys(db: SupabaseClient, productId: number): Promise<string[]> {
+const { data, error } = await db.from('product_images').select('image_key').eq('product_id', productId);
+if (error) throw error;
+return (data ?? []).map((row: any) => row.image_key as string).filter(Boolean);
+}
+
 export async function addProductImage(db: SupabaseClient, productId: number, imageKey: string, sortOrder: number): Promise<number> {
 const { data, error } = await db.from('product_images').insert({
 product_id: productId,
@@ -706,6 +722,10 @@ product_name: row.products.name
 export async function deleteReview(db: SupabaseClient, reviewId: number): Promise<void> {
 const { error } = await db.from('product_reviews').delete().eq('id', reviewId);
 if (error) throw error;
+}
+
+export async function getReviewById(db: SupabaseClient, reviewId: number): Promise<ProductReview | null> {
+return single<ProductReview>(db.from('product_reviews').select('*').eq('id', reviewId));
 }
 
 // ─── Admin: Category CRUD ─────────────────────────────────
@@ -771,6 +791,10 @@ const { error } = await db.from('subcategories').delete().eq('id', id);
 if (error) throw error;
 }
 
+export async function getSubcategoryById(db: SupabaseClient, id: number): Promise<Subcategory | null> {
+return single<Subcategory>(db.from('subcategories').select('*').eq('id', id));
+}
+
 // ─── Brands ──────────────────────────────────────────────
 export async function getAllBrands(db: SupabaseClient): Promise<Brand[]> {
 const { data, error } = await db.rpc('get_all_brands');
@@ -825,5 +849,21 @@ if (error) throw error;
 
 export async function deleteBrand(db: SupabaseClient, id: number): Promise<void> {
 const { error } = await db.from('brands').delete().eq('id', id);
+if (error) throw error;
+}
+
+// ─── Admin Deletion Logs ────────────────────────────────
+export async function logAdminDeletion(db: SupabaseClient, entry: {
+admin_id: number | null;
+entity_type: string;
+entity_id: number;
+payload?: Record<string, unknown> | null;
+}): Promise<void> {
+const { error } = await db.from('admin_deletion_logs').insert({
+admin_id: entry.admin_id,
+entity_type: entry.entity_type,
+entity_id: entry.entity_id,
+payload: entry.payload ?? {}
+});
 if (error) throw error;
 }

@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
-import { getAllBrands, createBrand, updateBrand, deleteBrand } from '$lib/db';
+import { getAllBrands, getBrandById, createBrand, updateBrand, deleteBrand, logAdminDeletion } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
 
 function slugify(text: string): string {
@@ -87,13 +87,28 @@ export const actions: Actions = {
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);
-		const logoKey = (formData.get('logo_key') as string) || null;
 
-		if (logoKey) {
-			try { await deleteImage(bucket, logoKey); } catch {}
-		}
+		if (!Number.isFinite(id)) return fail(400, { error: 'Invalid brand id.' });
+
+		const brand = await getBrandById(db, id);
+		if (!brand) return fail(404, { error: 'Brand not found.' });
 
 		await deleteBrand(db, id);
+
+		await logAdminDeletion(db, {
+			admin_id: locals.admin?.id ?? null,
+			entity_type: 'brand',
+			entity_id: id,
+			payload: {
+				name: brand.name,
+				slug: brand.slug,
+				logo_key: brand.logo_key
+			}
+		});
+
+		if (brand.logo_key) {
+			try { await deleteImage(bucket, brand.logo_key); } catch (e) { console.error('Failed to delete brand logo:', brand.logo_key, e); }
+		}
 		return { success: true };
 	}
 };

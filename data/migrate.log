@@ -1,0 +1,53 @@
+nohup: ignoring input
+Loaded 3056 products
+
+Phase 1: Converting images to WebP...
+  Converting 8026 images to WebP...
+  [200/8026] converted
+/home/alemi/gadgets/data/.venv/lib/python3.12/site-packages/PIL/Image.py:1034: UserWarning: Palette images with Transparency expressed in bytes should be converted to RGBA images
+  warnings.warn(
+  [400/8026] converted
+  [600/8026] converted
+  [800/8026] converted
+  [1000/8026] converted
+  [1200/8026] converted
+  [1400/8026] converted
+  [1600/8026] converted
+  [1800/8026] converted
+  [2000/8026] converted
+  [2200/8026] converted
+  [2400/8026] converted
+  [2600/8026] converted
+  [2800/8026] converted
+  [3000/8026] converted
+  [3200/8026] converted
+  [3400/8026] converted
+  [3600/8026] converted
+  [3800/8026] converted
+  [4000/8026] converted
+  [4200/8026] converted
+  [4400/8026] converted
+  [4600/8026] converted
+  [4800/8026] converted
+  [5000/8026] converted
+  [5200/8026] converted
+  [5400/8026] converted
+  [5600/8026] converted
+  [5800/8026] converted
+  [6000/8026] converted
+  [6200/8026] converted
+  [6400/8026] converted
+  [6600/8026] converted
+  [6800/8026] converted
+  [7000/8026] converted
+  [7200/8026] converted
+  [7400/8026] converted
+  [7600/8026] converted
+  [7800/8026] converted
+  [8000/8026] converted
+  [8026/8026] converted
+  Saved image map: /home/alemi/gadgets/data/abanista/image_map.json
+  8026 WebP images ready
+
+Phase 2: Uploading to R2...
+  Uploading 8026 images to R2...

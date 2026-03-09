@@ -102,7 +102,36 @@ $effect(() => startCarouselAutoScroll('carousel-best'));
 </script>
 
 <svelte:head>
-<title>Gadgets Store — Premium Tech, Delivered</title>
+<title>Gadgets Store Uganda | Premium Electronics, Audio & Wearables | Fast Delivery</title>
+<meta name="description" content="Shop the latest smartphones, wireless earbuds, smartwatches, and tech accessories in Uganda. Premium quality, competitive prices, and fast delivery nationwide. Free shipping on orders over UGX 200,000." />
+<meta name="keywords" content="gadgets uganda, electronics kampala, smartphones uganda, wireless earbuds, smartwatch, tech accessories, buy electronics online uganda" />
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+<link rel="canonical" href="https://gadgets.co.ug/" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://gadgets.co.ug/" />
+<meta property="og:title" content="Gadgets Store Uganda | Premium Tech & Electronics" />
+<meta property="og:description" content="Shop premium smartphones, wireless earbuds, smartwatches, and tech accessories. Fast delivery across Uganda. Quality guaranteed." />
+<meta property="og:image" content="https://gadgets.co.ug/img/og-home.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:site_name" content="Gadgets Store Uganda" />
+<meta property="og:locale" content="en_UG" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@gadgetsug" />
+<meta name="twitter:creator" content="@gadgetsug" />
+<meta name="twitter:title" content="Gadgets Store Uganda | Premium Tech & Electronics" />
+<meta name="twitter:description" content="Shop premium smartphones, wireless earbuds, smartwatches, and tech accessories. Fast delivery across Uganda." />
+<meta name="twitter:image" content="https://gadgets.co.ug/img/og-home.jpg" />
+
+<!-- Additional SEO -->
+<meta name="theme-color" content="#ea580c" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 </svelte:head>
 
 <!-- ── Hero Carousel ────────────────────────────────────────────────── -->
@@ -362,18 +391,13 @@ View all
 {#each data.brands as brand}
 <a
 href="/shop?brand={brand.slug}"
+aria-label={brand.name}
 class="group relative h-10 w-32 sm:h-12 sm:w-36 rounded-sm overflow-hidden border border-slate-200 bg-slate-800 hover:shadow-lg hover:border-orange-400 transition-all duration-200"
 >
 	<!-- Background image -->
 	{#if brand.logo_key}
-		<img src={getImageUrl(brand.logo_key)} alt="" class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+		<img src={getImageUrl(brand.logo_key)} alt={brand.name} class="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
 	{/if}
-	<!-- Dark overlay -->
-	<div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition-colors duration-200"></div>
-	<!-- Brand name -->
-	<div class="relative h-full flex items-center justify-center px-2">
-		<span class="text-white text-sm font-semibold text-center leading-tight drop-shadow-sm">{brand.name}</span>
-	</div>
 </a>
 {/each}
 </div>

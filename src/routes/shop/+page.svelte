@@ -3,6 +3,7 @@ import type { PageData } from './$types';
 import { goto } from '$app/navigation';
 import { page } from '$app/stores';
 import { formatPrice } from '$lib/utils';
+import { getImageUrl } from '$lib/r2';
 import ProductCard from '$lib/components/ProductCard.svelte';
 import RangeSlider from '$lib/components/RangeSlider.svelte';
 import Breadcrumb from '$lib/components/Breadcrumb.svelte';
@@ -81,6 +82,11 @@ function setCategory(slug: string | null) {
 	u.searchParams.delete('page');
 	goto(u.pathname + u.search, { invalidateAll: true });
 	mobileFiltersOpen = false;
+}
+
+function categoryImageSrc(cat: { image_key: string | null; icon: string }) {
+if (cat.image_key) return getImageUrl(cat.image_key);
+return cat.icon || '';
 }
 
 function setSubcategory(slug: string | null) {
@@ -239,10 +245,107 @@ const sortOptions = [
 { value: 'price-desc', label: 'Price: High to Low' },
 { value: 'discount', label: 'Biggest Discount' },
 ];
+
+// Dynamic SEO content
+const pageTitle = $derived(() => {
+	const parts = [];
+	if (data.activeSearch) return `Search: ${data.activeSearch} | Gadgets Store Uganda`;
+	if (data.activeSubcategory) {
+		const sub = data.subcategories.find(s => s.slug === data.activeSubcategory);
+		if (sub) parts.push(sub.name);
+	}
+	if (data.activeCategory) {
+		const cat = data.categories.find(c => c.slug === data.activeCategory);
+		if (cat) parts.push(cat.name);
+	}
+	parts.push('Shop', 'Gadgets Store Uganda');
+	return parts.join(' | ');
+});
+
+const pageDescription = $derived(() => {
+	if (data.activeSearch) {
+		return `Found ${data.total} results for "${data.activeSearch}". Browse premium electronics and tech accessories with fast delivery across Uganda.`;
+	}
+	const cat = data.activeCategory ? data.categories.find(c => c.slug === data.activeCategory) : null;
+	const sub = data.activeSubcategory ? data.subcategories.find(s => s.slug === data.activeSubcategory) : null;
+	if (sub) {
+		return `Shop ${sub.name} in Uganda. ${data.total} products available. Premium quality, competitive prices, fast nationwide delivery.`;
+	}
+	if (cat) {
+		return `Browse ${data.total} ${cat.name.toLowerCase()} products. Premium quality electronics with fast delivery across Uganda. Shop now!`;
+	}
+	return `Browse ${data.total} premium tech products. Shop smartphones, audio gear, wearables, and accessories. Fast delivery across Uganda.`;
+});
+
+const canonicalUrl = $derived(() => {
+	const base = 'https://gadgets.co.ug/shop';
+	const params = new URLSearchParams();
+	if (data.activeCategory) params.set('category', data.activeCategory);
+	if (data.activeSubcategory) params.set('subcategory', data.activeSubcategory);
+	if (data.activeBrand) params.set('brand', data.activeBrand);
+	if (data.activeSearch) params.set('q', data.activeSearch);
+	const query = params.toString();
+	return query ? `${base}?${query}` : base;
+});
+
+// Pagination URLs for SEO
+const prevPageUrl = $derived(() => {
+	if (data.page <= 1) return null;
+	const base = 'https://gadgets.co.ug/shop';
+	const params = new URLSearchParams($page.url.searchParams);
+	params.set('page', String(data.page - 1));
+	return `${base}?${params.toString()}`;
+});
+
+const nextPageUrl = $derived(() => {
+	if (data.page >= data.totalPages) return null;
+	const base = 'https://gadgets.co.ug/shop';
+	const params = new URLSearchParams($page.url.searchParams);
+	params.set('page', String(data.page + 1));
+	return `${base}?${params.toString()}`;
+});
+
 </script>
 
 <svelte:head>
-<title>{data.activeSubcategory ? data.subcategories.find(s => s.slug === data.activeSubcategory)?.name + ' – ' : ''}{data.activeCategory ? data.categories.find(c => c.slug === data.activeCategory)?.name + ' – ' : ''}Shop – Gadgets Store</title>
+<title>{pageTitle()}</title>
+<meta name="description" content={pageDescription()} />
+<meta name="robots" content="index, follow" />
+<link rel="canonical" href={canonicalUrl()} />
+
+<!-- Pagination links for SEO -->
+{#if prevPageUrl()}
+<link rel="prev" href={prevPageUrl()} />
+{/if}
+{#if nextPageUrl()}
+<link rel="next" href={nextPageUrl()} />
+{/if}
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalUrl()} />
+<meta property="og:title" content={pageTitle()} />
+<meta property="og:description" content={pageDescription()} />
+<meta property="og:image" content="https://gadgets.co.ug/img/og-shop.jpg" />
+<meta property="og:site_name" content="Gadgets Store Uganda" />
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitle()} />
+<meta name="twitter:description" content={pageDescription()} />
+<meta name="twitter:image" content="https://gadgets.co.ug/img/og-shop.jpg" />
+
+<!-- Structured Data for Product Listing -->
+{@html `<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "${pageTitle().replace(/"/g, '\\"')}",
+  "description": "${pageDescription().replace(/"/g, '\\"')}",
+  "url": "${canonicalUrl()}",
+  "numberOfItems": ${data.total}
+}
+</script>`}
 </svelte:head>
 
 <div class="bg-white min-h-screen">
@@ -500,7 +603,7 @@ onclick={() => setCategory(cat.slug)}
 class="w-full text-left flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm transition-colors {data.activeCategory === cat.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
 >
 <div class="h-6 w-6 rounded-sm overflow-hidden bg-slate-100 shrink-0">
-<img src={cat.icon} alt="" class="h-full w-full object-cover" />
+<img src={categoryImageSrc(cat)} alt="" class="h-full w-full object-cover" />
 </div>
 <span class="flex-1 truncate">{cat.name}</span>
 {#if cat.product_count !== undefined}
@@ -771,7 +874,7 @@ onclick={() => setCategory(cat.slug)}
 class="w-full text-left flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeCategory === cat.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
 >
 <div class="h-6 w-6 rounded overflow-hidden bg-slate-100 shrink-0">
-<img src={cat.icon} alt="" class="h-full w-full object-cover" />
+<img src={categoryImageSrc(cat)} alt="" class="h-full w-full object-cover" />
 </div>
 <span class="flex-1 truncate">{cat.name}</span>
 {#if cat.product_count !== undefined}

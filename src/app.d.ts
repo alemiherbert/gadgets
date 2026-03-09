@@ -24,6 +24,8 @@ declare global {
 				BUCKET: R2Bucket;
 				SUPABASE_URL: string;
 				SUPABASE_SERVICE_ROLE_KEY: string;
+				RATE_LIMIT_KV: KVNamespace;
+				SECURITY_LOGS_KV: KVNamespace;
 			};
 		}
 	}

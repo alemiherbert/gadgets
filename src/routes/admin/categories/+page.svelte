@@ -154,7 +154,16 @@
 						<input id="cat-image" name="image" type="file" accept="image/*"
 							class="w-full rounded-xs border border-zinc-300 px-3 py-1.5 text-sm shadow-sm file:mr-3 file:rounded-xs file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200" />
 						{#if editingCat && catExistingImageKey}
-							<p class="text-xs text-zinc-400 mt-1">Current: {catExistingImageKey}</p>
+							<div class="mt-2 flex items-center gap-3">
+								<img src={getImageUrl(catExistingImageKey)} alt="Current category" class="h-10 w-10 rounded-xs object-cover border border-zinc-200" />
+								<div class="min-w-0">
+									<p class="text-xs text-zinc-400 truncate">Current: {catExistingImageKey}</p>
+									<label class="mt-1 inline-flex items-center gap-2 text-xs text-zinc-600 cursor-pointer">
+										<input type="checkbox" name="remove_image" value="1" class="h-3.5 w-3.5 rounded border-zinc-300" />
+										Remove current image
+									</label>
+								</div>
+							</div>
 						{/if}
 					</div>
 				</div>

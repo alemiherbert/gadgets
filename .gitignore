@@ -18,6 +18,12 @@ Thumbs.db
 !.env.example
 !.env.test
 
+# Python virtualenv
+data/.venv/
+
+# Scraped data (large)
+data/abanista/
+
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*

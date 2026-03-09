@@ -1,3 +1,30 @@
-# allow crawling everything by default
+# Gadgets Store Uganda - Robots.txt
+# Allow all crawlers by default
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /*?*sort=*
+Disallow: /*?*page=*
+
+# Special crawlers
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: bingbot
+Allow: /
+
+# Sitemap location
+Sitemap: https://gadgets.co.ug/sitemap.xml
+
+# Crawl-delay (optional, remove if not needed)
+# User-agent: *
+# Crawl-delay: 1

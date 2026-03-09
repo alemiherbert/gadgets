@@ -32,3 +32,45 @@ export function isValidEmail(email: string): boolean {
 export function isValidPassword(password: string): boolean {
 	return password.length >= 8;
 }
+
+// ── Input Sanitization ─────────────────────────────────────
+
+/** Sanitize HTML to prevent XSS - strips all HTML tags */
+export function sanitizeHtml(input: string): string {
+	return input.replace(/<[^>]*>/g, '');
+}
+
+/** Sanitize user input for safe display - escapes HTML entities */
+export function escapeHtml(input: string): string {
+	const map: Record<string, string> = {
+		'&': '&amp;',
+		'<': '&lt;',
+		'>': '&gt;',
+		'"': '&quot;',
+		"'": '&#x27;',
+		'/': '&#x2F;',
+	};
+	return input.replace(/[&<>"'/]/g, (char) => map[char]);
+}
+
+/** Sanitize text for safe use in URLs */
+export function sanitizeUrlParam(input: string): string {
+	return encodeURIComponent(input.trim());
+}
+
+/** Limit string length and sanitize */
+export function sanitizeText(input: string, maxLength: number = 1000): string {
+	return escapeHtml(input.trim().slice(0, maxLength));
+}
+
+/** Validate and sanitize JSON input */
+export function sanitizeJson(input: string, maxLength: number = 10000): any {
+	if (input.length > maxLength) {
+		throw new Error('JSON input too large');
+	}
+	try {
+		return JSON.parse(input);
+	} catch {
+		throw new Error('Invalid JSON');
+	}
+}

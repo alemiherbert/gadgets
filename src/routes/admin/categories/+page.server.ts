@@ -3,12 +3,15 @@ import { fail } from '@sveltejs/kit';
 import {
 	getAllCategories,
 	getAllSubcategories,
+	getCategoryById,
+	getSubcategoryById,
 	createCategory,
 	updateCategory,
 	deleteCategory,
 	createSubcategory,
 	updateSubcategory,
-	deleteSubcategory
+	deleteSubcategory,
+	logAdminDeletion
 } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
 
@@ -103,13 +106,28 @@ export const actions: Actions = {
 		const bucket = platform!.env.BUCKET;
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);
-		const imageKey = (formData.get('image_key') as string) || null;
 
-		if (imageKey) {
-			try { await deleteImage(bucket, imageKey); } catch {}
-		}
+		if (!Number.isFinite(id)) return fail(400, { error: 'Invalid category id.' });
+
+		const category = await getCategoryById(db, id);
+		if (!category) return fail(404, { error: 'Category not found.' });
 
 		await deleteCategory(db, id);
+
+		await logAdminDeletion(db, {
+			admin_id: locals.admin?.id ?? null,
+			entity_type: 'category',
+			entity_id: id,
+			payload: {
+				name: category.name,
+				slug: category.slug,
+				image_key: category.image_key
+			}
+		});
+
+		if (category.image_key) {
+			try { await deleteImage(bucket, category.image_key); } catch (e) { console.error('Failed to delete category image:', category.image_key, e); }
+		}
 		return { success: true };
 	},
 
@@ -155,7 +173,24 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const id = parseInt(formData.get('id') as string);
 
+		if (!Number.isFinite(id)) return fail(400, { subError: 'Invalid subcategory id.' });
+
+		const subcategory = await getSubcategoryById(db, id);
+		if (!subcategory) return fail(404, { subError: 'Subcategory not found.' });
+
 		await deleteSubcategory(db, id);
+
+		await logAdminDeletion(db, {
+			admin_id: locals.admin?.id ?? null,
+			entity_type: 'subcategory',
+			entity_id: id,
+			payload: {
+				name: subcategory.name,
+				slug: subcategory.slug,
+				category_id: subcategory.category_id
+			}
+		});
+
 		return { success: true };
 	}
 };
