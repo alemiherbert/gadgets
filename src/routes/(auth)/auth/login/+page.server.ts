@@ -4,6 +4,7 @@ import { getCustomerByEmail, createSession } from '$lib/db';
 import { verifyPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
 import { isValidEmail } from '$lib/utils';
 import { logSecurityEvent, getClientIP, getUserAgent } from '$lib/monitoring';
+import { sendLoginNotification } from '$lib/email';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.customer) {
@@ -48,6 +49,14 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid email or password.', email });
 		}
 
+		// OAuth-only accounts don't have a local password hash.
+		if (!customer.password_hash) {
+			return fail(400, {
+				error: 'This account uses Google sign-in. Please use "Sign in with Google".',
+				email
+			});
+		}
+
 		const valid = await verifyPassword(password, customer.password_hash);
 		if (!valid) {
 			// Log failed login attempt
@@ -72,6 +81,14 @@ export const actions: Actions = {
 			customer_id: customer.id,
 			expires_at: getSessionExpiry()
 		});
+
+		// Send login notification email
+		await sendLoginNotification(
+			customer.email,
+			customer.name,
+			getClientIP(request),
+			getUserAgent(request)
+		);
 
 		cookies.set('session', sessionId, {
 			path: '/',

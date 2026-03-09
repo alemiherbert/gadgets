@@ -12,6 +12,8 @@ declare global {
 				id: number;
 				email: string;
 				name: string;
+				oauth_provider?: string | null;
+				avatar_url?: string | null;
 			};
 			admin?: {
 				id: number;
@@ -26,6 +28,9 @@ declare global {
 				SUPABASE_SERVICE_ROLE_KEY: string;
 				RATE_LIMIT_KV: KVNamespace;
 				SECURITY_LOGS_KV: KVNamespace;
+				GOOGLE_CLIENT_ID?: string;
+				GOOGLE_CLIENT_SECRET?: string;
+				GOOGLE_REDIRECT_URI?: string;
 			};
 		}
 	}

@@ -33,6 +33,7 @@
 		"@cloudflare/workers-types": "^4.20260227.0",
 		"@supabase/supabase-js": "^2.98.0",
 		"@sveltejs/adapter-cloudflare": "^7.2.8",
+		"arctic": "^3.7.0",
 		"wrangler": "^4.67.0"
 	}
 }

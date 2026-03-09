@@ -2,7 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import {
 	getProductBySlug, getRecommendedProducts, recordProductView,
 	getProductReviews, hasCustomerPurchasedProduct, hasCustomerReviewedProduct, createProductReview,
-	getProductImages, getAdjacentProducts
+	getProductImages, getAdjacentProducts, addToWishlist, removeFromWishlist, isInWishlist
 } from '$lib/db';
 import { error, fail, redirect } from '@sveltejs/kit';
 
@@ -31,16 +31,19 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	let canReview = false;
 	let hasReviewed = false;
+	let isWishlisted = false;
 	if (customerId) {
-		const [purchased, reviewed] = await Promise.all([
+		const [purchased, reviewed, wishlisted] = await Promise.all([
 			hasCustomerPurchasedProduct(db, customerId, productId),
-			hasCustomerReviewedProduct(db, customerId, productId)
+			hasCustomerReviewedProduct(db, customerId, productId),
+			isInWishlist(db, customerId, productId)
 		]);
 		canReview = purchased && !reviewed;
 		hasReviewed = reviewed;
+		isWishlisted = wishlisted;
 	}
 
-	return { product, recommendations, reviews, images, canReview, hasReviewed, adjacent };
+	return { product, recommendations, reviews, images, canReview, hasReviewed, adjacent, isWishlisted };
 };
 
 export const actions: Actions = {
@@ -71,5 +74,29 @@ export const actions: Actions = {
 		await createProductReview(db, { product_id: productId, customer_id: customerId, rating, title, body });
 
 		return { success: true };
+	},
+	addToWishlist: async ({ params, locals, url }) => {
+		if (!locals.customer) {
+			throw redirect(303, `/auth/login?redirectTo=${encodeURIComponent(url.pathname)}`);
+		}
+
+		const db = locals.db;
+		const product = await getProductBySlug(db, params.slug);
+		if (!product || !product.active) return fail(404, { error: 'Product not found.' });
+
+		await addToWishlist(db, locals.customer.id, product.id);
+		return { wishlistUpdated: true };
+	},
+	removeFromWishlist: async ({ params, locals, url }) => {
+		if (!locals.customer) {
+			throw redirect(303, `/auth/login?redirectTo=${encodeURIComponent(url.pathname)}`);
+		}
+
+		const db = locals.db;
+		const product = await getProductBySlug(db, params.slug);
+		if (!product || !product.active) return fail(404, { error: 'Product not found.' });
+
+		await removeFromWishlist(db, locals.customer.id, product.id);
+		return { wishlistUpdated: true };
 	}
 };

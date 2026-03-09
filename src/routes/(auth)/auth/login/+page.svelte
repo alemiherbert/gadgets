@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
+	import AuthGoogleButton from '$lib/components/AuthGoogleButton.svelte';
+	import AuthSwitchLink from '$lib/components/AuthSwitchLink.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -81,7 +83,6 @@
 	</button>
 </form>
 
-<p class="text-center text-sm text-slate-500 mt-8">
-	Don't have an account?
-	<a href="/auth/register" class="font-medium text-orange-600 hover:text-orange-500 transition-colors">Create one</a>
-</p>
+<AuthGoogleButton context="signin" href="/auth/google" />
+
+<AuthSwitchLink mode="signin" />

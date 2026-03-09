@@ -89,10 +89,18 @@ export interface FeaturedSlide {
 export interface Customer {
 	id: number;
 	email: string;
-	password_hash: string;
+	password_hash: string | null;
 	name: string;
 	phone: string;
 	created_at: string;
+}
+
+export interface WishlistItem {
+	id: number;
+	customer_id: number;
+	product_id: number;
+	created_at: string;
+	product: Product;
 }
 
 export interface Session {
