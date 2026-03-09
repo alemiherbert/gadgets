@@ -416,6 +416,30 @@
 					Sold Out
 				</div>
 			{/if}
+
+			{#if data.customer}
+				<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'}>
+					<button
+						type="submit"
+						class="w-full h-11 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+					>
+						<svg class="h-4 w-4 {data.isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={data.isWishlisted ? 'currentColor' : 'none'}>
+							<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+						</svg>
+						{data.isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
+					</button>
+				</form>
+			{:else}
+				<a
+					href="/auth/login?redirectTo=/products/{data.product.slug}"
+					class="w-full h-11 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm flex items-center justify-center gap-2 transition-colors"
+				>
+					<svg class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill="none">
+						<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+					</svg>
+					Sign in to save to Wishlist
+				</a>
+			{/if}
 		</div>
 	</div>
 

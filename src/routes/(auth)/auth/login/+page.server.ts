@@ -49,6 +49,14 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid email or password.', email });
 		}
 
+		// OAuth-only accounts don't have a local password hash.
+		if (!customer.password_hash) {
+			return fail(400, {
+				error: 'This account uses Google sign-in. Please use "Sign in with Google".',
+				email
+			});
+		}
+
 		const valid = await verifyPassword(password, customer.password_hash);
 		if (!valid) {
 			// Log failed login attempt

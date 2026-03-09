@@ -1,6 +1,7 @@
 // Google OAuth - Callback handler
 import { isRedirect, redirect, type RequestEvent } from '@sveltejs/kit';
 import { createGoogleOAuth } from '$lib/oauth';
+import { generateSessionId, getSessionExpiry } from '$lib/auth';
 import { sendWelcomeEmail, sendLoginNotification } from '$lib/email';
 import { getClientIP, getUserAgent } from '$lib/monitoring';
 
@@ -143,24 +144,22 @@ export async function GET({ url, cookies, locals, platform, request }: RequestEv
 			}
 		}
 
-		// Create session
-		const sessionToken = crypto.randomUUID();
-		const expiresDate = new Date();
-		expiresDate.setDate(expiresDate.getDate() + 30); // 30 days
+		// Create session using the same schema/cookie as password auth.
+		const sessionId = generateSessionId();
 
 		await locals.db.from('sessions').insert({
-			session_token: sessionToken,
+			id: sessionId,
 			customer_id: customer.id,
-			expires_at: expiresDate.toISOString()
+			expires_at: getSessionExpiry()
 		});
 
 		// Set session cookie
-		cookies.set('session_token', sessionToken, {
+		cookies.set('session', sessionId, {
 			path: '/',
 			httpOnly: true,
 			secure: true,
 			sameSite: 'lax',
-			expires: expiresDate
+			maxAge: 60 * 60 * 24 * 30
 		});
 
 		throw redirect(303, redirectTo);

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session, Category, Subcategory, Brand, SearchHistoryItem, FeaturedSlide, PasswordResetToken, ProductReview, ProductImage } from './types';
+import type { Product, Customer, Order, OrderItem, OrderItemWithProduct, Admin, AdminSession, Session, Category, Subcategory, Brand, SearchHistoryItem, FeaturedSlide, PasswordResetToken, ProductReview, ProductImage, WishlistItem } from './types';
 
 // Helper: single row or null
 async function single<T>(query: any): Promise<T | null> {
@@ -296,6 +296,56 @@ customer_email: c.email
 export async function deleteSession(db: SupabaseClient, sessionId: string): Promise<void> {
 const { error } = await db.from('sessions').delete().eq('id', sessionId);
 if (error) throw error;
+}
+
+// ─── Wishlists ───────────────────────────────────────────
+export async function addToWishlist(db: SupabaseClient, customerId: number, productId: number): Promise<void> {
+const { error } = await db.from('wishlists').upsert({
+customer_id: customerId,
+product_id: productId
+}, { onConflict: 'customer_id,product_id', ignoreDuplicates: true });
+if (error) throw error;
+}
+
+export async function removeFromWishlist(db: SupabaseClient, customerId: number, productId: number): Promise<void> {
+const { error } = await db.from('wishlists')
+.delete()
+.eq('customer_id', customerId)
+.eq('product_id', productId);
+if (error) throw error;
+}
+
+export async function isInWishlist(db: SupabaseClient, customerId: number, productId: number): Promise<boolean> {
+const { data, error } = await db.from('wishlists')
+.select('id')
+.eq('customer_id', customerId)
+.eq('product_id', productId)
+.maybeSingle();
+if (error) throw error;
+return !!data;
+}
+
+export async function getWishlistByCustomer(db: SupabaseClient, customerId: number): Promise<WishlistItem[]> {
+const { data, error } = await db.from('wishlists')
+.select('id, customer_id, product_id, created_at, products!inner(*)')
+.eq('customer_id', customerId)
+.order('created_at', { ascending: false });
+if (error) throw error;
+return (data ?? []).map((row: any) => ({
+id: row.id,
+customer_id: row.customer_id,
+product_id: row.product_id,
+created_at: row.created_at,
+product: row.products as Product
+}));
+}
+
+export async function getWishlistProductIds(db: SupabaseClient, customerId: number): Promise<number[]> {
+const { data, error } = await db.from('wishlists')
+.select('product_id')
+.eq('customer_id', customerId);
+if (error) throw error;
+return (data ?? []).map((row: any) => row.product_id as number);
 }
 
 // ─── Password Reset Tokens ──────────────────────────────
