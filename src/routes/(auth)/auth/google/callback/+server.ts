@@ -1,5 +1,5 @@
 // Google OAuth - Callback handler
-import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { isRedirect, redirect, type RequestEvent } from '@sveltejs/kit';
 import { createGoogleOAuth } from '$lib/oauth';
 import { sendWelcomeEmail, sendLoginNotification } from '$lib/email';
 import { getClientIP, getUserAgent } from '$lib/monitoring';
@@ -165,6 +165,9 @@ export async function GET({ url, cookies, locals, platform, request }: RequestEv
 
 		throw redirect(303, redirectTo);
 	} catch (err) {
+		if (isRedirect(err)) {
+			throw err;
+		}
 		console.error('OAuth callback error:', err);
 		throw redirect(303, '/auth/login?error=oauth_failed');
 	}

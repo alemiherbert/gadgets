@@ -1,5 +1,5 @@
 // Google OAuth - Initiate login flow
-import { redirect, type RequestEvent } from '@sveltejs/kit';
+import { isRedirect, redirect, type RequestEvent } from '@sveltejs/kit';
 import { createGoogleOAuth, generateState, generateCodeVerifier } from '$lib/oauth';
 
 export async function GET({ platform, url, cookies }: RequestEvent) {
@@ -56,6 +56,9 @@ export async function GET({ platform, url, cookies }: RequestEvent) {
 
 		throw redirect(303, authUrl.toString());
 	} catch (error) {
+		if (isRedirect(error)) {
+			throw error;
+		}
 		console.error('OAuth initiation error:', error);
 		throw redirect(303, '/auth/login?error=oauth_failed');
 	}
