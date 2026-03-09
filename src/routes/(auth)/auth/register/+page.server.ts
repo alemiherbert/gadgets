@@ -3,6 +3,7 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getCustomerByEmail, createCustomer, createSession } from '$lib/db';
 import { hashPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
 import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
+import { sendWelcomeEmail } from '$lib/email';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (locals.customer) {
@@ -54,6 +55,9 @@ export const actions: Actions = {
 			name,
 			phone: phone || ''
 		});
+
+		// Send welcome email
+		await sendWelcomeEmail(email, name);
 
 		const sessionId = generateSessionId();
 		await createSession(db, {

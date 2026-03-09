@@ -4,6 +4,7 @@ import { getCustomerByEmail, createSession } from '$lib/db';
 import { verifyPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
 import { isValidEmail } from '$lib/utils';
 import { logSecurityEvent, getClientIP, getUserAgent } from '$lib/monitoring';
+import { sendLoginNotification } from '$lib/email';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (locals.customer) {
@@ -72,6 +73,14 @@ export const actions: Actions = {
 			customer_id: customer.id,
 			expires_at: getSessionExpiry()
 		});
+
+		// Send login notification email
+		await sendLoginNotification(
+			customer.email,
+			customer.name,
+			getClientIP(request),
+			getUserAgent(request)
+		);
 
 		cookies.set('session', sessionId, {
 			path: '/',
