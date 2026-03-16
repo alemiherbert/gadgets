@@ -473,6 +473,15 @@ def clear_old_data():
             print(f"    [WARN] {table}: {e}")
 
 
+def clear_products_table():
+    print("  Clearing products table...")
+    try:
+        supabase_request("DELETE", "products", params={"id": "gt.0"})
+        print("    Cleared products table")
+    except Exception as e:
+        print(f"    [WARN] products: {e}")
+
+
 def insert_brands(products):
     seen = {}
     for p in products:
@@ -661,6 +670,7 @@ def main():
         default="abanista/tech_products.json",
         help="Path to input products JSON (relative to data/ or absolute)",
     )
+    parser.add_argument("--clear-products", action="store_true", help="Clear only the products table")
     args = parser.parse_args()
 
     if not SUPABASE_KEY and not args.images_only:
