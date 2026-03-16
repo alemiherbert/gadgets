@@ -9,7 +9,7 @@
 </script>
 
 <svelte:head>
-	<title>Create Account — Gadgets Store</title>
+	<title>Create Account — Gadgeteria</title>
 </svelte:head>
 
 <div class="mb-8">

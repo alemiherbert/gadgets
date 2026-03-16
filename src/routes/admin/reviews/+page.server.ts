@@ -2,10 +2,34 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
 import { getAllReviews, getReviewById, deleteReview, logAdminDeletion } from '$lib/db';
 
-export const load: PageServerLoad = async ({ locals }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const db = locals.db;
 	const reviews = await getAllReviews(db);
-	return { reviews };
+	const PAGE_SIZE = 20;
+	const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+	const pageParam = parseInt(url.searchParams.get('page') || '1');
+	const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+
+	const filtered = q
+		? reviews.filter((review) => {
+			const haystack = `${review.title ?? ''} ${review.body ?? ''} ${review.customer_name} ${review.product_name}`.toLowerCase();
+			return haystack.includes(q);
+		})
+		: reviews;
+
+	const total = filtered.length;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	const safePage = Math.min(page, totalPages);
+	const start = (safePage - 1) * PAGE_SIZE;
+
+	return {
+		reviews: filtered.slice(start, start + PAGE_SIZE),
+		q: url.searchParams.get('q') || '',
+		page: safePage,
+		pageSize: PAGE_SIZE,
+		total,
+		totalPages
+	};
 };
 
 export const actions: Actions = {

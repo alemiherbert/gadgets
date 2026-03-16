@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-	<title>{$page.status} — Gadgets Store</title>
+	<title>{$page.status} — Gadgeteria</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -31,7 +31,7 @@
 			<h2 class="text-xl font-semibold text-slate-700 mb-3">Something went wrong</h2>
 			<p class="text-slate-500 mb-8 leading-relaxed">
 				We're having trouble loading this page. Please try again in a moment. If the problem continues, contact us at
-				<a href="mailto:support@gadgets.co.ug" class="text-orange-500 hover:text-orange-600 font-medium">support@gadgets.co.ug</a>.
+				<a href="mailto:support@gadgeteria.net" class="text-orange-500 hover:text-orange-600 font-medium">support@gadgeteria.net</a>.
 			</p>
 		{:else if $page.status === 403}
 			<div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-amber-50 mb-6">

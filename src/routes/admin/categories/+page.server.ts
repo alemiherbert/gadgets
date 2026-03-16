@@ -25,13 +25,51 @@ function slugify(text: string): string {
 		.replace(/^-+|-+$/g, '');
 }
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const db = locals.db;
 	const [categories, subcategories] = await Promise.all([
 		getAllCategories(db),
 		getAllSubcategories(db)
 	]);
-	return { categories, subcategories };
+
+	const PAGE_SIZE = 12;
+	const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+	const pageParam = parseInt(url.searchParams.get('page') || '1');
+	const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+
+	const matchedCategoryIds = new Set<number>();
+	if (q) {
+		for (const sub of subcategories) {
+			const subHaystack = `${sub.name} ${sub.slug} ${sub.category_name}`.toLowerCase();
+			if (subHaystack.includes(q)) matchedCategoryIds.add(sub.category_id);
+		}
+	}
+
+	const filteredCategories = q
+		? categories.filter((category) => {
+			const catHaystack = `${category.name} ${category.slug} ${category.description ?? ''}`.toLowerCase();
+			return catHaystack.includes(q) || matchedCategoryIds.has(category.id);
+		})
+		: categories;
+
+	const total = filteredCategories.length;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	const safePage = Math.min(page, totalPages);
+	const start = (safePage - 1) * PAGE_SIZE;
+	const pagedCategories = filteredCategories.slice(start, start + PAGE_SIZE);
+	const pageCategoryIds = new Set(pagedCategories.map((category) => category.id));
+
+	const filteredSubcategories = subcategories.filter((sub) => pageCategoryIds.has(sub.category_id));
+
+	return {
+		categories: pagedCategories,
+		subcategories: filteredSubcategories,
+		q: url.searchParams.get('q') || '',
+		page: safePage,
+		pageSize: PAGE_SIZE,
+		total,
+		totalPages
+	};
 };
 
 export const actions: Actions = {
@@ -82,22 +120,26 @@ export const actions: Actions = {
 		if (!slug) return fail(400, { error: 'Could not generate a valid slug from the name.' });
 
 		let imageKey = existingImageKey;
+		const staleKeys = new Set<string>();
 
 		if (removeImage && existingImageKey) {
-			try { await deleteImage(bucket, existingImageKey); } catch {}
+			staleKeys.add(existingImageKey);
 			imageKey = null;
 		}
 
 		if (image && image.size > 0) {
-			if (existingImageKey) {
-				try { await deleteImage(bucket, existingImageKey); } catch {}
-			}
+			if (existingImageKey) staleKeys.add(existingImageKey);
 			imageKey = generateImageKey(image.name, 'categories');
 			const arrayBuffer = await image.arrayBuffer();
 			await uploadImage(bucket, imageKey, arrayBuffer, image.type);
 		}
 
 		await updateCategory(db, id, { name, slug, description, icon, image_key: imageKey, sort_order: sortOrder });
+		for (const key of staleKeys) {
+			if (key !== imageKey) {
+				try { await deleteImage(bucket, key); } catch {}
+			}
+		}
 		return { success: true };
 	},
 

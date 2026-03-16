@@ -7,7 +7,7 @@
 </script>
 
 <svelte:head>
-	<title>Reset Password — Gadgets Store</title>
+	<title>Reset Password — Gadgeteria</title>
 </svelte:head>
 
 <div class="mb-8">

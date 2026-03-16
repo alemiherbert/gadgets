@@ -13,7 +13,7 @@ cart.clear();
 </script>
 
 <svelte:head>
-<title>Order Confirmed — Gadgets Store</title>
+<title>Order Confirmed — Gadgeteria</title>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">

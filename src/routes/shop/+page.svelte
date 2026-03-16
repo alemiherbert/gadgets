@@ -249,7 +249,7 @@ const sortOptions = [
 // Dynamic SEO content
 const pageTitle = $derived(() => {
 	const parts = [];
-	if (data.activeSearch) return `Search: ${data.activeSearch} | Gadgets Store Uganda`;
+	if (data.activeSearch) return `Search: ${data.activeSearch} | Gadgeteria`;
 	if (data.activeSubcategory) {
 		const sub = data.subcategories.find(s => s.slug === data.activeSubcategory);
 		if (sub) parts.push(sub.name);
@@ -258,7 +258,7 @@ const pageTitle = $derived(() => {
 		const cat = data.categories.find(c => c.slug === data.activeCategory);
 		if (cat) parts.push(cat.name);
 	}
-	parts.push('Shop', 'Gadgets Store Uganda');
+	parts.push('Shop', 'Gadgeteria');
 	return parts.join(' | ');
 });
 
@@ -278,7 +278,7 @@ const pageDescription = $derived(() => {
 });
 
 const canonicalUrl = $derived(() => {
-	const base = 'https://gadgets.co.ug/shop';
+	const base = 'https://gadgeteria.net/shop';
 	const params = new URLSearchParams();
 	if (data.activeCategory) params.set('category', data.activeCategory);
 	if (data.activeSubcategory) params.set('subcategory', data.activeSubcategory);
@@ -291,7 +291,7 @@ const canonicalUrl = $derived(() => {
 // Pagination URLs for SEO
 const prevPageUrl = $derived(() => {
 	if (data.page <= 1) return null;
-	const base = 'https://gadgets.co.ug/shop';
+	const base = 'https://gadgeteria.net/shop';
 	const params = new URLSearchParams($page.url.searchParams);
 	params.set('page', String(data.page - 1));
 	return `${base}?${params.toString()}`;
@@ -299,7 +299,7 @@ const prevPageUrl = $derived(() => {
 
 const nextPageUrl = $derived(() => {
 	if (data.page >= data.totalPages) return null;
-	const base = 'https://gadgets.co.ug/shop';
+	const base = 'https://gadgeteria.net/shop';
 	const params = new URLSearchParams($page.url.searchParams);
 	params.set('page', String(data.page + 1));
 	return `${base}?${params.toString()}`;
@@ -326,14 +326,14 @@ const nextPageUrl = $derived(() => {
 <meta property="og:url" content={canonicalUrl()} />
 <meta property="og:title" content={pageTitle()} />
 <meta property="og:description" content={pageDescription()} />
-<meta property="og:image" content="https://gadgets.co.ug/img/og-shop.jpg" />
-<meta property="og:site_name" content="Gadgets Store Uganda" />
+<meta property="og:image" content="https://gadgeteria.net/img/og-shop.jpg" />
+<meta property="og:site_name" content="Gadgeteria" />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={pageTitle()} />
 <meta name="twitter:description" content={pageDescription()} />
-<meta name="twitter:image" content="https://gadgets.co.ug/img/og-shop.jpg" />
+<meta name="twitter:image" content="https://gadgeteria.net/img/og-shop.jpg" />
 
 <!-- Structured Data for Product Listing -->
 {@html `<script type="application/ld+json">
@@ -973,21 +973,6 @@ class="h-3.5 w-3.5 rounded border-slate-300 text-orange-500 focus:ring-orange-40
 </div>
 </div>
 {/each}
-
-<!-- Sort -->
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Sort By</h3>
-<div class="space-y-0.5">
-{#each sortOptions as opt}
-<button
-onclick={() => { setSort(opt.value); mobileFiltersOpen = false; }}
-class="w-full text-left rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeSort === opt.value ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-{opt.label}
-</button>
-{/each}
-</div>
-</div>
 </div>
 
 <!-- Footer -->

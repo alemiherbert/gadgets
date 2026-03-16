@@ -4,8 +4,8 @@ import { formatPrice } from '$lib/utils';
 </script>
 
 <svelte:head>
-<title>Shopping Cart — Gadgets Store</title>
-<meta name="description" content="Review your shopping cart at Gadgets Store Uganda. Fast delivery across Uganda on electronics, audio, wearables and more." />
+<title>Shopping Cart — Gadgeteria</title>
+<meta name="description" content="Review your shopping cart at Gadgeteria. Fast delivery on electronics, audio, wearables and more." />
 <meta name="robots" content="noindex, follow" />
 </svelte:head>
 

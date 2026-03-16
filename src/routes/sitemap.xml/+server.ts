@@ -5,7 +5,7 @@ export const prerender = false; // Dynamic sitemap generation
 
 export const GET: RequestHandler = async ({ locals, url }) => {
 	const db = locals.db;
-	const baseUrl = 'https://gadgets.co.ug';
+	const baseUrl = 'https://gadgeteria.net';
 
 	try {
 		const [categories, products] = await Promise.all([
@@ -46,14 +46,14 @@ export const GET: RequestHandler = async ({ locals, url }) => {
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
         xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 ${allPages
-	.map(
-		page => `  <url>
+				.map(
+					page => `  <url>
     <loc>${page.loc}</loc>${page.lastmod ? `\n    <lastmod>${new Date(page.lastmod).toISOString().split('T')[0]}</lastmod>` : ''}
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`
-	)
-	.join('\n')}
+				)
+				.join('\n')}
 </urlset>`;
 
 		return new Response(xml, {

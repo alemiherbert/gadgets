@@ -3,8 +3,12 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getWishlistByCustomer, removeFromWishlist } from '$lib/db';
 
 export const load: PageServerLoad = async ({ locals }) => {
+	// If logged in, show DB-backed wishlist; otherwise, return empty (client-side localStorage handles anonymous users)
 	if (!locals.customer) {
-		throw redirect(303, '/auth/login?redirectTo=%2Faccount%2Fwishlist');
+		return {
+			customer: null,
+			wishlist: []
+		};
 	}
 
 	const wishlist = await getWishlistByCustomer(locals.db, locals.customer.id);

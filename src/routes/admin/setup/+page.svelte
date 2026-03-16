@@ -7,7 +7,7 @@ let submitting = $state(false);
 </script>
 
 <svelte:head>
-<title>Admin Setup — Gadgets Store</title>
+<title>Admin Setup — Gadgeteria</title>
 </svelte:head>
 
 <div class="flex min-h-screen items-center justify-center bg-zinc-50 px-4">

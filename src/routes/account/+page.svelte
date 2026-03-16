@@ -6,7 +6,7 @@ let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
-<title>My Account — Gadgets Store</title>
+<title>My Account — Gadgeteria</title>
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">

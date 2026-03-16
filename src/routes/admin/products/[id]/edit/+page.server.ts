@@ -50,6 +50,7 @@ export const actions: Actions = {
 		const existingImageKey = formData.get('existing_image_key') as string;
 		const additionalImages = formData.getAll('additional_images') as File[];
 		const deleteImageIds = formData.getAll('delete_image_ids').map(id => parseInt(id as string)).filter(n => !isNaN(n));
+		const existingProduct = await getProductById(db, productId);
 
 		if (!name || !priceStr) {
 			return fail(400, { error: 'Name and price are required.' });
@@ -79,17 +80,12 @@ export const actions: Actions = {
 		let imageKey: string | null = existingImageKey || null;
 
 		if (image && image.size > 0) {
-			// Delete old image
-			if (existingImageKey) {
-				try { await deleteImage(bucket, existingImageKey); } catch {}
-			}
 			imageKey = generateImageKey(image.name);
 			const arrayBuffer = await image.arrayBuffer();
 			await uploadImage(bucket, imageKey, arrayBuffer, image.type);
 		}
 
 		// Generate new slug if name changed
-		const existingProduct = await getProductById(db, productId);
 		let slug = existingProduct?.slug ?? '';
 		if (existingProduct && existingProduct.name !== name) {
 			slug = await generateSlug(db, name);
@@ -127,6 +123,11 @@ export const actions: Actions = {
 				await uploadImage(bucket, key, arrayBuffer, file.type);
 				await addProductImage(db, productId, key, sortOrder++);
 			}
+		}
+
+		const previousMainImageKey = existingProduct?.image_key ?? null;
+		if (previousMainImageKey && previousMainImageKey !== imageKey) {
+			try { await deleteImage(bucket, previousMainImageKey); } catch {}
 		}
 
 		throw redirect(303, '/admin/products');

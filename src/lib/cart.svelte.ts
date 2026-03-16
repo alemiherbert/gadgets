@@ -1,7 +1,7 @@
 // Cart store using Svelte 5 runes + localStorage
 import type { CartItem } from './types';
 
-const CART_KEY = 'gadgets_cart';
+const CART_KEY = 'gadgeteria_cart';
 
 function loadCart(): CartItem[] {
 	if (typeof window === 'undefined') return [];

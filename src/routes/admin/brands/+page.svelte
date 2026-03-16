@@ -5,6 +5,14 @@
 
 	let { data, form }: { data: PageData; form: any } = $props();
 
+	function pageHref(nextPage: number) {
+		const params = new URLSearchParams();
+		if (data.q) params.set('q', data.q);
+		if (nextPage > 1) params.set('page', String(nextPage));
+		const query = params.toString();
+		return `/admin/brands${query ? `?${query}` : ''}`;
+	}
+
 	let showForm = $state(false);
 	let editingId = $state<number | null>(null);
 	let brandName = $state('');
@@ -118,6 +126,17 @@
 	{/if}
 
 	<!-- Brands list -->
+	<form method="GET" action="/admin/brands" class="mb-3">
+		<div class="flex items-center gap-2">
+			<input name="q" value={data.q} type="search" placeholder="Search brands by name or slug" class="input input-sm w-full max-w-md" />
+			<button type="submit" class="btn btn-sm btn-outline">Search</button>
+			{#if data.q}
+				<a href="/admin/brands" class="btn btn-sm btn-ghost">Clear</a>
+			{/if}
+		</div>
+	</form>
+	<p class="text-xs text-zinc-500 mb-3">Showing {data.brands.length} of {data.total} result{data.total !== 1 ? 's' : ''}</p>
+
 	<div class="card overflow-hidden">
 		<table class="table w-full">
 			<thead>
@@ -159,12 +178,8 @@
 								<form
 									method="POST"
 									action="?/delete"
-									use:enhance={() => {
-										if (!confirm(`Delete brand "${brand.name}"?`)) {
-											return ({ cancel }: { cancel: () => void }) => cancel();
-										}
-										return async ({ update }) => { await update(); };
-									}}
+									use:enhance
+									onsubmit={(e) => { if (!confirm(`Delete brand "${brand.name}"?`)) e.preventDefault(); }}
 								>
 									<input type="hidden" name="id" value={brand.id} />
 									<input type="hidden" name="logo_key" value={brand.logo_key ?? ''} />
@@ -183,4 +198,14 @@
 			</tbody>
 		</table>
 	</div>
+
+	{#if data.totalPages > 1}
+		<div class="mt-4 flex items-center justify-between text-sm">
+			<span class="text-zinc-500">Page {data.page} of {data.totalPages}</span>
+			<div class="flex gap-2">
+				<a href={pageHref(Math.max(1, data.page - 1))} class="btn btn-xs btn-outline" aria-disabled={data.page <= 1}>Previous</a>
+				<a href={pageHref(Math.min(data.totalPages, data.page + 1))} class="btn btn-xs btn-outline" aria-disabled={data.page >= data.totalPages}>Next</a>
+			</div>
+		</div>
+	{/if}
 </div>

@@ -1,5 +1,5 @@
 {
-	"name": "gadgets",
+	"name": "gadgeteria",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -10,8 +10,8 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"deploy": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgets-store-uganda --branch main",
-		"deploy:preview": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgets-store-uganda",
+		"deploy": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgeteria-net --branch main",
+		"deploy:preview": "npm run build && npx wrangler pages deploy .svelte-kit/cloudflare --project-name gadgeteria-net",
 		"db:push": "npx supabase db push",
 		"db:pull": "npx supabase db pull"
 	},

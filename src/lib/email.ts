@@ -2,8 +2,8 @@
 
 import type { OrderItemWithProduct, ShippingAddress } from './types';
 
-const FROM_EMAIL = 'noreply@gadgets.store';
-const FROM_NAME = 'Gadgets Store';
+const FROM_EMAIL = 'noreply@gadgeteria.net';
+const FROM_NAME = 'Gadgeteria';
 const ADMIN_EMAIL = 'admin@store.com';
 
 function formatPrice(cents: number): string {
@@ -87,7 +87,7 @@ export async function sendOrderConfirmation(
 				</p>
 			</div>
 			<hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-			<p style="color:#999;font-size:12px;text-align:center">Thanks for shopping with Gadgets Store!</p>
+			<p style="color:#999;font-size:12px;text-align:center">Thanks for shopping with Gadgeteria!</p>
 		</div>
 	`;
 	await sendEmail(customerEmail, `Order Confirmation #${orderId}`, html);
@@ -138,16 +138,16 @@ export async function sendPasswordResetEmail(
 			</div>
 			<h2 style="color:#333;text-align:center">Reset Your Password</h2>
 			<p>Hi ${customerName},</p>
-			<p>We received a request to reset the password for your Gadgets Store account. Click the button below to set a new password:</p>
+			<p>We received a request to reset the password for your Gadgeteria account. Click the button below to set a new password:</p>
 			<div style="text-align:center;margin:32px 0">
 				<a href="${resetUrl}" style="background:#f97316;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Reset Password</a>
 			</div>
 			<p style="color:#666;font-size:13px">This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.</p>
 			<hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-			<p style="color:#999;font-size:12px;text-align:center">Gadgets Store</p>
+			<p style="color:#999;font-size:12px;text-align:center">Gadgeteria</p>
 		</div>
 	`;
-	await sendEmail(customerEmail, 'Reset your password — Gadgets Store', html);
+	await sendEmail(customerEmail, 'Reset your password — Gadgeteria', html);
 }
 
 export async function sendWelcomeEmail(
@@ -161,7 +161,7 @@ export async function sendWelcomeEmail(
 					<span style="color:#fff;font-weight:bold;font-size:24px">🎉</span>
 				</div>
 			</div>
-			<h2 style="color:#333;text-align:center">Welcome to Gadgets Store!</h2>
+			<h2 style="color:#333;text-align:center">Welcome to Gadgeteria!</h2>
 			<p>Hi ${customerName},</p>
 			<p>Thank you for creating an account with us! We're thrilled to have you join our community of tech enthusiasts.</p>
 			<div style="background:#f5f5f5;padding:20px;border-radius:8px;margin:24px 0">
@@ -174,13 +174,13 @@ export async function sendWelcomeEmail(
 				</ul>
 			</div>
 			<div style="text-align:center;margin:32px 0">
-				<a href="https://gadgets.store/shop" style="background:#f97316;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Start Shopping</a>
+				<a href="https://gadgeteria.net/shop" style="background:#f97316;color:#fff;padding:12px 32px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Start Shopping</a>
 			</div>
 			<hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-			<p style="color:#999;font-size:12px;text-align:center">Thanks for choosing Gadgets Store!</p>
+			<p style="color:#999;font-size:12px;text-align:center">Thanks for choosing Gadgeteria!</p>
 		</div>
 	`;
-	await sendEmail(customerEmail, 'Welcome to Gadgets Store! 🎉', html);
+	await sendEmail(customerEmail, 'Welcome to Gadgeteria! 🎉', html);
 }
 
 export async function sendLoginNotification(
@@ -203,7 +203,7 @@ export async function sendLoginNotification(
 			</div>
 			<h2 style="color:#333;text-align:center">New Login Detected</h2>
 			<p>Hi ${customerName},</p>
-			<p>We detected a new login to your Gadgets Store account:</p>
+			<p>We detected a new login to your Gadgeteria account:</p>
 			<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:24px 0">
 				<p style="margin:4px 0"><strong>Time:</strong> ${now}</p>
 				<p style="margin:4px 0"><strong>IP Address:</strong> ${ipAddress}</p>
@@ -215,8 +215,8 @@ export async function sendLoginNotification(
 				</p>
 			</div>
 			<hr style="border:none;border-top:1px solid #eee;margin:24px 0">
-			<p style="color:#999;font-size:12px;text-align:center">Gadgets Store Security Team</p>
+			<p style="color:#999;font-size:12px;text-align:center">Gadgeteria Security Team</p>
 		</div>
 	`;
-	await sendEmail(customerEmail, 'New login to your Gadgets Store account', html);
+	await sendEmail(customerEmail, 'New login to your Gadgeteria account', html);
 }

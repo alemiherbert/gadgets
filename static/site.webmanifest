@@ -1,7 +1,7 @@
 {
-  "name": "Gadgets Store Uganda",
-  "short_name": "Gadgets UG",
-  "description": "Premium electronics and tech accessories in Uganda",
+  "name": "Gadgeteria",
+  "short_name": "Gadgeteria",
+  "description": "Premium electronics and tech accessories",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

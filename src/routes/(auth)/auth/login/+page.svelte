@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign In — Gadgets Store</title>
+	<title>Sign In — Gadgeteria</title>
 </svelte:head>
 
 <div class="mb-8">

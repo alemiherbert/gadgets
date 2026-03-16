@@ -3,6 +3,14 @@ import type { PageData } from './$types';
 import { enhance } from '$app/forms';
 
 let { data }: { data: PageData } = $props();
+
+function pageHref(nextPage: number) {
+	const params = new URLSearchParams();
+	if (data.q) params.set('q', data.q);
+	if (nextPage > 1) params.set('page', String(nextPage));
+	const query = params.toString();
+	return `/admin/reviews${query ? `?${query}` : ''}`;
+}
 </script>
 
 <svelte:head>
@@ -13,9 +21,19 @@ let { data }: { data: PageData } = $props();
 	<div class="flex items-center justify-between mb-6">
 		<div>
 			<h1 class="text-xl font-bold tracking-tight text-zinc-900">Reviews</h1>
-			<p class="text-sm text-zinc-500 mt-1">{data.reviews.length} review{data.reviews.length !== 1 ? 's' : ''} total</p>
+			<p class="text-sm text-zinc-500 mt-1">{data.total} review{data.total !== 1 ? 's' : ''} total</p>
 		</div>
 	</div>
+
+	<form method="GET" action="/admin/reviews" class="mb-4">
+		<div class="flex items-center gap-2">
+			<input name="q" value={data.q} type="search" placeholder="Search by title, body, customer, or product" class="input input-sm w-full max-w-md" />
+			<button type="submit" class="btn btn-sm btn-outline">Search</button>
+			{#if data.q}
+				<a href="/admin/reviews" class="btn btn-sm btn-ghost">Clear</a>
+			{/if}
+		</div>
+	</form>
 
 	{#if data.reviews.length === 0}
 		<div class="card p-8 text-center">
@@ -70,5 +88,15 @@ let { data }: { data: PageData } = $props();
 				</div>
 			{/each}
 		</div>
+
+		{#if data.totalPages > 1}
+			<div class="mt-4 flex items-center justify-between text-sm">
+				<span class="text-zinc-500">Page {data.page} of {data.totalPages}</span>
+				<div class="flex gap-2">
+					<a href={pageHref(Math.max(1, data.page - 1))} class="btn btn-xs btn-outline" aria-disabled={data.page <= 1}>Previous</a>
+					<a href={pageHref(Math.min(data.totalPages, data.page + 1))} class="btn btn-xs btn-outline" aria-disabled={data.page >= data.totalPages}>Next</a>
+				</div>
+			</div>
+		{/if}
 	{/if}
 </div>

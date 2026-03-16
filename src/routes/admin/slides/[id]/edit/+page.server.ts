@@ -36,39 +36,40 @@ export const actions: Actions = {
 		let image_key = (formData.get('existing_image_key') as string) || null;
 		let bg_image_desktop_key = (formData.get('existing_bg_desktop_key') as string) || null;
 		let bg_image_mobile_key = (formData.get('existing_bg_mobile_key') as string) || null;
+		const staleKeys = new Set<string>();
 
 		// Handle remove flags
 		if (formData.get('remove_image') === '1') {
-			if (image_key) { try { await deleteImage(bucket, image_key); } catch {} }
+			if (image_key) staleKeys.add(image_key);
 			image_key = null;
 		}
 		if (formData.get('remove_bg_desktop') === '1') {
-			if (bg_image_desktop_key) { try { await deleteImage(bucket, bg_image_desktop_key); } catch {} }
+			if (bg_image_desktop_key) staleKeys.add(bg_image_desktop_key);
 			bg_image_desktop_key = null;
 		}
 		if (formData.get('remove_bg_mobile') === '1') {
-			if (bg_image_mobile_key) { try { await deleteImage(bucket, bg_image_mobile_key); } catch {} }
+			if (bg_image_mobile_key) staleKeys.add(bg_image_mobile_key);
 			bg_image_mobile_key = null;
 		}
 
 		// Upload new images (replaces existing)
 		const productImage = formData.get('image') as File | null;
 		if (productImage && productImage.size > 0) {
-			if (image_key) { try { await deleteImage(bucket, image_key); } catch {} }
+			if (image_key) staleKeys.add(image_key);
 			image_key = generateImageKey(productImage.name, 'slides');
 			await uploadImage(bucket, image_key, await productImage.arrayBuffer(), productImage.type);
 		}
 
 		const desktopBg = formData.get('bg_image_desktop') as File | null;
 		if (desktopBg && desktopBg.size > 0) {
-			if (bg_image_desktop_key) { try { await deleteImage(bucket, bg_image_desktop_key); } catch {} }
+			if (bg_image_desktop_key) staleKeys.add(bg_image_desktop_key);
 			bg_image_desktop_key = generateImageKey(desktopBg.name, 'slides/bg');
 			await uploadImage(bucket, bg_image_desktop_key, await desktopBg.arrayBuffer(), desktopBg.type);
 		}
 
 		const mobileBg = formData.get('bg_image_mobile') as File | null;
 		if (mobileBg && mobileBg.size > 0) {
-			if (bg_image_mobile_key) { try { await deleteImage(bucket, bg_image_mobile_key); } catch {} }
+			if (bg_image_mobile_key) staleKeys.add(bg_image_mobile_key);
 			bg_image_mobile_key = generateImageKey(mobileBg.name, 'slides/bg');
 			await uploadImage(bucket, bg_image_mobile_key, await mobileBg.arrayBuffer(), mobileBg.type);
 		}
@@ -79,6 +80,12 @@ export const actions: Actions = {
 			bg_image_position, overlay_opacity,
 			product_id: null, sort_order, active
 		});
+
+		for (const key of staleKeys) {
+			if (key !== image_key && key !== bg_image_desktop_key && key !== bg_image_mobile_key) {
+				try { await deleteImage(bucket, key); } catch {}
+			}
+		}
 
 		throw redirect(303, '/admin/slides');
 	}

@@ -13,10 +13,34 @@ function slugify(text: string): string {
 		.replace(/^-+|-+$/g, '');
 }
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
 	const db = locals.db;
 	const brands = await getAllBrands(db);
-	return { brands };
+	const PAGE_SIZE = 20;
+	const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+	const pageParam = parseInt(url.searchParams.get('page') || '1');
+	const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1;
+
+	const filtered = q
+		? brands.filter((brand) => {
+			const haystack = `${brand.name} ${brand.slug}`.toLowerCase();
+			return haystack.includes(q);
+		})
+		: brands;
+
+	const total = filtered.length;
+	const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	const safePage = Math.min(page, totalPages);
+	const start = (safePage - 1) * PAGE_SIZE;
+
+	return {
+		brands: filtered.slice(start, start + PAGE_SIZE),
+		q: url.searchParams.get('q') || '',
+		page: safePage,
+		pageSize: PAGE_SIZE,
+		total,
+		totalPages
+	};
 };
 
 export const actions: Actions = {
@@ -63,22 +87,26 @@ export const actions: Actions = {
 		if (!slug) return fail(400, { error: 'Could not generate a valid slug from the name.' });
 
 		let logoKey = existingLogoKey;
+		const staleKeys = new Set<string>();
 
 		if (removeLogo && existingLogoKey) {
-			try { await deleteImage(bucket, existingLogoKey); } catch {}
+			staleKeys.add(existingLogoKey);
 			logoKey = null;
 		}
 
 		if (logo && logo.size > 0) {
-			if (existingLogoKey) {
-				try { await deleteImage(bucket, existingLogoKey); } catch {}
-			}
+			if (existingLogoKey) staleKeys.add(existingLogoKey);
 			logoKey = generateImageKey(logo.name, 'brands');
 			const arrayBuffer = await logo.arrayBuffer();
 			await uploadImage(bucket, logoKey, arrayBuffer, logo.type);
 		}
 
 		await updateBrand(db, id, { name, slug, logo_key: logoKey, sort_order: sortOrder });
+		for (const key of staleKeys) {
+			if (key !== logoKey) {
+				try { await deleteImage(bucket, key); } catch {}
+			}
+		}
 		return { success: true };
 	},
 

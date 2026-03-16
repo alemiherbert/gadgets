@@ -5,6 +5,14 @@
 
 	let { data, form }: { data: PageData; form: any } = $props();
 
+	function pageHref(nextPage: number) {
+		const params = new URLSearchParams();
+		if (data.q) params.set('q', data.q);
+		if (nextPage > 1) params.set('page', String(nextPage));
+		const query = params.toString();
+		return `/admin/categories${query ? `?${query}` : ''}`;
+	}
+
 	// ── Category state ──
 	let showCatForm = $state(false);
 	let editingCat = $state<number | null>(null);
@@ -237,6 +245,17 @@
 	{/if}
 
 	<!-- Categories list -->
+	<form method="GET" action="/admin/categories" class="mb-3">
+		<div class="flex items-center gap-2">
+			<input name="q" value={data.q} type="search" placeholder="Search categories or subcategories" class="input input-sm w-full max-w-md" />
+			<button type="submit" class="btn btn-sm btn-outline">Search</button>
+			{#if data.q}
+				<a href="/admin/categories" class="btn btn-sm btn-ghost">Clear</a>
+			{/if}
+		</div>
+	</form>
+	<p class="text-xs text-zinc-500 mb-3">Showing {data.categories.length} of {data.total} categor{data.total === 1 ? 'y' : 'ies'}</p>
+
 	<div class="space-y-4">
 		{#if data.categories.length === 0}
 			<div class="rounded-xs border border-zinc-200 bg-white p-12 text-center shadow-sm">
@@ -355,4 +374,14 @@
 			{/each}
 		{/if}
 	</div>
+
+	{#if data.totalPages > 1}
+		<div class="mt-4 flex items-center justify-between text-sm">
+			<span class="text-zinc-500">Page {data.page} of {data.totalPages}</span>
+			<div class="flex gap-2">
+				<a href={pageHref(Math.max(1, data.page - 1))} class="btn btn-xs btn-outline" aria-disabled={data.page <= 1}>Previous</a>
+				<a href={pageHref(Math.min(data.totalPages, data.page + 1))} class="btn btn-xs btn-outline" aria-disabled={data.page >= data.totalPages}>Next</a>
+			</div>
+		</div>
+	{/if}
 </div>

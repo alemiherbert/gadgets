@@ -7,6 +7,7 @@
 	import { formatPrice, discountPercent } from '$lib/utils';
 	import { renderMarkdown, markdownExcerpt } from '$lib/markdown';
 	import { cart } from '$lib/cart.svelte';
+	import { wishlist } from '$lib/wishlist.svelte';
 	import { enhance } from '$app/forms';
 	import { onMount } from 'svelte';
 
@@ -20,7 +21,7 @@
 	let descriptionExpanded = $state(false);
 	let specsExpanded = $state(false);
 
-	const DESC_MAX_LENGTH = 200;
+	const DESC_MAX_LENGTH = 275;
 
 	let existingCartQty = $derived(cart.getItemQuantity(data.product.id));
 	let maxAddable = $derived(Math.max(0, data.product.stock - existingCartQty));
@@ -50,7 +51,7 @@
 
 	// ── Recently viewed (localStorage) ──────────────────────
 	type RecentItem = { id: number; slug: string; name: string; image_key: string | null; price: number };
-	const RECENT_KEY = 'gadgets_recently_viewed';
+	const RECENT_KEY = 'gadgeteria_recently_viewed';
 	const RECENT_MAX = 8;
 	let recentlyViewed = $state<RecentItem[]>([]);
 
@@ -110,7 +111,7 @@
 			sku: String(p.id),
 			offers: {
 				'@type': 'Offer',
-				url: `https://gadgets.co.ug/products/${p.slug}`,
+				url: `https://gadgeteria.net/products/${p.slug}`,
 				priceCurrency: 'UGX',
 				price: priceVal,
 				availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -155,28 +156,28 @@
 </script>
 
 <svelte:head>
-	<title>{data.product.name} — Gadgets Store</title>
-	<meta name="description" content={data.product.description ? data.product.description.slice(0, 160) : `Buy ${data.product.name} at Gadgets Store Uganda. ${formatPrice(data.product.price)}. Fast delivery across Uganda.`} />
+	<title>{data.product.name} — Gadgeteria</title>
+	<meta name="description" content={data.product.description ? data.product.description.slice(0, 160) : `Buy ${data.product.name} at Gadgeteria. ${formatPrice(data.product.price)}. Fast delivery.`} />
 	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href="https://gadgets.co.ug/products/{data.product.slug}" />
+	<link rel="canonical" href="https://gadgeteria.net/products/{data.product.slug}" />
 
 	<!-- Open Graph -->
 	<meta property="og:type" content="product" />
-	<meta property="og:title" content="{data.product.name} — Gadgets Store" />
+	<meta property="og:title" content="{data.product.name} — Gadgeteria" />
 	<meta property="og:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
-	<meta property="og:image" content="https://gadgets.co.ug{getImageUrl(data.product.image_key)}" />
-	<meta property="og:url" content="https://gadgets.co.ug/products/{data.product.slug}" />
-	<meta property="og:site_name" content="Gadgets Store Uganda" />
+	<meta property="og:image" content="https://gadgeteria.net{getImageUrl(data.product.image_key)}" />
+	<meta property="og:url" content="https://gadgeteria.net/products/{data.product.slug}" />
+	<meta property="og:site_name" content="Gadgeteria" />
 	<meta property="product:price:amount" content={(data.product.price / 100).toFixed(2)} />
 	<meta property="product:price:currency" content="UGX" />
 	<meta property="product:availability" content={data.product.stock > 0 ? 'in stock' : 'out of stock'} />
 
 	<!-- Twitter Card -->
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="{data.product.name} — Gadgets Store" />
+	<meta name="twitter:title" content="{data.product.name} — Gadgeteria" />
 	<meta name="twitter:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
-	<meta name="twitter:image" content="https://gadgets.co.ug{getImageUrl(data.product.image_key)}" />
-	<meta name="twitter:site" content="@gadgetsug" />
+	<meta name="twitter:image" content="https://gadgeteria.net{getImageUrl(data.product.image_key)}" />
+	<meta name="twitter:site" content="@gadgeteria" />
 
 	<!-- JSON-LD Structured Data -->
 	{@html `<script type="application/ld+json">${jsonLd}</script>`}
@@ -206,7 +207,7 @@
 				</h1>
 
 				<div class="flex items-baseline gap-3 flex-wrap">
-					<span class="text-2xl font-bold text-slate-900">{formatPrice(data.product.price)}</span>
+					<span class="text-2xl font-bold text-orange-400">{formatPrice(data.product.price)}</span>
 					{#if data.product.compare_at_price}
 						<span class="text-base text-slate-400 line-through">{formatPrice(data.product.compare_at_price)}</span>
 					{/if}
@@ -380,65 +381,95 @@
 							<p class="text-xs text-slate-500">{existingCartQty} already in cart · {maxAddable} more available</p>
 						{/if}
 
-						<button
-							onclick={addToCart}
-							class="w-full h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
-						>
-							{#if added}
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
-								</svg>
-								Added to Cart!
+						<div class="flex items-stretch gap-2">
+							<button
+								onclick={addToCart}
+								class="flex-1 h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
+							>
+								{#if added}
+									<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+									</svg>
+									Added to Cart!
+								{:else}
+									<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
+									</svg>
+									Add to Cart
+								{/if}
+							</button>
+
+							{#if data.customer}
+								<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'} class="shrink-0">
+									<button
+										type="submit"
+										aria-label={data.isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+										class="h-12 w-12 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors"
+									>
+										<svg class="h-5 w-5 {data.isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={data.isWishlisted ? 'currentColor' : 'none'}>
+											<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+										</svg>
+									</button>
+								</form>
 							{:else}
-								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/>
-								</svg>
-								Add to Cart
+								<button
+									type="button"
+									onclick={() => wishlist.toggleItem({ id: data.product.id, slug: data.product.slug, name: data.product.name, price: data.product.price, imageKey: data.product.image_key })}
+									aria-label={wishlist.isInWishlist(data.product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+									class="h-12 w-12 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors shrink-0"
+								>
+									<svg class="h-5 w-5 {wishlist.isInWishlist(data.product.id) ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={wishlist.isInWishlist(data.product.id) ? 'currentColor' : 'none'}>
+										<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+									</svg>
+								</button>
 							{/if}
-						</button>
+						</div>
 					</div>
 				{:else}
 					<div class="space-y-2">
 						<p class="text-xs text-slate-500">{existingCartQty} item{existingCartQty !== 1 ? 's' : ''} in your cart</p>
-						<a
-							href="/checkout"
-							class="w-full h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
-						>
-							<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-								<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
-							</svg>
-							Proceed to Checkout
-						</a>
+						<div class="flex items-stretch gap-2">
+							<a
+								href="/checkout"
+								class="flex-1 h-12 rounded-sm bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-semibold text-base flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-orange-200 active:scale-[0.98]"
+							>
+								<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>
+								</svg>
+								Proceed to Checkout
+							</a>
+
+							{#if data.customer}
+								<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'} class="shrink-0">
+									<button
+										type="submit"
+										aria-label={data.isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+										class="h-12 w-12 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors"
+									>
+										<svg class="h-5 w-5 {data.isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={data.isWishlisted ? 'currentColor' : 'none'}>
+											<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+										</svg>
+									</button>
+								</form>
+							{:else}
+								<button
+									type="button"
+									onclick={() => wishlist.toggleItem({ id: data.product.id, slug: data.product.slug, name: data.product.name, price: data.product.price, imageKey: data.product.image_key })}
+									aria-label={wishlist.isInWishlist(data.product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
+									class="h-12 w-12 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 flex items-center justify-center transition-colors shrink-0"
+								>
+									<svg class="h-5 w-5 {wishlist.isInWishlist(data.product.id) ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={wishlist.isInWishlist(data.product.id) ? 'currentColor' : 'none'}>
+										<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
+									</svg>
+								</button>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			{:else}
 				<div class="h-12 rounded-sm bg-slate-200 text-slate-900 font-semibold text-base flex items-center justify-center">
 					Sold Out
 				</div>
-			{/if}
-
-			{#if data.customer}
-				<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'}>
-					<button
-						type="submit"
-						class="w-full h-11 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm flex items-center justify-center gap-2 transition-colors"
-					>
-						<svg class="h-4 w-4 {data.isWishlisted ? 'text-red-500 fill-red-500' : 'text-slate-500'}" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill={data.isWishlisted ? 'currentColor' : 'none'}>
-							<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
-						</svg>
-						{data.isWishlisted ? 'Remove from Wishlist' : 'Save to Wishlist'}
-					</button>
-				</form>
-			{:else}
-				<a
-					href="/auth/login?redirectTo=/products/{data.product.slug}"
-					class="w-full h-11 rounded-sm border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-sm flex items-center justify-center gap-2 transition-colors"
-				>
-					<svg class="h-4 w-4 text-slate-500" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" fill="none">
-						<path stroke-linecap="round" stroke-linejoin="round" d="m12 21-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18L12 21z"/>
-					</svg>
-					Sign in to save to Wishlist
-				</a>
 			{/if}
 		</div>
 	</div>

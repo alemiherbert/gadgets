@@ -52,15 +52,15 @@ function toggleSearch() {
 </script>
 
 <svelte:head>
-<title>Gadgets Store</title>
+<title>Gadgeteria</title>
 <!-- Global Site Structured Data -->
 {@html `<script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Organization",
-  "name": "Gadgets Store Uganda",
-  "url": "https://gadgets.co.ug",
-  "logo": "https://gadgets.co.ug/img/logo.png",
+  "name": "Gadgeteria",
+  "url": "https://gadgeteria.net",
+  "logo": "https://gadgeteria.net/img/logo.png",
   "description": "Premium electronics and tech accessories in Uganda",
   "address": {
     "@type": "PostalAddress",
@@ -70,12 +70,12 @@ function toggleSearch() {
   "contactPoint": {
     "@type": "ContactPoint",
     "contactType": "Customer Service",
-    "email": "support@gadgets.co.ug"
+    "email": "support@gadgeteria.net"
   },
   "sameAs": [
-    "https://twitter.com/gadgetsug",
-    "https://www.facebook.com/gadgetsug",
-    "https://www.instagram.com/gadgetsug"
+    "https://twitter.com/gadgeteria",
+    "https://www.facebook.com/gadgeteria",
+    "https://www.instagram.com/gadgeteria"
   ]
 }
 </script>`}
@@ -83,13 +83,13 @@ function toggleSearch() {
 {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "Gadgets Store Uganda",
-  "url": "https://gadgets.co.ug",
+  "name": "Gadgeteria",
+  "url": "https://gadgeteria.net",
   "potentialAction": {
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": "https://gadgets.co.ug/shop?q={search_term_string}"
+      "urlTemplate": "https://gadgeteria.net/shop?q={search_term_string}"
     },
     "query-input": "required name=search_term_string"
   }
@@ -100,7 +100,7 @@ function toggleSearch() {
 {#if !hideChrome}
 
 <!-- Navigation -->
-<header class="sticky top-0 z-50 w-full bg-gradient-to-r from-slate-700 via-slate-800 to-slate-700 backdrop-blur">
+<header class="sticky top-0 z-50 w-full bg-slate-800 backdrop-blur">
 <div class="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
 
 <!-- Mobile hamburger -->
@@ -119,7 +119,7 @@ aria-label="Toggle menu"
 <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600">
 <span class="text-sm font-bold text-white">G</span>
 </div>
-<span class="text-base font-semibold tracking-tight text-white hidden sm:inline">Gadgets</span>
+<span class="text-base font-semibold tracking-tight text-white hidden sm:inline">Gadgeteria</span>
 </a>
 
 <!-- Desktop nav links -->
@@ -152,7 +152,7 @@ aria-label="Toggle menu"
 <input
 	type="text"
 	bind:value={searchQuery}
-	placeholder="Search gadgets..."
+	placeholder="Search gadgeteria..."
 	class="h-9 w-48 lg:w-64 pl-9 pr-3 rounded-sm  bg-white/95 text-sm focus:outline-none focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-400 focus:w-80 transition-all"
 />
 </div>
@@ -218,7 +218,7 @@ aria-label="Shopping cart"
 	id="nav-search-input"
 	type="text"
 	bind:value={searchQuery}
-	placeholder="Search gadgets..."
+	placeholder="Search gadgeteria..."
 	class="w-full h-10 pl-10 pr-4 rounded-sm border border-orange-300 bg-orange-50/50 text-sm focus:outline-none focus:border-orange-400 focus:bg-white focus:ring-2 focus:ring-orange-100 transition-all"
 />
 </form>
@@ -281,7 +281,7 @@ aria-label="Shopping cart"
 <div class="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-orange-500 to-orange-600">
 <span class="text-xs font-bold text-white">G</span>
 </div>
-<span class="text-sm font-semibold text-slate-900">Gadgets</span>
+<span class="text-sm font-semibold text-slate-900">Gadgeteria</span>
 </a>
 <button onclick={() => mobileMenuOpen = false} class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-orange-50 hover:text-orange-500" aria-label="Close">
 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -364,7 +364,7 @@ aria-label="Shopping cart"
 <div class="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-orange-500 to-orange-600">
 <span class="text-xs font-bold text-white">G</span>
 </div>
-<span class="text-sm font-semibold text-white">Gadgets</span>
+<span class="text-sm font-semibold text-white">Gadgeteria</span>
 </a>
 <p class="text-sm text-slate-400 leading-relaxed">Premium gadgets delivered to your door. Pay on delivery, no hassle.</p>
 </div>
@@ -391,7 +391,7 @@ aria-label="Shopping cart"
 <div>
 <h4 class="text-sm font-semibold text-slate-100 mb-3">Support</h4>
 <ul class="space-y-2.5">
-<li><a href="mailto:support@gadgets.co.ug" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">support@gadgets.co.ug</a></li>
+<li><a href="mailto:support@gadgeteria.net" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">support@gadgeteria.net</a></li>
 <li><a href="tel:+256700000000" class="text-sm text-slate-400 hover:text-orange-400 transition-colors">+256 700 000 000</a></li>
 <li><span class="text-sm text-slate-400">Cash on Delivery</span></li>
 <li><span class="text-sm text-slate-400">Free returns within 14 days</span></li>
@@ -399,7 +399,7 @@ aria-label="Shopping cart"
 </div>
 </div>
 <div class="mt-10  pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-<p class="text-xs text-slate-500">&copy; {new Date().getFullYear()} Gadgets Store. All rights reserved.</p>
+<p class="text-xs text-slate-500">&copy; {new Date().getFullYear()} Gadgeteria. All rights reserved.</p>
 </div>
 </div>
 </footer>

@@ -1,4 +1,4 @@
-# Gadgets Store Uganda - Robots.txt
+# Gadgeteria - Robots.txt
 # Allow all crawlers by default
 
 User-agent: *
@@ -23,7 +23,7 @@ User-agent: bingbot
 Allow: /
 
 # Sitemap location
-Sitemap: https://gadgets.co.ug/sitemap.xml
+Sitemap: https://gadgeteria.net/sitemap.xml
 
 # Crawl-delay (optional, remove if not needed)
 # User-agent: *

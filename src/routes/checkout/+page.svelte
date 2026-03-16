@@ -11,7 +11,7 @@ let kampalaShipping = $derived(cityValue.trim().toLowerCase() === 'kampala');
 </script>
 
 <svelte:head>
-<title>Checkout — Gadgets Store</title>
+<title>Checkout — Gadgeteria</title>
 </svelte:head>
 
 <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
