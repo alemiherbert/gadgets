@@ -74,3 +74,16 @@ export function sanitizeJson(input: string, maxLength: number = 10000): any {
 		throw new Error('Invalid JSON');
 	}
 }
+
+// Full class names so Tailwind can see them when scanning sources
+const ORDER_STATUS_BADGE: Record<string, string> = {
+	pending: 'badge-pending',
+	confirmed: 'badge-confirmed',
+	shipped: 'badge-shipped',
+	delivered: 'badge-delivered',
+	cancelled: 'badge-cancelled'
+};
+
+export function orderStatusBadge(status: string): string {
+	return ORDER_STATUS_BADGE[status] ?? 'badge-secondary';
+}

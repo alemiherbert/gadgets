@@ -1,181 +1,218 @@
 <script lang="ts">
-import type { PageData, ActionData } from './$types';
-import { cart } from '$lib/cart.svelte';
-import { formatPrice } from '$lib/utils';
-import { enhance } from '$app/forms';
+	import type { PageData, ActionData } from './$types';
+	import { cart } from '$lib/cart.svelte';
+	import { formatPrice } from '$lib/utils';
+	import { site } from '$lib/site';
+	import { enhance } from '$app/forms';
+	import Icon from '$lib/components/Icon.svelte';
 
-let { data, form }: { data: PageData; form: ActionData } = $props();
-let submitting = $state(false);
-let cityValue = $state('');
-let kampalaShipping = $derived(cityValue.trim().toLowerCase() === 'kampala');
+	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let submitting = $state(false);
+	let cityValue = $state('');
+	let kampalaShipping = $derived(cityValue.trim().toLowerCase() === 'kampala');
+	let total = $derived(cart.total + (kampalaShipping ? site.kampalaDeliveryFee : 0));
 </script>
 
 <svelte:head>
-<title>Checkout — Gadgeteria</title>
+	<title>Checkout — Gadgeteria</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-<h1 class="text-2xl font-bold tracking-tight text-slate-900 mb-8">Checkout</h1>
+<div class="wrap py-8 lg:py-12">
+	<!-- Steps -->
+	<ol class="flex items-center gap-2 text-xs font-bold sm:text-sm">
+		<li class="flex items-center gap-2 text-[#067647]">
+			<span class="grid size-6 place-items-center rounded-full bg-[#12a150] text-white"><Icon name="check" class="size-3.5" stroke={3} /></span>
+			<a href="/cart" class="hover:underline">Cart</a>
+		</li>
+		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
+		<li class="flex items-center gap-2" aria-current="step">
+			<span class="grid size-6 place-items-center rounded-full bg-brand text-white">2</span>
+			Details
+		</li>
+		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
+		<li class="flex items-center gap-2 text-slate-400">
+			<span class="grid size-6 place-items-center rounded-full bg-surface">3</span>
+			Done
+		</li>
+	</ol>
 
-{#if form?.error}
-<div class="rounded-sm bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 mb-6">
-{form.error}
-</div>
-{/if}
+	<h1 class="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">Checkout</h1>
 
-{#if cart.items.length === 0}
-<div class="card p-12 text-center">
-<h3 class="text-base font-semibold text-slate-900 mb-1">Your cart is empty</h3>
-<p class="text-sm text-slate-500 mb-6">Add items to your cart before checking out.</p>
-<a href="/#products" class="btn btn-primary">Browse Products</a>
-</div>
-{:else}
-<form
-method="POST"
-use:enhance={() => {
-submitting = true;
-return async ({ update }) => {
-submitting = false;
-await update();
-};
-}}
->
-<input type="hidden" name="cart" value={JSON.stringify(cart.items.map(i => ({ productId: i.productId, name: i.name, price: i.price, quantity: i.quantity, imageUrl: i.imageUrl })))} />
+	{#if form?.error}
+		<div class="notice notice-error mt-6 flex items-start gap-2" role="alert">
+			<Icon name="shield" class="mt-0.5 size-4 shrink-0" />
+			{form.error}
+		</div>
+	{/if}
 
-<div class="lg:grid lg:grid-cols-12 lg:gap-8">
-<!-- Form Section -->
-<div class="lg:col-span-7 space-y-6">
-<!-- Contact Information -->
-<div class="card p-6 shadow-none">
-<h2 class="text-base font-semibold text-slate-900 mb-4">Contact Information</h2>
-{#if data.customer}
-<p class="text-sm text-slate-600 mb-3">
-Logged in as <span class="font-medium text-slate-900">{data.customer.email}</span>
-</p>
-{/if}
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-<div class="form-group">
-<label for="name" class="label text-orange-600">Full Name</label>
-<input id="name" name="name" type="text" required minlength="2" value={data.customer?.name ?? ''} class="input" placeholder="John Doe" />
-</div>
-<div class="form-group">
-<label for="email" class="label text-orange-600">Email</label>
-<input id="email" name="email" type="email" required value={data.customer?.email ?? ''} class="input" placeholder="john@example.com" />
-</div>
-<div class="form-group sm:col-span-2">
-<label for="phone" class="label text-orange-600">Phone Number</label>
-<input id="phone" name="phone" type="tel" required pattern={"^(\\+?256|0)[3-9]\\d{8}$"} title="Ugandan phone number, e.g. 0771234567 or +256771234567" class="input" placeholder="0771234567" />
-<p class="text-xs text-slate-400 mt-1">Format: 07XXXXXXXX or +2567XXXXXXXX</p>
-</div>
-</div>
-</div>
+	{#if cart.items.length === 0}
+		<div class="mt-8 rounded-[1.75rem] bg-surface px-6 py-16 text-center">
+			<h2 class="text-xl font-extrabold tracking-tight">Your cart is empty</h2>
+			<p class="mt-1 text-sm text-slate-500">Add a few items before checking out.</p>
+			<a href="/shop" class="cta cta-brand mt-6">Browse products</a>
+		</div>
+	{:else}
+		<form
+			method="POST"
+			class="mt-8"
+			use:enhance={() => {
+				submitting = true;
+				return async ({ update }) => {
+					submitting = false;
+					await update();
+				};
+			}}
+		>
+			<input type="hidden" name="cart" value={JSON.stringify(cart.items.map((i) => ({ productId: i.productId, name: i.name, price: i.price, quantity: i.quantity, imageUrl: i.imageUrl })))} />
 
-<!-- Delivery Address -->
-<div class="card p-6 shadow-none">
-<h2 class="text-base font-semibold text-slate-900 mb-4">Delivery Address</h2>
-<div class="space-y-4">
-<div class="form-group">
-<label for="street" class="label text-orange-600">Street Address</label>
-<input id="street" name="street" type="text" required minlength="3" class="input" placeholder="Plot 12, Kampala Rd" />
-</div>
-<div class="grid grid-cols-2 gap-4">
-<div class="form-group">
-<label for="city" class="label text-orange-600">City / Town</label>
-<input id="city" name="city" type="text" required minlength="2" class="input" placeholder="Kampala" bind:value={cityValue} />
-</div>
-<div class="form-group">
-<label for="state" class="label text-orange-600">District</label>
-<input id="state" name="state" type="text" required minlength="2" class="input" placeholder="Kampala" />
-</div>
-</div>
-</div>
-</div>
+			<div class="lg:grid lg:grid-cols-12 lg:items-start lg:gap-10">
+				<div class="space-y-5 lg:col-span-7">
+					<!-- Contact -->
+					<section class="panel p-5 sm:p-7">
+						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">1</span>
+							Contact details
+						</h2>
+						{#if data.customer}
+							<p class="mt-2 text-sm text-slate-500">Signed in as <span class="font-semibold text-ink">{data.customer.email}</span></p>
+						{/if}
+						<div class="mt-5 grid gap-4 sm:grid-cols-2">
+							<div>
+								<label for="name" class="field-label">Full name</label>
+								<input id="name" name="name" type="text" required minlength="2" autocomplete="name" value={data.customer?.name ?? ''} class="field" placeholder="John Doe" />
+							</div>
+							<div>
+								<label for="email" class="field-label">Email</label>
+								<input id="email" name="email" type="email" required autocomplete="email" value={data.customer?.email ?? ''} class="field" placeholder="john@example.com" />
+							</div>
+							<div class="sm:col-span-2">
+								<label for="phone" class="field-label">Phone number</label>
+								<input
+									id="phone"
+									name="phone"
+									type="tel"
+									inputmode="tel"
+									autocomplete="tel"
+									required
+									pattern={'^(\\+?256|0)[3-9]\\d{8}$'}
+									title="Ugandan phone number, e.g. 0771234567 or +256771234567"
+									class="field"
+									placeholder="0771234567"
+								/>
+								<p class="field-hint">We'll call this number to arrange delivery. Format: 07XXXXXXXX or +2567XXXXXXXX</p>
+							</div>
+						</div>
+					</section>
 
-<!-- Payment Info -->
-<div class="card p-6 shadow-none">
-<h2 class="text-base font-semibold text-slate-900 mb-3">Payment Method</h2>
-<div class="flex items-center gap-3 rounded-sm border border-slate-200 bg-slate-50 p-4">
-<div class="flex h-9 w-9 items-center justify-center rounded-sm bg-emerald-100">
-<svg class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
-</svg>
-</div>
-<div>
-<p class="text-sm font-medium text-slate-900">Cash on Delivery</p>
-<p class="text-xs text-slate-500">Pay when your order arrives. No online payment required.</p>
-</div>
-</div>
-</div>
+					<!-- Delivery -->
+					<section class="panel p-5 sm:p-7">
+						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">2</span>
+							Delivery address
+						</h2>
+						<div class="mt-5 grid gap-4 sm:grid-cols-2">
+							<div class="sm:col-span-2">
+								<label for="street" class="field-label">Street address</label>
+								<input id="street" name="street" type="text" required minlength="3" autocomplete="street-address" class="field" placeholder="Plot 12, Kampala Rd" />
+							</div>
+							<div>
+								<label for="city" class="field-label">City / town</label>
+								<input id="city" name="city" type="text" required minlength="2" autocomplete="address-level2" class="field" placeholder="Kampala" bind:value={cityValue} />
+							</div>
+							<div>
+								<label for="state" class="field-label">District</label>
+								<input id="state" name="state" type="text" required minlength="2" autocomplete="address-level1" class="field" placeholder="Kampala" />
+							</div>
+							<div class="sm:col-span-2">
+								<label for="notes" class="field-label">Delivery notes <span class="font-normal text-slate-400">(optional)</span></label>
+								<textarea id="notes" name="notes" rows="2" maxlength="500" class="field" placeholder="Nearby landmark, gate colour, best time to call…"></textarea>
+							</div>
+						</div>
+						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-medium text-brand-dark">
+							<Icon name="truck" class="size-5 shrink-0" />
+							{#if kampalaShipping}
+								Kampala delivery: {formatPrice(site.kampalaDeliveryFee)}
+							{:else}
+								Kampala delivery is {formatPrice(site.kampalaDeliveryFee)}. Elsewhere, we'll confirm the fee by phone.
+							{/if}
+						</p>
+					</section>
 
-<!-- Submit (mobile) -->
-<div class="lg:hidden">
-<button type="submit" disabled={submitting} class="btn text-white border-none bg-orange-500 hover:bg-orange-600 rounded-sm w-full h-12 text-base font-semibold">
-{submitting ? 'Placing Order…' : 'Place Order'}
-</button>
-</div>
-</div>
+					<!-- Payment -->
+					<section class="panel p-5 sm:p-7">
+						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">3</span>
+							Payment
+						</h2>
+						<div class="mt-5 flex items-center gap-4 rounded-2xl border-2 border-brand bg-brand-soft/50 p-4">
+							<span class="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-sm">
+								<Icon name="cash" class="size-6" />
+							</span>
+							<div class="flex-1">
+								<p class="font-bold">Pay on delivery</p>
+								<p class="text-sm text-slate-600">Pay when your order arrives. No online payment needed.</p>
+							</div>
+							<span class="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-white">
+								<Icon name="check" class="size-3.5" stroke={3} />
+							</span>
+						</div>
+					</section>
+				</div>
 
-<!-- Order Summary Sidebar -->
-<div class="lg:col-span-5 mt-8 lg:mt-0">
-<div class="card p-6 sticky top-24 border-none shadow-none bg-gradient-to-r from-orange-50/50 to-orange-50/50">
-<h2 class="text-base font-semibold text-slate-900 mb-4">Order Summary</h2>
+				<!-- Summary -->
+				<aside class="mt-6 lg:sticky lg:top-36 lg:col-span-5 lg:mt-0">
+					<div class="rounded-[1.5rem] bg-surface p-5 sm:p-7">
+						<h2 class="text-lg font-extrabold tracking-tight">Order summary</h2>
+						<ul class="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
+							{#each cart.items as item (item.productId)}
+								<li class="flex items-center gap-3">
+									<span class="relative grid size-16 shrink-0 place-items-center rounded-xl bg-white">
+										<img src={item.imageUrl} alt={item.name} class="product-shot size-full p-1.5" loading="lazy" />
+										<span class="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink text-[10px] font-extrabold text-white">{item.quantity}</span>
+									</span>
+									<p class="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-snug">{item.name}</p>
+									<p class="shrink-0 text-sm font-bold tabular-nums">{formatPrice(item.price * item.quantity)}</p>
+								</li>
+							{/each}
+						</ul>
 
-<div class="max-h-64 overflow-y-auto divide-y divide-slate-100">
-{#each cart.items as item (item.productId)}
-<div class="flex gap-3 py-3 first:pt-0 last:pb-0">
-<div class="h-14 w-14 flex-shrink-0 overflow-hidden rounded-sm bg-slate-100">
-{#if item.imageUrl}
-<img src={item.imageUrl} alt={item.name} class="h-full w-full object-cover" />
-{:else}
-<div class="h-full w-full bg-slate-100"></div>
-{/if}
-</div>
-<div class="flex-1 min-w-0">
-<p class="text-sm font-medium text-slate-900 truncate">{item.name}</p>
-<p class="text-xs text-slate-500 mt-0.5">Qty: {item.quantity}</p>
-</div>
-<p class="text-sm font-medium text-slate-900 shrink-0">{formatPrice(item.price * item.quantity)}</p>
-</div>
-{/each}
-</div>
+						<dl class="mt-5 space-y-2.5 border-t border-line pt-5 text-sm">
+							<div class="flex justify-between">
+								<dt class="text-slate-600">Subtotal</dt>
+								<dd class="font-bold tabular-nums">{formatPrice(cart.total)}</dd>
+							</div>
+							<div class="flex justify-between">
+								<dt class="text-slate-600">Delivery</dt>
+								{#if kampalaShipping}
+									<dd class="font-bold tabular-nums">{formatPrice(site.kampalaDeliveryFee)}</dd>
+								{:else}
+									<dd class="text-xs font-semibold text-[#b54708]">Confirmed by phone</dd>
+								{/if}
+							</div>
+						</dl>
+						<div class="mt-4 flex items-baseline justify-between border-t border-line pt-4">
+							<span class="font-bold">Total</span>
+							<span class="text-right">
+								<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(total)}</span>
+								{#if !kampalaShipping}<span class="block text-xs text-slate-500">+ delivery</span>{/if}
+							</span>
+						</div>
 
-<div class="separator my-4"></div>
-
-<div class="space-y-2.5 text-sm">
-<div class="flex justify-between text-slate-600">
-<span>Subtotal</span>
-<span class="font-medium text-slate-900">{formatPrice(cart.total)}</span>
-</div>
-<div class="flex justify-between text-slate-600">
-<span>Shipping</span>
-{#if kampalaShipping}
-<span class="font-medium text-slate-900">{formatPrice(550000)}</span>
-{:else}
-<span class="font-medium text-amber-600 text-xs">Confirmed on phone</span>
-{/if}
-</div>
-</div>
-
-<div class="separator my-4"></div>
-
-<div class="flex justify-between text-base font-bold text-slate-900 mb-6">
-<span>Total</span>
-{#if kampalaShipping}
-<span>{formatPrice(cart.total + 550000)}</span>
-{:else}
-<span>{formatPrice(cart.total)} <span class="text-xs font-normal text-slate-500">+ shipping</span></span>
-{/if}
-</div>
-
-<!-- Submit (desktop) -->
-<div class="hidden lg:block">
-<button type="submit" disabled={submitting} class="btn text-white border-none bg-orange-500 hover:bg-orange-600 rounded-sm w-full h-11 font-semibold">
-{submitting ? 'Placing Order…' : 'Place Order'}
-</button>
-</div>
-</div>
-</div>
-</div>
-</form>
-{/if}
+						<button type="submit" disabled={submitting} class="cta cta-brand cta-lg mt-6 w-full">
+							{#if submitting}
+								<svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
+								Placing order…
+							{:else}
+								Place order · {formatPrice(total)}
+							{/if}
+						</button>
+						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+							<Icon name="shield" class="size-4 text-[#12a150]" />
+							Nothing to pay now — you pay on delivery
+						</p>
+					</div>
+				</aside>
+			</div>
+		</form>
+	{/if}
 </div>

@@ -1,47 +1,53 @@
 <script lang="ts">
 	import '../../app.css';
+	import Logo from '$lib/components/Logo.svelte';
+	import Icon from '$lib/components/Icon.svelte';
+	import { perks } from '$lib/site';
+
 	let { children }: { children: any } = $props();
 </script>
 
 <div class="flex min-h-screen">
-	<!-- Left column: full-bleed image -->
-	<div class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-900">
-		<img
-			src="/img/categories/computing.avif"
-			alt="Gadgets collection"
-			class="absolute inset-0 h-full w-full object-cover opacity-60"
-		/>
-		<div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-slate-900/20"></div>
-		<div class="relative z-10 flex flex-col justify-end p-12">
-			<a href="/" class="flex items-center gap-2.5 mb-8">
-				<div class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600">
-					<span class="text-sm font-bold text-white">G</span>
-				</div>
-				<span class="text-lg font-semibold text-white">Gadgets</span>
-			</a>
-			<h2 class="text-3xl font-bold text-white leading-tight mb-3">
-				Premium gadgets,<br />delivered to your door.
-			</h2>
-			<p class="text-sm text-slate-300 max-w-sm leading-relaxed">
-				Shop the latest tech with pay-on-delivery convenience. Free returns within 30 days.
-			</p>
+	<!-- Brand panel -->
+	<div class="relative hidden overflow-hidden bg-ink text-white lg:flex lg:w-[46%] lg:flex-col">
+		<img src="/img/categories/computing.avif" alt="" class="absolute inset-0 size-full object-cover opacity-35" />
+		<div class="absolute inset-0 bg-gradient-to-br from-brand/70 via-ink/80 to-ink"></div>
+		<div class="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-volt/20 blur-3xl"></div>
+
+		<div class="relative flex flex-1 flex-col justify-between p-12">
+			<a href="/" aria-label="Gadgeteria home"><Logo tone="light" /></a>
+			<div>
+				<h2 class="h-display max-w-md text-[3.25rem]">Genuine gadgets, delivered to your door.</h2>
+				<ul class="mt-10 grid max-w-md grid-cols-2 gap-x-6 gap-y-5">
+					{#each perks as perk}
+						<li class="flex items-start gap-3">
+							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-volt text-ink">
+								<Icon name={perk.icon} class="size-5" />
+							</span>
+							<span>
+								<span class="block text-sm font-bold">{perk.title}</span>
+								<span class="block text-xs text-white/60">{perk.text}</span>
+							</span>
+						</li>
+					{/each}
+				</ul>
+			</div>
 		</div>
 	</div>
 
-	<!-- Right column: auth form -->
-	<div class="flex flex-1 flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 bg-white">
-		<!-- Mobile logo -->
-		<div class="lg:hidden mb-10">
-			<a href="/" class="flex items-center gap-2">
-				<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-orange-600">
-					<span class="text-sm font-bold text-white">G</span>
-				</div>
-				<span class="text-base font-semibold text-slate-900">Gadgets</span>
+	<!-- Form -->
+	<div class="flex flex-1 flex-col bg-white px-5 py-8 sm:px-12 lg:px-16">
+		<div class="flex items-center justify-between">
+			<a href="/" class="lg:hidden" aria-label="Gadgeteria home"><Logo /></a>
+			<a href="/" class="ml-auto inline-flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-ink">
+				<Icon name="chevron-left" class="size-4" stroke={2.25} />
+				Back to shop
 			</a>
 		</div>
-
-		<div class="mx-auto w-full max-w-sm">
-			{@render children()}
+		<div class="flex flex-1 items-center justify-center py-10">
+			<div class="w-full max-w-sm">
+				{@render children()}
+			</div>
 		</div>
 	</div>
 </div>

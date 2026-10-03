@@ -55,13 +55,13 @@ let maxPct = $derived(((maxValue - min) / (max - min)) * 100);
 </script>
 
 <!-- Track -->
-<div bind:this={trackEl} class="relative h-5 flex items-center select-none">
+<div bind:this={trackEl} class="relative flex h-6 select-none items-center">
 	<!-- Background track -->
-	<div class="absolute inset-x-0 h-1.5 rounded-full bg-slate-200"></div>
+	<div class="absolute inset-x-0 h-1.5 rounded-full bg-line"></div>
 
-	<!-- Orange fill between handles -->
+	<!-- Fill between handles -->
 	<div
-		class="absolute h-1.5 rounded-full bg-orange-400"
+		class="absolute h-1.5 rounded-full bg-brand"
 		style="left: {minPct}%; right: {100 - maxPct}%"
 	></div>
 
@@ -69,7 +69,7 @@ let maxPct = $derived(((maxValue - min) / (max - min)) * 100);
 	<button
 		type="button"
 		onpointerdown={startDrag('min')}
-		class="absolute -translate-x-1/2 w-3 h-3 rounded-full bg-orange-500 shadow-sm hover:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1 cursor-grab active:cursor-grabbing touch-none"
+		class="absolute size-5 -translate-x-1/2 cursor-grab touch-none rounded-full border-[3px] border-brand bg-white shadow-md transition-transform hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25 active:cursor-grabbing"
 		style="left: {minPct}%"
 		aria-label="Minimum price"
 		role="slider"
@@ -82,7 +82,7 @@ let maxPct = $derived(((maxValue - min) / (max - min)) * 100);
 	<button
 		type="button"
 		onpointerdown={startDrag('max')}
-		class="absolute -translate-x-1/2 w-3 h-3 rounded-full bg-orange-500 shadow-sm hover:border-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1 cursor-grab active:cursor-grabbing touch-none"
+		class="absolute size-5 -translate-x-1/2 cursor-grab touch-none rounded-full border-[3px] border-brand bg-white shadow-md transition-transform hover:scale-110 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand/25 active:cursor-grabbing"
 		style="left: {maxPct}%"
 		aria-label="Maximum price"
 		role="slider"

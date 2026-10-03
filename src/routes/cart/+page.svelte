@@ -1,123 +1,129 @@
 <script lang="ts">
-import { cart } from '$lib/cart.svelte';
-import { formatPrice } from '$lib/utils';
+	import { cart } from '$lib/cart.svelte';
+	import { formatPrice } from '$lib/utils';
+	import { site } from '$lib/site';
+	import Icon from '$lib/components/Icon.svelte';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
 </script>
 
 <svelte:head>
-<title>Shopping Cart — Gadgeteria</title>
-<meta name="description" content="Review your shopping cart at Gadgeteria. Fast delivery on electronics, audio, wearables and more." />
-<meta name="robots" content="noindex, follow" />
+	<title>Shopping Cart — Gadgeteria</title>
+	<meta name="description" content="Review your shopping cart at Gadgeteria. Fast delivery on electronics, audio, wearables and more." />
+	<meta name="robots" content="noindex, follow" />
 </svelte:head>
 
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
-<h1 class="text-2xl font-bold tracking-tight text-zinc-900 mb-8">Shopping Cart</h1>
+<div class="wrap py-8 lg:py-12">
+	<div class="flex items-baseline justify-between gap-4">
+		<h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Your cart</h1>
+		{#if cart.count > 0}
+			<p class="text-sm font-semibold text-slate-500">{cart.count} item{cart.count === 1 ? '' : 's'}</p>
+		{/if}
+	</div>
 
-{#if cart.items.length === 0}
-<div class="card p-12 text-center">
-<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 mb-4">
-<svg class="h-8 w-8 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-</svg>
-</div>
-<h3 class="text-base font-semibold text-zinc-900 mb-1">Your cart is empty</h3>
-<p class="text-sm text-zinc-500 mb-6">Looks like you haven't added anything to your cart yet.</p>
-<a href="/#products" class="btn btn-primary">Continue Shopping</a>
-</div>
-{:else}
-<div class="lg:grid lg:grid-cols-12 lg:gap-8">
-<!-- Cart Items -->
-<div class="lg:col-span-8">
-<div class="card divide-y divide-zinc-200 shadow-none">
-{#each cart.items as item (item.productId)}
-<div class="flex gap-4 p-4 sm:p-6">
-<div class="h-24 w-24 sm:h-28 sm:w-28 flex-shrink-0 overflow-hidden rounded-sm bg-zinc-100">
-{#if item.imageUrl}
-<img src={item.imageUrl} alt={item.name} class="h-full w-full object-cover" />
-{:else}
-<div class="flex h-full w-full items-center justify-center">
-<svg class="h-8 w-8 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5a1.5 1.5 0 0 0 1.5-1.5V5.25a1.5 1.5 0 0 0-1.5-1.5H3.75a1.5 1.5 0 0 0-1.5 1.5v14.25c0 .828.672 1.5 1.5 1.5Z" />
-</svg>
-</div>
-{/if}
-</div>
+	{#if cart.items.length === 0}
+		<div class="mt-8 rounded-[1.75rem] bg-surface px-6 py-16 text-center">
+			<div class="mx-auto grid size-20 place-items-center rounded-full bg-white">
+				<Icon name="bag" class="size-9 text-slate-400" stroke={1.5} />
+			</div>
+			<h2 class="mt-5 text-xl font-extrabold tracking-tight">Your cart is empty</h2>
+			<p class="mt-1 text-sm text-slate-500">Looks like you haven't added anything yet.</p>
+			<div class="mt-6 flex flex-wrap justify-center gap-3">
+				<a href="/shop?sort=discount" class="cta cta-brand">
+					<Icon name="fire" class="size-4" />
+					Shop deals
+				</a>
+				<a href="/shop" class="cta cta-line">Browse all products</a>
+			</div>
+			{#if data.categories?.length}
+				<div class="mt-8 flex flex-wrap justify-center gap-2">
+					{#each data.categories as cat}
+						<a href="/shop?category={cat.slug}" class="chip">{cat.name}</a>
+					{/each}
+				</div>
+			{/if}
+		</div>
+	{:else}
+		<div class="mt-8 lg:grid lg:grid-cols-12 lg:items-start lg:gap-10">
+			<ul class="divide-y divide-line border-y border-line lg:col-span-8">
+				{#each cart.items as item (item.productId)}
+					<li class="flex gap-4 py-5 sm:gap-6">
+						<a href="/products/{item.slug}" class="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-surface sm:size-32">
+							<img src={item.imageUrl} alt={item.name} class="product-shot size-full p-2" loading="lazy" />
+						</a>
+						<div class="flex min-w-0 flex-1 flex-col">
+							<div class="flex items-start justify-between gap-3">
+								<div class="min-w-0">
+									<a href="/products/{item.slug}" class="line-clamp-2 font-semibold leading-snug hover:text-brand">{item.name}</a>
+									<p class="mt-1 text-sm text-slate-500 tabular-nums">{formatPrice(item.price)} each</p>
+								</div>
+								<p class="shrink-0 text-base font-extrabold tabular-nums">{formatPrice(item.price * item.quantity)}</p>
+							</div>
+							<div class="mt-auto flex items-center justify-between gap-3 pt-3">
+								<div class="flex h-10 items-center rounded-full border-[1.5px] border-line">
+									<button
+										onclick={() => cart.updateQuantity(item.productId, item.quantity - 1)}
+										class="grid h-full w-10 place-items-center rounded-l-full text-slate-600 hover:bg-surface"
+										aria-label="Decrease quantity"
+									>
+										<Icon name="minus" class="size-3.5" stroke={2.5} />
+									</button>
+									<span class="w-8 text-center text-sm font-extrabold tabular-nums">{item.quantity}</span>
+									<button
+										onclick={() => cart.updateQuantity(item.productId, item.quantity + 1)}
+										disabled={item.stock != null && item.quantity >= item.stock}
+										class="grid h-full w-10 place-items-center rounded-r-full text-slate-600 hover:bg-surface disabled:cursor-not-allowed disabled:opacity-30"
+										aria-label="Increase quantity"
+									>
+										<Icon name="plus" class="size-3.5" stroke={2.5} />
+									</button>
+								</div>
+								<button
+									onclick={() => cart.removeItem(item.productId)}
+									class="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-deal-soft hover:text-deal"
+								>
+									<Icon name="trash" class="size-4" />
+									<span class="max-sm:sr-only">Remove</span>
+								</button>
+							</div>
+						</div>
+					</li>
+				{/each}
+			</ul>
 
-<div class="flex flex-1 flex-col justify-between">
-<div class="flex justify-between">
-<div>
-<a href="/products/{item.slug}" class="text-sm font-medium text-zinc-900 hover:text-orange-500 transition-colors">
-{item.name}
-</a>
-<p class="mt-1 text-sm font-semibold text-zinc-900">{formatPrice(item.price)}</p>
-</div>
-<p class="text-sm font-bold text-zinc-900">{formatPrice(item.price * item.quantity)}</p>
-</div>
-
-<div class="mt-3 flex items-center justify-between">
-<div class="flex items-center rounded-sm border border-zinc-200">
-<button
-onclick={() => cart.updateQuantity(item.productId, item.quantity - 1)}
-class="flex h-8 w-8 items-center justify-center text-zinc-500 hover:text-orange-600 hover:bg-orange-50 rounded-l-lg transition-colors"
-aria-label="Decrease quantity"
->
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" /></svg>
-</button>
-<span class="flex h-8 w-8 items-center justify-center border-x border-zinc-200 text-sm font-medium text-zinc-900">{item.quantity}</span>
-<button
-onclick={() => cart.updateQuantity(item.productId, item.quantity + 1)}
-disabled={item.stock != null && item.quantity >= item.stock}
-class="flex h-8 w-8 items-center justify-center text-zinc-500 hover:text-orange-600 hover:bg-orange-50 rounded-r-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-zinc-500 disabled:hover:bg-transparent"
-aria-label="Increase quantity"
->
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-</button>
-</div>
-
-<button
-onclick={() => cart.removeItem(item.productId)}
-class="text-sm text-zinc-400 hover:text-red-500 transition-colors"
->
-Remove
-</button>
-</div>
-</div>
-</div>
-{/each}
-</div>
-</div>
-
-<!-- Order Summary -->
-<div class="lg:col-span-4 mt-8 lg:mt-0">
-<div class="card p-6 sticky top-24 border-none shadow-none bg-gradient-to-r from-orange-50/50 to-orange-50/50">
-<h2 class="text-base font-semibold text-zinc-900 mb-4">Order Summary</h2>
-
-<div class="space-y-3 text-sm">
-<div class="flex justify-between text-zinc-600">
-<span>Subtotal ({cart.count} items)</span>
-<span class="font-medium text-zinc-900">{formatPrice(cart.total)}</span>
-</div>
-<div class="flex justify-between text-zinc-600">
-<span>Shipping</span>
-<span class="font-medium text-zinc-600 text-xs">Calculated at checkout</span>
-</div>
-</div>
-
-<div class="separator my-4"></div>
-
-<div class="flex justify-between text-base font-bold text-zinc-900 mb-6">
-<span>Subtotal</span>
-<span>{formatPrice(cart.total)}</span>
-</div>
-
-<a href="/checkout" class="btn text-white border-none bg-orange-500 hover:bg-orange-600 rounded-sm w-full h-11 font-semibold">
-Proceed to Checkout
-</a>
-
-<a href="/shop" class="btn btn-ghost  w-full mt-2 rounded-sm text-orange-500 hover:text-orange-600 text-sm">
-Continue Shopping
-</a>
-</div>
-</div>
-</div>
-{/if}
+			<aside class="mt-8 lg:sticky lg:top-36 lg:col-span-4 lg:mt-0">
+				<div class="rounded-[1.5rem] bg-surface p-6">
+					<h2 class="text-lg font-extrabold tracking-tight">Order summary</h2>
+					<dl class="mt-5 space-y-3 text-sm">
+						<div class="flex justify-between">
+							<dt class="text-slate-600">Subtotal ({cart.count} item{cart.count === 1 ? '' : 's'})</dt>
+							<dd class="font-bold tabular-nums">{formatPrice(cart.total)}</dd>
+						</div>
+						<div class="flex justify-between gap-4">
+							<dt class="text-slate-600">Delivery</dt>
+							<dd class="text-right text-slate-600">
+								<span class="block font-bold text-ink">{formatPrice(site.kampalaDeliveryFee)} in Kampala</span>
+								<span class="block text-xs">Elsewhere confirmed by phone</span>
+							</dd>
+						</div>
+					</dl>
+					<div class="my-5 h-px bg-line"></div>
+					<div class="flex items-baseline justify-between">
+						<span class="font-bold">Subtotal</span>
+						<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(cart.total)}</span>
+					</div>
+					<a href="/checkout" class="cta cta-brand cta-lg mt-6 w-full">
+						Checkout
+						<Icon name="arrow-right" class="size-4" stroke={2.25} />
+					</a>
+					<a href="/shop" class="mt-2 flex h-11 w-full items-center justify-center text-sm font-bold hover:text-brand">Continue shopping</a>
+				</div>
+				<ul class="mt-4 space-y-3 px-2 text-sm">
+					<li class="flex items-center gap-2.5"><Icon name="cash" class="size-5 text-brand" /> <span><b>Pay on delivery</b> — no card needed</span></li>
+					<li class="flex items-center gap-2.5"><Icon name="return" class="size-5 text-brand" /> <span><b>{site.returnDays}-day returns</b> on every order</span></li>
+				</ul>
+			</aside>
+		</div>
+	{/if}
 </div>

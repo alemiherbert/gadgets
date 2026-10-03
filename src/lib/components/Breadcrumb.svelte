@@ -8,7 +8,7 @@ let { items }: { items: Crumb[] } = $props();
 </script>
 
 <nav aria-label="Breadcrumb">
-	<ol class="flex items-center flex-wrap gap-1 text-xs text-slate-500">
+	<ol class="flex flex-wrap items-center gap-1 text-xs font-medium text-slate-500">
 		{#each items as crumb, i}
 			{#if i > 0}
 				<li aria-hidden="true">
@@ -19,9 +19,9 @@ let { items }: { items: Crumb[] } = $props();
 			{/if}
 			<li>
 				{#if crumb.href}
-					<a href={crumb.href} class="hover:text-orange-500 transition-colors">{crumb.label}</a>
+					<a href={crumb.href} class="transition-colors hover:text-brand">{crumb.label}</a>
 				{:else}
-					<span class="text-slate-900 font-medium">{crumb.label}</span>
+					<span class="line-clamp-1 font-semibold text-ink">{crumb.label}</span>
 				{/if}
 			</li>
 		{/each}

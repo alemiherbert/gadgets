@@ -1,87 +1,98 @@
 <script lang="ts">
-import type { PageData } from './$types';
-import { formatPrice } from '$lib/utils';
-import { getImageUrl } from '$lib/r2';
-import { cart } from '$lib/cart.svelte';
-import { onMount } from 'svelte';
+	import type { PageData } from './$types';
+	import { formatPrice, orderStatusBadge } from '$lib/utils';
+	import { getImageUrl } from '$lib/r2';
+	import { cart } from '$lib/cart.svelte';
+	import { onMount } from 'svelte';
+	import Icon from '$lib/components/Icon.svelte';
 
-let { data }: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
 
-onMount(() => {
-cart.clear();
-});
+	const firstName = $derived(data.order.name.split(' ')[0]);
+
+	onMount(() => {
+		cart.clear();
+	});
 </script>
 
 <svelte:head>
-<title>Order Confirmed — Gadgeteria</title>
+	<title>Order Confirmed — Gadgeteria</title>
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-<div class="text-center mb-10">
-<div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 mb-5">
-<svg class="h-8 w-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-</svg>
-</div>
-<h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 mb-2">Order Confirmed!</h1>
-<p class="text-sm text-zinc-500">Order #{data.order.id} — We've sent a confirmation email to your inbox.</p>
-</div>
+<div class="wrap max-w-3xl py-10 lg:py-16">
+	<div class="text-center">
+		<div class="mx-auto grid size-20 place-items-center rounded-full bg-[#e7f8ee]">
+			<span class="grid size-14 place-items-center rounded-full bg-[#12a150] text-white animate-pop">
+				<Icon name="check" class="size-7" stroke={3} />
+			</span>
+		</div>
+		<h1 class="mt-6 text-3xl font-extrabold tracking-tight sm:text-4xl">Thank you, {firstName}!</h1>
+		<p class="mt-2 text-slate-600">Your order <span class="font-bold text-ink">#{data.order.id}</span> is in. We've emailed a confirmation to {data.order.email}.</p>
+	</div>
 
-<div class="card">
-<div class="p-6 border-b border-zinc-200">
-<div class="flex items-center justify-between">
-<div>
-<p class="text-xs text-zinc-500 mb-0.5">Order Number</p>
-<p class="text-sm font-semibold text-zinc-900">#{data.order.id}</p>
-</div>
-<span class="badge badge-warning">
-{data.order.status.charAt(0).toUpperCase() + data.order.status.slice(1)}
-</span>
-</div>
-</div>
+	<ol class="mt-10 grid gap-3 sm:grid-cols-3">
+		<li class="rounded-2xl bg-[#e7f8ee] p-4">
+			<span class="grid size-8 place-items-center rounded-full bg-[#12a150] text-white"><Icon name="check" class="size-4" stroke={3} /></span>
+			<p class="mt-3 text-sm font-bold">Order received</p>
+			<p class="text-xs text-slate-600">We have your order and details.</p>
+		</li>
+		<li class="rounded-2xl bg-surface p-4">
+			<span class="grid size-8 place-items-center rounded-full bg-white text-brand"><Icon name="package" class="size-4" /></span>
+			<p class="mt-3 text-sm font-bold">We prepare & dispatch</p>
+			<p class="text-xs text-slate-600">We'll call {data.order.phone} to arrange delivery.</p>
+		</li>
+		<li class="rounded-2xl bg-surface p-4">
+			<span class="grid size-8 place-items-center rounded-full bg-white text-brand"><Icon name="cash" class="size-4" /></span>
+			<p class="mt-3 text-sm font-bold">Pay on delivery</p>
+			<p class="text-xs text-slate-600">Pay when your order arrives.</p>
+		</li>
+	</ol>
 
-<div class="divide-y divide-zinc-100">
-{#each data.items as item}
-<div class="flex gap-4 p-6">
-<div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg bg-zinc-100 border border-zinc-200">
-{#if item.product_image_key}
-<img src={getImageUrl(item.product_image_key)} alt={item.product_name} class="h-full w-full object-cover" />
-{:else}
-<div class="h-full w-full bg-zinc-100"></div>
-{/if}
-</div>
-<div class="flex-1 min-w-0">
-<p class="text-sm font-medium text-zinc-900">{item.product_name}</p>
-<p class="text-xs text-zinc-500 mt-0.5">Qty: {item.quantity} × {formatPrice(item.price_at_purchase)}</p>
-</div>
-<p class="text-sm font-semibold text-zinc-900">{formatPrice(item.price_at_purchase * item.quantity)}</p>
-</div>
-{/each}
-</div>
+	<div class="panel mt-6 overflow-hidden">
+		<div class="flex items-center justify-between border-b border-line px-5 py-4 sm:px-6">
+			<div>
+				<p class="text-xs font-semibold text-slate-500">Order number</p>
+				<p class="font-extrabold">#{data.order.id}</p>
+			</div>
+			<span class="badge {orderStatusBadge(data.order.status)}">{data.order.status}</span>
+		</div>
+		<ul class="divide-y divide-line">
+			{#each data.items as item}
+				<li class="flex items-center gap-4 px-5 py-4 sm:px-6">
+					<span class="grid size-16 shrink-0 place-items-center rounded-xl bg-surface">
+						<img src={getImageUrl(item.product_image_key)} alt={item.product_name} class="product-shot size-full p-1.5" loading="lazy" />
+					</span>
+					<div class="min-w-0 flex-1">
+						<p class="line-clamp-2 text-sm font-semibold">{item.product_name}</p>
+						<p class="mt-0.5 text-xs text-slate-500 tabular-nums">{item.quantity} × {formatPrice(item.price_at_purchase)}</p>
+					</div>
+					<p class="text-sm font-bold tabular-nums">{formatPrice(item.price_at_purchase * item.quantity)}</p>
+				</li>
+			{/each}
+		</ul>
+		<div class="flex items-center justify-between bg-surface px-5 py-4 sm:px-6">
+			<div>
+				<p class="font-bold">Total</p>
+				<p class="text-xs text-slate-500">Payment: cash on delivery</p>
+			</div>
+			<p class="text-xl font-extrabold tracking-tight tabular-nums">{formatPrice(data.order.total)}</p>
+		</div>
+	</div>
 
-<div class="bg-zinc-50 px-6 py-4 rounded-b-xl">
-<div class="flex justify-between text-base font-bold text-zinc-900">
-<span>Total</span>
-<span>{formatPrice(data.order.total)}</span>
-</div>
-<p class="text-xs text-zinc-500 mt-1">Payment: Cash on Delivery</p>
-</div>
-</div>
+	<div class="panel mt-4 p-5 sm:p-6">
+		<h2 class="flex items-center gap-2 text-sm font-extrabold"><Icon name="map" class="size-4 text-brand" /> Delivering to</h2>
+		<p class="mt-2 text-sm leading-relaxed text-slate-600">
+			{data.order.name}<br />
+			{data.address.street}<br />
+			{data.address.city}, {data.address.state}<br />
+			{data.order.phone}
+		</p>
+	</div>
 
-<div class="card p-6 mt-6">
-<h2 class="text-sm font-semibold text-zinc-900 mb-3">Delivery Address</h2>
-<p class="text-sm text-zinc-600 leading-relaxed">
-{data.order.name}<br>
-{data.address.street}<br>
-{data.address.city}, {data.address.state}<br>
-{data.order.phone}
-</p>
-</div>
-
-<div class="flex flex-col sm:flex-row gap-3 mt-8">
-{#if data.order.customer_id}
-<a href="/account" class="btn bg-orange-500 hover:bg-orange-600 text-white border-none rounded-sm flex-1">View My Orders</a>
-{/if}
-<a href="/shop" class="btn border-orange-500 text-orange-500 hover:bg-orange-50 rounded-sm flex-1">Continue Shopping</a>
-</div>
+	<div class="mt-8 flex flex-col gap-3 sm:flex-row">
+		{#if data.order.customer_id}
+			<a href="/account" class="cta cta-dark flex-1">View my orders</a>
+		{/if}
+		<a href="/shop" class="cta cta-line flex-1">Continue shopping</a>
+	</div>
 </div>

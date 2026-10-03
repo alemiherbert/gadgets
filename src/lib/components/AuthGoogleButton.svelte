@@ -12,16 +12,16 @@
 
 <div class="relative my-6">
 	<div class="absolute inset-0 flex items-center">
-		<div class="w-full border-t border-slate-200"></div>
+		<div class="w-full border-t border-line"></div>
 	</div>
 	<div class="relative flex justify-center text-sm">
-		<span class="bg-white px-4 text-slate-500">{dividerText}</span>
+		<span class="bg-white px-4 text-xs font-semibold uppercase tracking-wider text-slate-400">{dividerText}</span>
 	</div>
 </div>
 
 <a
 	href={href}
-	class="w-full flex items-center justify-center gap-3 rounded-sm border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition cursor-pointer"
+	class="cta cta-lg w-full border-line bg-white text-ink hover:border-ink"
 >
 	<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
 		<path

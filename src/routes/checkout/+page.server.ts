@@ -4,6 +4,7 @@ import { getProductById, createOrder, createOrderItems, decrementStock, incremen
 import { sendOrderConfirmation, sendAdminNewOrderNotification } from '$lib/email';
 import type { CartItem, ShippingAddress } from '$lib/types';
 import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
+import { site } from '$lib/site';
 
 export const load: PageServerLoad = async ({ locals, url }) => {
 	if (!locals.customer) {
@@ -30,7 +31,7 @@ export const actions: Actions = {
 		const street = formData.get('street') as string;
 		const city = formData.get('city') as string;
 		const state = formData.get('state') as string;
-		const notes = (formData.get('notes') as string) || '';
+		const notes = ((formData.get('notes') as string) || '').trim().slice(0, 500);
 		const cartJson = formData.get('cart') as string;
 
 		// Validate required fields
@@ -95,7 +96,7 @@ export const actions: Actions = {
 		// Calculate total
 		const subtotal = validatedItems.reduce((sum, { product, quantity }) => sum + product!.price * quantity, 0);
 		const isKampala = city.trim().toLowerCase() === 'kampala';
-		const shipping = isKampala ? 550000 : 0; // 5,500 UGX in cents for Kampala; outside Kampala confirmed on phone
+		const shipping = isKampala ? site.kampalaDeliveryFee : 0; // Flat Kampala fee; outside Kampala confirmed on phone
 		const total = subtotal + shipping;
 
 		const address: ShippingAddress = { street, city, state };

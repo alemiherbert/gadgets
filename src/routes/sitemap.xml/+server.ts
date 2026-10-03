@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ locals, url }) => {
 			changefreq: 'weekly'
 		}));
 
-		const allPages = [...staticPages, ...categoryPages, ...productPages];
+		const allPages: { loc: string; priority: string; changefreq: string; lastmod?: string }[] = [...staticPages, ...categoryPages, ...productPages];
 
 		const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

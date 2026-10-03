@@ -12,29 +12,29 @@
 
 {#if data.invalid}
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold tracking-tight text-slate-900">Link expired</h1>
-		<p class="text-sm text-slate-500 mt-1">This reset link is invalid or has expired.</p>
+		<h1 class="text-3xl font-extrabold tracking-tight">Link expired</h1>
+		<p class="mt-2 text-sm text-slate-500">This reset link is invalid or has expired.</p>
 	</div>
 
 	<a
 		href="/auth/forgot-password"
-		class="inline-flex w-full justify-center rounded-sm bg-orange-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 transition"
+		class="cta cta-brand cta-lg w-full"
 	>
 		Request a new link
 	</a>
 
-	<p class="text-center text-sm text-slate-500 mt-8">
+	<p class="mt-8 text-center text-sm text-slate-500">
 		Remember your password?
-		<a href="/auth/login" class="font-medium text-orange-600 hover:text-orange-500 transition-colors">Sign in</a>
+		<a href="/auth/login" class="font-bold text-brand hover:underline">Sign in</a>
 	</p>
 {:else}
 	<div class="mb-8">
-		<h1 class="text-2xl font-bold tracking-tight text-slate-900">Set a new password</h1>
-		<p class="text-sm text-slate-500 mt-1">Enter a new password for <span class="font-medium text-slate-700">{data.email}</span></p>
+		<h1 class="text-3xl font-extrabold tracking-tight">Set a new password</h1>
+		<p class="mt-2 text-sm text-slate-500">Enter a new password for <span class="font-medium text-slate-700">{data.email}</span></p>
 	</div>
 
 	{#if form?.error}
-		<div class="rounded-sm bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 mb-6">
+		<div class="notice notice-error mb-6">
 			{form.error}
 		</div>
 	{/if}
@@ -53,7 +53,7 @@
 		<input type="hidden" name="token" value={data.token} />
 
 		<div>
-			<label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">New Password</label>
+			<label for="password" class="field-label">New Password</label>
 			<input
 				id="password"
 				name="password"
@@ -61,13 +61,13 @@
 				required
 				minlength="6"
 				autocomplete="new-password"
-				class="block w-full rounded-sm border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-200 focus:ring-2 focus:ring-slate-200 outline-none transition"
+				class="field"
 				placeholder="Min 6 characters"
 			/>
 		</div>
 
 		<div>
-			<label for="confirmPassword" class="block text-sm font-medium text-slate-700 mb-1.5">Confirm Password</label>
+			<label for="confirmPassword" class="field-label">Confirm Password</label>
 			<input
 				id="confirmPassword"
 				name="confirmPassword"
@@ -75,7 +75,7 @@
 				required
 				minlength="6"
 				autocomplete="new-password"
-				class="block w-full rounded-sm border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-200 focus:ring-2 focus:ring-slate-200 outline-none transition"
+				class="field"
 				placeholder="Repeat your password"
 			/>
 		</div>
@@ -83,14 +83,14 @@
 		<button
 			type="submit"
 			disabled={submitting}
-			class="w-full rounded-sm bg-orange-400 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 disabled:opacity-50 transition cursor-pointer"
+			class="cta cta-brand cta-lg w-full"
 		>
 			{submitting ? 'Resetting…' : 'Reset Password'}
 		</button>
 	</form>
 
-	<p class="text-center text-sm text-slate-500 mt-8">
+	<p class="mt-8 text-center text-sm text-slate-500">
 		Remember your password?
-		<a href="/auth/login" class="font-medium text-orange-600 hover:text-orange-500 transition-colors">Sign in</a>
+		<a href="/auth/login" class="font-bold text-brand hover:underline">Sign in</a>
 	</p>
 {/if}

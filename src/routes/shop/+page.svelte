@@ -7,36 +7,49 @@ import { getImageUrl } from '$lib/r2';
 import ProductCard from '$lib/components/ProductCard.svelte';
 import RangeSlider from '$lib/components/RangeSlider.svelte';
 import Breadcrumb from '$lib/components/Breadcrumb.svelte';
+import Icon from '$lib/components/Icon.svelte';
 
 let { data }: { data: PageData } = $props();
 
 let mobileFiltersOpen = $state(false);
-let shopSearchQuery = $state('');
 
 // Collapsible filter sections
 let openSections = $state<Record<string, boolean>>({
-categories: true,
-brands: false,
-price: true,
-sort: false,
+	categories: true,
+	brands: true,
+	price: true,
 });
 
-// Initialize spec sections as open + sync search/price from data
+// Initialize spec sections as open
 $effect(() => {
-for (const key of Object.keys(data.availableSpecs)) {
-if (!(key in openSections)) {
-openSections[key] = true;
-}
-}
+	for (const key of Object.keys(data.availableSpecs)) {
+		if (!(key in openSections)) {
+			openSections[key] = true;
+		}
+	}
 });
 
 $effect(() => {
-shopSearchQuery = data.activeSearch;
+	if (!mobileFiltersOpen) return;
+	const previous = document.body.style.overflow;
+	document.body.style.overflow = 'hidden';
+	const onKey = (e: KeyboardEvent) => {
+		if (e.key === 'Escape') mobileFiltersOpen = false;
+	};
+	window.addEventListener('keydown', onKey);
+	return () => {
+		document.body.style.overflow = previous;
+		window.removeEventListener('keydown', onKey);
+	};
 });
 
 function toggleSection(key: string) {
-openSections[key] = !openSections[key];
+	openSections[key] = !openSections[key];
 }
+
+const activeCategoryObj = $derived(data.categories.find((c) => c.slug === data.activeCategory) ?? null);
+const activeSubcategoryObj = $derived(data.subcategories.find((s) => s.slug === data.activeSubcategory) ?? null);
+const activeBrandObj = $derived(data.brands.find((b) => b.slug === data.activeBrand) ?? null);
 
 // Price range state (local, for slider interaction)
 let localMinPrice = $state(0);
@@ -44,25 +57,25 @@ let localMaxPrice = $state(0);
 
 // Sync local price when data changes
 $effect(() => {
-localMinPrice = data.activeMinPrice ?? data.priceRange.min;
-localMaxPrice = data.activeMaxPrice ?? data.priceRange.max;
+	localMinPrice = data.activeMinPrice ?? data.priceRange.min;
+	localMaxPrice = data.activeMaxPrice ?? data.priceRange.max;
 });
 
 // Build URL with updated params
 function buildUrl(params: Record<string, string | null>) {
-const u = new URL($page.url);
-for (const [key, val] of Object.entries(params)) {
-if (val === null || val === '') {
-u.searchParams.delete(key);
-} else {
-u.searchParams.set(key, val);
-}
-}
-// Reset to page 1 when changing filters (unless we're explicitly setting page)
-if (!('page' in params)) {
-u.searchParams.delete('page');
-}
-return u.pathname + u.search;
+	const u = new URL($page.url);
+	for (const [key, val] of Object.entries(params)) {
+		if (val === null || val === '') {
+			u.searchParams.delete(key);
+		} else {
+			u.searchParams.set(key, val);
+		}
+	}
+	// Reset to page 1 when changing filters (unless we're explicitly setting page)
+	if (!('page' in params)) {
+		u.searchParams.delete('page');
+	}
+	return u.pathname + u.search;
 }
 
 function setCategory(slug: string | null) {
@@ -73,7 +86,6 @@ function setCategory(slug: string | null) {
 	}
 	u.searchParams.delete('subcategory');
 	u.searchParams.delete('q');
-	shopSearchQuery = '';
 	if (slug) {
 		u.searchParams.set('category', slug);
 	} else {
@@ -85,8 +97,8 @@ function setCategory(slug: string | null) {
 }
 
 function categoryImageSrc(cat: { image_key: string | null; icon: string }) {
-if (cat.image_key) return getImageUrl(cat.image_key);
-return cat.icon || '';
+	if (cat.image_key) return getImageUrl(cat.image_key);
+	return cat.icon || '/img/placeholder.svg';
 }
 
 function setSubcategory(slug: string | null) {
@@ -96,7 +108,6 @@ function setSubcategory(slug: string | null) {
 		if (key.startsWith('spec_')) u.searchParams.delete(key);
 	}
 	u.searchParams.delete('q');
-	shopSearchQuery = '';
 	if (slug) {
 		u.searchParams.set('subcategory', slug);
 	} else {
@@ -120,60 +131,57 @@ function setBrand(slug: string | null) {
 }
 
 function setSort(sort: string) {
-goto(buildUrl({ sort }), { invalidateAll: true });
+	goto(buildUrl({ sort }), { invalidateAll: true });
 }
 
 function goToPage(p: number) {
-goto(buildUrl({ page: p > 1 ? String(p) : null }), { invalidateAll: true });
-// Scroll to top
-window.scrollTo({ top: 0, behavior: 'smooth' });
+	goto(buildUrl({ page: p > 1 ? String(p) : null }), { invalidateAll: true });
+	window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function applySearch(e?: Event) {
-if (e) e.preventDefault();
-goto(buildUrl({ q: shopSearchQuery.trim() || null }), { invalidateAll: true });
+function clearSearch() {
+	goto(buildUrl({ q: null }), { invalidateAll: true });
 }
 
 function applyPriceRange(_min?: number, _max?: number) {
-const lo = _min ?? localMinPrice;
-const hi = _max ?? localMaxPrice;
-const minParam = lo > data.priceRange.min ? String(lo) : null;
-const maxParam = hi < data.priceRange.max ? String(hi) : null;
-goto(buildUrl({ minPrice: minParam, maxPrice: maxParam }), { invalidateAll: true });
+	const lo = _min ?? localMinPrice;
+	const hi = _max ?? localMaxPrice;
+	const minParam = lo > data.priceRange.min ? String(lo) : null;
+	const maxParam = hi < data.priceRange.max ? String(hi) : null;
+	goto(buildUrl({ minPrice: minParam, maxPrice: maxParam }), { invalidateAll: true });
 }
 
 function toggleSpecFilter(specKey: string, value: string) {
-const u = new URL($page.url);
-const paramKey = `spec_${specKey}`;
-const existing = u.searchParams.getAll(paramKey);
+	const u = new URL($page.url);
+	const paramKey = `spec_${specKey}`;
+	const existing = u.searchParams.getAll(paramKey);
 
-// Clear all existing values for this key first
-u.searchParams.delete(paramKey);
+	// Clear all existing values for this key first
+	u.searchParams.delete(paramKey);
 
-if (existing.includes(value)) {
-// Remove this value
-for (const v of existing) {
-if (v !== value) u.searchParams.append(paramKey, v);
-}
-} else {
-// Add this value
-for (const v of existing) {
-u.searchParams.append(paramKey, v);
-}
-u.searchParams.append(paramKey, value);
-}
-u.searchParams.delete('page');
-goto(u.pathname + u.search, { invalidateAll: true });
+	if (existing.includes(value)) {
+		// Remove this value
+		for (const v of existing) {
+			if (v !== value) u.searchParams.append(paramKey, v);
+		}
+	} else {
+		// Add this value
+		for (const v of existing) {
+			u.searchParams.append(paramKey, v);
+		}
+		u.searchParams.append(paramKey, value);
+	}
+	u.searchParams.delete('page');
+	goto(u.pathname + u.search, { invalidateAll: true });
 }
 
 function clearAllFilters() {
-goto('/shop', { invalidateAll: true });
-shopSearchQuery = '';
-mobileFiltersOpen = false;
+	goto('/shop', { invalidateAll: true });
+	mobileFiltersOpen = false;
 }
 
 function isSpecActive(specKey: string, value: string): boolean {
-return (data.activeSpecFilters[specKey] ?? []).includes(value);
+	return (data.activeSpecFilters[specKey] ?? []).includes(value);
 }
 
 // Breadcrumb items
@@ -189,22 +197,22 @@ let crumbs = $derived.by(() => {
 		return [
 			{ label: 'Home', href: '/' },
 			{ label: 'Shop', href: '/shop' },
-			{ label: data.categories.find(c => c.slug === data.activeCategory)?.name ?? '', href: `/shop?category=${data.activeCategory}` },
-			{ label: data.subcategories.find(s => s.slug === data.activeSubcategory)?.name ?? '' },
+			{ label: activeCategoryObj?.name ?? '', href: `/shop?category=${data.activeCategory}` },
+			{ label: activeSubcategoryObj?.name ?? '' },
 		];
 	}
 	if (data.activeCategory) {
 		return [
 			{ label: 'Home', href: '/' },
 			{ label: 'Shop', href: '/shop' },
-			{ label: data.categories.find(c => c.slug === data.activeCategory)?.name ?? '' },
+			{ label: activeCategoryObj?.name ?? '' },
 		];
 	}
 	if (data.activeBrand) {
 		return [
 			{ label: 'Home', href: '/' },
 			{ label: 'Shop', href: '/shop' },
-			{ label: data.brands.find(b => b.slug === data.activeBrand)?.name ?? '' },
+			{ label: activeBrandObj?.name ?? '' },
 		];
 	}
 	return [
@@ -213,7 +221,14 @@ let crumbs = $derived.by(() => {
 	];
 });
 
-// Heading for non-search state
+let heading = $derived(
+	activeSubcategoryObj?.name ??
+		activeCategoryObj?.name ??
+		activeBrandObj?.name ??
+		({ discount: 'Deals', newest: 'New arrivals', popular: 'Best sellers' } as Record<string, string>)[data.activeSort] ??
+		'All products'
+);
+
 let activeFilterCount = $derived.by(() => {
 	let count = 0;
 	if (data.activeCategory) count++;
@@ -226,24 +241,24 @@ let activeFilterCount = $derived.by(() => {
 
 // Generate page numbers for pagination
 function getPageNumbers(current: number, total: number): (number | '...')[] {
-if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-const pages: (number | '...')[] = [];
-if (current <= 3) {
-pages.push(1, 2, 3, 4, '...', total);
-} else if (current >= total - 2) {
-pages.push(1, '...', total - 3, total - 2, total - 1, total);
-} else {
-pages.push(1, '...', current - 1, current, current + 1, '...', total);
-}
-return pages;
+	if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+	const pages: (number | '...')[] = [];
+	if (current <= 3) {
+		pages.push(1, 2, 3, 4, '...', total);
+	} else if (current >= total - 2) {
+		pages.push(1, '...', total - 3, total - 2, total - 1, total);
+	} else {
+		pages.push(1, '...', current - 1, current, current + 1, '...', total);
+	}
+	return pages;
 }
 
 const sortOptions = [
-{ value: 'newest', label: 'Newest' },
-{ value: 'popular', label: 'Most Popular' },
-{ value: 'price-asc', label: 'Price: Low to High' },
-{ value: 'price-desc', label: 'Price: High to Low' },
-{ value: 'discount', label: 'Biggest Discount' },
+	{ value: 'newest', label: 'Newest' },
+	{ value: 'popular', label: 'Most popular' },
+	{ value: 'price-asc', label: 'Price: low to high' },
+	{ value: 'price-desc', label: 'Price: high to low' },
+	{ value: 'discount', label: 'Biggest discount' },
 ];
 
 // Dynamic SEO content
@@ -304,7 +319,6 @@ const nextPageUrl = $derived(() => {
 	params.set('page', String(data.page + 1));
 	return `${base}?${params.toString()}`;
 });
-
 </script>
 
 <svelte:head>
@@ -348,647 +362,333 @@ const nextPageUrl = $derived(() => {
 </script>`}
 </svelte:head>
 
-<div class="bg-white min-h-screen">
-<!-- Header / Breadcrumb -->
-<div class="border-b border-slate-200 bg-slate-50">
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-<div class="mb-2">
-<Breadcrumb items={crumbs} />
-</div>
-{#if data.activeSearch}
-<div class="flex items-center justify-between gap-4">
-<h1 class="text-lg sm:text-2xl font-bold text-slate-900">Showing results for <span class="text-orange-500">"{data.activeSearch}"</span></h1>
-<div class="flex items-center gap-3 shrink-0">
-<p class="text-sm text-slate-500">{data.total} result{data.total !== 1 ? 's' : ''}</p>
-<button
-onclick={() => { shopSearchQuery = ''; goto(buildUrl({ q: null }), { invalidateAll: true }); }}
-class="text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors"
->
-Clear search
-</button>
-</div>
-</div>
-{:else}
-<div class="flex items-center justify-between gap-4">
-<h1 class="text-lg sm:text-2xl font-bold text-slate-900">
-{#if data.activeSubcategory}
-{data.subcategories.find(s => s.slug === data.activeSubcategory)?.name}
-{:else if data.activeCategory}
-{data.categories.find(c => c.slug === data.activeCategory)?.name}
-{:else}
-All Products
-{/if}
-</h1>
-<p class="text-sm text-slate-500 shrink-0">{data.total} product{data.total !== 1 ? 's' : ''}</p>
-</div>
-{/if}
-</div>
-</div>
+{#snippet filterHeading(key: string, label: string)}
+	<button onclick={() => toggleSection(key)} class="flex w-full items-center justify-between py-1 text-left" aria-expanded={openSections[key]}>
+		<h3 class="text-sm font-extrabold tracking-tight">{label}</h3>
+		<Icon name="chevron-down" class="size-4 text-slate-400 transition {openSections[key] ? 'rotate-180' : ''}" stroke={2} />
+	</button>
+{/snippet}
 
-<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+{#snippet filterOption(label: string, count: number | undefined, active: boolean, onclick: () => void, image?: string)}
+	<button
+		{onclick}
+		class="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors {active ? 'bg-brand-soft font-bold text-brand-dark' : 'text-slate-600 hover:bg-surface hover:text-ink'}"
+		aria-pressed={active}
+	>
+		{#if image}
+			<img src={image} alt="" class="size-7 shrink-0 rounded-lg object-cover" loading="lazy" />
+		{/if}
+		<span class="flex-1 truncate">{label}</span>
+		{#if count !== undefined}
+			<span class="text-xs tabular-nums {active ? 'text-brand' : 'text-slate-400'}">{count}</span>
+		{/if}
+	</button>
+{/snippet}
 
-<!-- Toolbar: search bar + sort + mobile filter toggle -->
-<div class="flex flex-col gap-4 mb-6">
+{#snippet filters()}
+	<div class="divide-y divide-line">
+		<!-- Categories -->
+		<div class="pb-4">
+			{@render filterHeading('categories', 'Category')}
+			{#if openSections.categories}
+				<div class="mt-2 space-y-0.5">
+					{@render filterOption('All products', undefined, data.activeCategory === null, () => setCategory(null))}
+					{#each data.categories as cat}
+						{@render filterOption(cat.name, cat.product_count, data.activeCategory === cat.slug, () => setCategory(cat.slug), categoryImageSrc(cat))}
+					{/each}
+				</div>
+			{/if}
+		</div>
 
-<!-- Mobile toolbar: filter + sort -->
-<div class="flex items-center gap-2 md:hidden">
-<button
-onclick={() => mobileFiltersOpen = true}
-class="h-10 inline-flex items-center gap-2 px-4 py-2 rounded-sm border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shrink-0"
->
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-</svg>
-Filters
-{#if activeFilterCount > 0}
-<span class="bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{activeFilterCount}</span>
-{/if}
-</button>
-<div class="relative flex-1 shrink-0">
-<label for="sort-select-mobile" class="sr-only">Sort by</label>
-<select
-id="sort-select-mobile"
-value={data.activeSort}
-onchange={(e) => setSort((e.target as HTMLSelectElement).value)}
-class="h-10 w-full appearance-none rounded-sm border border-slate-200 bg-white pl-3 pr-8 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 cursor-pointer"
->
-{#each sortOptions as opt}
-<option value={opt.value}>{opt.label}</option>
-{/each}
-</select>
-<svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-</div>
-</div>
+		<!-- Subcategories -->
+		{#if data.activeCategory && data.subcategories.length > 0}
+			<div class="py-4">
+				<h3 class="py-1 text-sm font-extrabold tracking-tight">Type</h3>
+				<div class="mt-2 space-y-0.5">
+					{@render filterOption(`All ${activeCategoryObj?.name ?? ''}`, undefined, data.activeSubcategory === null, () => setSubcategory(null))}
+					{#each data.subcategories as sub}
+						{@render filterOption(sub.name, sub.product_count, data.activeSubcategory === sub.slug, () => setSubcategory(sub.slug))}
+					{/each}
+				</div>
+			</div>
+		{/if}
 
-<!-- Mobile search bar -->
-<form onsubmit={applySearch} class="relative md:hidden">
-<svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-</svg>
-<input
-type="text"
-bind:value={shopSearchQuery}
-placeholder="Search products..."
-class="w-full h-10 pl-10 pr-20 rounded-sm border border-slate-200 bg-white text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
-/>
-{#if shopSearchQuery}
-<button
-type="button"
-onclick={() => { shopSearchQuery = ''; applySearch(); }}
-class="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-aria-label="Clear search"
->
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
-</button>
-{/if}
-<button
-type="submit"
-class="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-3 py-1.5 rounded-sm transition-colors"
->
-Search
-</button>
-</form>
+		<!-- Brands -->
+		{#if data.brands.length > 0}
+			<div class="py-4">
+				{@render filterHeading('brands', 'Brand')}
+				{#if openSections.brands}
+					<div class="mt-3 flex flex-wrap gap-2">
+						<button class="chip h-8 px-3 text-xs {data.activeBrand === null ? 'is-active' : ''}" onclick={() => setBrand(null)}>All</button>
+						{#each data.brands as brand}
+							<button class="chip h-8 px-3 text-xs {data.activeBrand === brand.slug ? 'is-active' : ''}" onclick={() => setBrand(brand.slug)}>
+								{brand.name}
+								{#if brand.product_count !== undefined}<span class="opacity-60">{brand.product_count}</span>{/if}
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 
-<!-- Desktop: search bar + sort -->
-<div class="hidden md:flex items-center gap-3">
-<!-- Search bar (grows to fill) -->
-<form onsubmit={applySearch} class="relative flex-1 min-w-0">
-<svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-</svg>
-<input
-type="text"
-bind:value={shopSearchQuery}
-placeholder="Search products..."
-class="w-full h-10 pl-10 pr-20 rounded-sm border border-slate-200 bg-white text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
-/>
-{#if shopSearchQuery}
-<button
-type="button"
-onclick={() => { shopSearchQuery = ''; applySearch(); }}
-class="absolute right-14 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-aria-label="Clear search"
->
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
-</button>
-{/if}
-<button
-type="submit"
-class="absolute right-1 top-1/2 -translate-y-1/2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium px-3 py-1.5 rounded-sm transition-colors"
->
-Search
-</button>
-</form>
+		<!-- Price -->
+		{#if data.priceRange.max > data.priceRange.min}
+			<div class="py-4">
+				{@render filterHeading('price', 'Price')}
+				{#if openSections.price}
+					<div class="mt-4 px-1">
+						<RangeSlider
+							min={data.priceRange.min}
+							max={data.priceRange.max}
+							step={100}
+							bind:minValue={localMinPrice}
+							bind:maxValue={localMaxPrice}
+							onchange={applyPriceRange}
+						/>
+						<div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+							<div class="rounded-xl bg-surface px-3 py-2">
+								<p class="text-slate-500">Min</p>
+								<p class="font-bold tabular-nums">{formatPrice(localMinPrice)}</p>
+							</div>
+							<div class="rounded-xl bg-surface px-3 py-2 text-right">
+								<p class="text-slate-500">Max</p>
+								<p class="font-bold tabular-nums">{formatPrice(localMaxPrice)}</p>
+							</div>
+						</div>
+						{#if data.activeMinPrice !== null || data.activeMaxPrice !== null}
+							<button
+								onclick={() => goto(buildUrl({ minPrice: null, maxPrice: null }), { invalidateAll: true })}
+								class="mt-2 text-xs font-bold text-brand hover:underline"
+							>
+								Reset price
+							</button>
+						{/if}
+					</div>
+				{/if}
+			</div>
+		{/if}
 
-<!-- Sort dropdown -->
-<div class="relative shrink-0">
-<label for="sort-select" class="sr-only">Sort by</label>
-<select
-id="sort-select"
-value={data.activeSort}
-onchange={(e) => setSort((e.target as HTMLSelectElement).value)}
-class="h-10 appearance-none rounded-sm border border-slate-200 bg-white pl-3 pr-8 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 cursor-pointer"
->
-{#each sortOptions as opt}
-<option value={opt.value}>{opt.label}</option>
-{/each}
-</select>
-<svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
+		<!-- Spec filters -->
+		{#each Object.entries(data.availableSpecs) as [specKey, specValues]}
+			<div class="py-4">
+				{@render filterHeading(specKey, specKey)}
+				{#if openSections[specKey]}
+					<div class="mt-2 space-y-0.5">
+						{#each specValues as val}
+							<label class="flex cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-surface {isSpecActive(specKey, val) ? 'font-bold text-ink' : 'text-slate-600'}">
+								<input
+									type="checkbox"
+									checked={isSpecActive(specKey, val)}
+									onchange={() => toggleSpecFilter(specKey, val)}
+									class="size-4 rounded accent-brand"
+								/>
+								<span class="truncate">{val}</span>
+							</label>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/each}
+	</div>
+{/snippet}
 
-</div>
+<!-- Header band -->
+<section class="border-b border-line bg-surface">
+	<div class="wrap pb-5 pt-5 lg:pb-7 lg:pt-7">
+		<Breadcrumb items={crumbs} />
+		{#if data.activeSearch}
+			<div class="mt-3 flex flex-wrap items-end justify-between gap-3">
+				<h1 class="text-2xl font-extrabold tracking-tight sm:text-4xl">
+					Results for <span class="text-brand">“{data.activeSearch}”</span>
+				</h1>
+				<button onclick={clearSearch} class="chip h-9">
+					<Icon name="close" class="size-3.5" stroke={2.5} />
+					Clear search
+				</button>
+			</div>
+			<p class="mt-1 text-sm text-slate-500">{data.total} product{data.total !== 1 ? 's' : ''} found</p>
+		{:else}
+			<h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{heading}</h1>
+			<p class="mt-1 text-sm text-slate-500">
+				{#if activeCategoryObj?.description && !activeSubcategoryObj}{activeCategoryObj.description} · {/if}{data.total} product{data.total !== 1 ? 's' : ''}
+			</p>
+		{/if}
 
-</div>
+		<!-- Quick chips -->
+		<div class="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-1 scrollbar-hide sm:mx-0 sm:px-0">
+			{#if data.activeCategory && data.subcategories.length > 0}
+				<button class="chip {data.activeSubcategory === null ? 'is-active' : ''}" onclick={() => setSubcategory(null)}>All</button>
+				{#each data.subcategories as sub}
+					<button class="chip {data.activeSubcategory === sub.slug ? 'is-active' : ''}" onclick={() => setSubcategory(sub.slug)}>{sub.name}</button>
+				{/each}
+			{:else}
+				<button class="chip {data.activeCategory === null ? 'is-active' : ''}" onclick={() => setCategory(null)}>All</button>
+				{#each data.categories as cat}
+					<button class="chip {data.activeCategory === cat.slug ? 'is-active' : ''}" onclick={() => setCategory(cat.slug)}>{cat.name}</button>
+				{/each}
+			{/if}
+		</div>
+	</div>
+</section>
 
-<!-- Active filter tags -->
-{#if activeFilterCount > 0}
-<div class="flex flex-wrap items-center gap-2">
-<span class="text-sm text-slate-500">Filters:</span>
+<div class="wrap py-6 lg:py-8">
+	<div class="flex gap-10">
+		<!-- Desktop sidebar -->
+		<aside class="hidden w-64 shrink-0 lg:block" aria-label="Filters">
+			<div class="sticky top-36 max-h-[calc(100vh-10rem)] overflow-y-auto pb-6 pr-2 scrollbar-hide">
+				{@render filters()}
+			</div>
+		</aside>
 
-{#if data.activeCategory}
-<button
-onclick={() => setCategory(null)}
-class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
->
-{data.categories.find(c => c.slug === data.activeCategory)?.name}
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-</button>
-{/if}
+		<div class="min-w-0 flex-1">
+			<!-- Toolbar -->
+			<div class="flex items-center gap-2">
+				<button onclick={() => (mobileFiltersOpen = true)} class="chip h-10 lg:hidden">
+					<Icon name="filter" class="size-4" stroke={2} />
+					Filters
+					{#if activeFilterCount > 0}
+						<span class="grid size-5 place-items-center rounded-full bg-brand text-[10px] font-extrabold text-white">{activeFilterCount}</span>
+					{/if}
+				</button>
+				<p class="hidden text-sm text-slate-500 lg:block">
+					Showing <span class="font-bold text-ink">{data.total}</span> product{data.total !== 1 ? 's' : ''}
+				</p>
+				<div class="relative ml-auto">
+					<label for="sort-select" class="sr-only">Sort by</label>
+					<select
+						id="sort-select"
+						value={data.activeSort}
+						onchange={(e) => setSort((e.target as HTMLSelectElement).value)}
+						class="h-10 cursor-pointer appearance-none rounded-full border-[1.5px] border-line bg-white pl-4 pr-10 text-[13px] font-bold transition hover:border-ink focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15"
+					>
+						{#each sortOptions as opt}
+							<option value={opt.value}>Sort: {opt.label}</option>
+						{/each}
+					</select>
+					<Icon name="chevron-down" class="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500" stroke={2} />
+				</div>
+			</div>
 
-{#if data.activeSubcategory}
-<button
-onclick={() => setSubcategory(null)}
-class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
->
-{data.subcategories.find(s => s.slug === data.activeSubcategory)?.name}
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-</button>
-{/if}
+			<!-- Active filters -->
+			{#if activeFilterCount > 0}
+				<div class="mt-4 flex flex-wrap items-center gap-2">
+					{#if activeCategoryObj}
+						<button onclick={() => setCategory(null)} class="tag tag-soft h-8 gap-1.5 px-3 text-xs">
+							{activeCategoryObj.name}<Icon name="close" class="size-3.5" stroke={2.5} />
+						</button>
+					{/if}
+					{#if activeSubcategoryObj}
+						<button onclick={() => setSubcategory(null)} class="tag tag-soft h-8 gap-1.5 px-3 text-xs">
+							{activeSubcategoryObj.name}<Icon name="close" class="size-3.5" stroke={2.5} />
+						</button>
+					{/if}
+					{#if activeBrandObj}
+						<button onclick={() => setBrand(null)} class="tag tag-soft h-8 gap-1.5 px-3 text-xs">
+							{activeBrandObj.name}<Icon name="close" class="size-3.5" stroke={2.5} />
+						</button>
+					{/if}
+					{#if data.activeMinPrice !== null || data.activeMaxPrice !== null}
+						<button
+							onclick={() => goto(buildUrl({ minPrice: null, maxPrice: null }), { invalidateAll: true })}
+							class="tag tag-soft h-8 gap-1.5 px-3 text-xs"
+						>
+							{formatPrice(data.activeMinPrice ?? data.priceRange.min)} – {formatPrice(data.activeMaxPrice ?? data.priceRange.max)}
+							<Icon name="close" class="size-3.5" stroke={2.5} />
+						</button>
+					{/if}
+					{#each Object.entries(data.activeSpecFilters) as [specKey, values]}
+						{#each values as val}
+							<button onclick={() => toggleSpecFilter(specKey, val)} class="tag tag-soft h-8 gap-1.5 px-3 text-xs">
+								{specKey}: {val}<Icon name="close" class="size-3.5" stroke={2.5} />
+							</button>
+						{/each}
+					{/each}
+					<button onclick={clearAllFilters} class="px-2 text-xs font-bold text-slate-500 underline-offset-2 hover:text-ink hover:underline">Clear all</button>
+				</div>
+			{/if}
 
-{#if data.activeBrand}
-<button
-onclick={() => setBrand(null)}
-class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
->
-{data.brands.find(b => b.slug === data.activeBrand)?.name}
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-</button>
-{/if}
+			<!-- Grid -->
+			{#if data.products.length === 0}
+				<div class="mt-6 rounded-[1.5rem] bg-surface px-6 py-16 text-center">
+					<div class="mx-auto grid size-16 place-items-center rounded-full bg-white">
+						<Icon name="search" class="size-7 text-slate-400" />
+					</div>
+					<h2 class="mt-5 text-xl font-extrabold tracking-tight">No products match that</h2>
+					<p class="mt-1 text-sm text-slate-500">Try removing a filter, or browse a category below.</p>
+					<button onclick={clearAllFilters} class="cta cta-brand mt-6">Clear all filters</button>
+					<div class="mt-8 flex flex-wrap justify-center gap-2">
+						{#each data.categories as cat}
+							<a href="/shop?category={cat.slug}" class="chip">{cat.name}</a>
+						{/each}
+					</div>
+				</div>
+			{:else}
+				<div class="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-4 xl:grid-cols-4">
+					{#each data.products as product, i (product.id)}
+						<ProductCard {product} eager={i < 4} />
+					{/each}
+				</div>
 
-{#if data.activeMinPrice !== null || data.activeMaxPrice !== null}
-<button
-onclick={() => goto(buildUrl({ minPrice: null, maxPrice: null }), { invalidateAll: true })}
-class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
->
-Price: {formatPrice(data.activeMinPrice ?? data.priceRange.min)} – {formatPrice(data.activeMaxPrice ?? data.priceRange.max)}
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-</button>
-{/if}
-
-{#each Object.entries(data.activeSpecFilters) as [specKey, values]}
-{#each values as val}
-<button
-onclick={() => toggleSpecFilter(specKey, val)}
-class="inline-flex items-center gap-1 rounded-full bg-orange-50 text-orange-700 px-3 py-1 text-sm font-medium hover:bg-orange-100 transition-colors"
->
-{specKey}: {val}
-<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-</button>
-{/each}
-{/each}
-
-<button
-onclick={clearAllFilters}
-class="text-sm text-slate-500 hover:text-slate-700 underline"
->
-Clear all
-</button>
-</div>
-{/if}
-</div>
-
-<!-- Main grid: sidebar + products -->
-<div class="flex gap-8">
-
-<!-- Desktop sidebar -->
-<aside class="hidden lg:block w-64 shrink-0">
-<div class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pb-4 pr-2 -mr-2">
-
-<!-- Categories filter -->
-<div class="mb-4 border-b border-slate-100 pb-4">
-<button onclick={() => toggleSection('categories')} class="flex items-center justify-between w-full text-left mb-2">
-<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Categories</h3>
-<svg class="h-4 w-4 text-slate-400 transition-transform {openSections.categories ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-</button>
-{#if openSections.categories}
-<div class="space-y-0.5">
-<button
-onclick={() => setCategory(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeCategory === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<span>All Products</span>
-</button>
-{#each data.categories as cat}
-<button
-onclick={() => setCategory(cat.slug)}
-class="w-full text-left flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm transition-colors {data.activeCategory === cat.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<div class="h-6 w-6 rounded-sm overflow-hidden bg-slate-100 shrink-0">
-<img src={categoryImageSrc(cat)} alt="" class="h-full w-full object-cover" />
-</div>
-<span class="flex-1 truncate">{cat.name}</span>
-{#if cat.product_count !== undefined}
-<span class="text-xs {data.activeCategory === cat.slug ? 'text-orange-500' : 'text-slate-400'}">{cat.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-{/if}
-</div>
-
-<!-- Subcategories filter (shows when a category is selected) -->
-{#if data.activeCategory && data.subcategories.length > 0}
-<div class="mb-4 border-b border-slate-100 pb-4">
-<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide mb-2">Subcategories</h3>
-<div class="space-y-0.5">
-<button
-onclick={() => setSubcategory(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeSubcategory === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<span>All {data.categories.find(c => c.slug === data.activeCategory)?.name}</span>
-</button>
-{#each data.subcategories as sub}
-<button
-onclick={() => setSubcategory(sub.slug)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeSubcategory === sub.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<span class="truncate">{sub.name}</span>
-{#if sub.product_count !== undefined}
-<span class="text-xs {data.activeSubcategory === sub.slug ? 'text-orange-500' : 'text-slate-400'}">{sub.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-</div>
-{/if}
-
-<!-- Brands filter -->
-{#if data.brands.length > 0}
-<div class="mb-4 border-b border-slate-100 pb-4">
-<button onclick={() => toggleSection('brands')} class="flex items-center justify-between w-full text-left mb-2">
-<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Brands</h3>
-<svg class="h-4 w-4 text-slate-400 transition-transform {openSections.brands ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-</button>
-{#if openSections.brands}
-<div class="space-y-0.5">
-<button
-onclick={() => setBrand(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeBrand === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<span>All Brands</span>
-</button>
-{#each data.brands as brand}
-<button
-onclick={() => setBrand(brand.slug)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2 text-sm transition-colors {data.activeBrand === brand.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}"
->
-<span class="truncate">{brand.name}</span>
-{#if brand.product_count !== undefined}
-<span class="text-xs {data.activeBrand === brand.slug ? 'text-orange-500' : 'text-slate-400'}">{brand.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-{/if}
-</div>
-{/if}
-
-<!-- Price range filter -->
-<div class="mb-4 border-b border-slate-100 pb-4">
-<button onclick={() => toggleSection('price')} class="flex items-center justify-between w-full text-left mb-2">
-<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Price Range</h3>
-<svg class="h-4 w-4 text-slate-400 transition-transform {openSections.price ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-</button>
-{#if openSections.price}
-<div class="px-1">
-<RangeSlider
-min={data.priceRange.min}
-max={data.priceRange.max}
-step={100}
-bind:minValue={localMinPrice}
-bind:maxValue={localMaxPrice}
-onchange={applyPriceRange}
-/>
-<div class="flex items-center justify-between text-xs text-slate-500 mt-2">
-<span>{formatPrice(localMinPrice)}</span>
-<span>{formatPrice(localMaxPrice)}</span>
-</div>
-{#if data.activeMinPrice !== null || data.activeMaxPrice !== null}
-<button
-onclick={() => goto(buildUrl({ minPrice: null, maxPrice: null }), { invalidateAll: true })}
-class="text-xs text-orange-500 hover:text-orange-600 mt-1"
->
-Reset price
-</button>
-{/if}
-</div>
-{/if}
-</div>
-
-<!-- Dynamic spec filters -->
-{#each Object.entries(data.availableSpecs) as [specKey, specValues]}
-<div class="mb-4 border-b border-slate-100 pb-4">
-<button onclick={() => toggleSection(specKey)} class="flex items-center justify-between w-full text-left mb-2">
-<h3 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">{specKey}</h3>
-<svg class="h-4 w-4 text-slate-400 transition-transform {openSections[specKey] ? 'rotate-180' : ''}" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-</svg>
-</button>
-{#if openSections[specKey]}
-<div class="space-y-1">
-{#each specValues as val}
-<label class="flex items-center gap-2.5 rounded-sm px-3 py-1.5 text-sm cursor-pointer hover:bg-slate-50 transition-colors {isSpecActive(specKey, val) ? 'bg-orange-50 text-orange-700' : 'text-slate-600'}">
-<input
-type="checkbox"
-checked={isSpecActive(specKey, val)}
-onchange={() => toggleSpecFilter(specKey, val)}
-class="h-3.5 w-3.5 rounded border-slate-300 text-orange-500 focus:ring-orange-400"
-/>
-<span class="truncate">{val}</span>
-</label>
-{/each}
-</div>
-{/if}
-</div>
-{/each}
-
-</div>
-</aside>
-
-<!-- Product grid -->
-<div class="flex-1 min-w-0">
-{#if data.products.length === 0}
-<div class="text-center py-20">
-<svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-</svg>
-<h3 class="mt-4 text-lg font-semibold text-slate-900">No products found</h3>
-<p class="mt-1 text-sm text-slate-500">Try removing some filters or browse all products.</p>
-<button
-onclick={clearAllFilters}
-class="mt-4 inline-flex items-center rounded-sm bg-orange-500 px-4 py-2 text-sm font-medium text-white hover:bg-orange-600 transition-colors"
->
-Clear all filters
-</button>
-</div>
-{:else}
-<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-{#each data.products as product (product.id)}
-<ProductCard {product} />
-{/each}
-</div>
-
-<!-- Pagination -->
-{#if data.totalPages > 1}
-<nav class="mt-10 flex items-center justify-center gap-1" aria-label="Pagination">
-<!-- Previous -->
-<button
-onclick={() => goToPage(data.page - 1)}
-disabled={data.page <= 1}
-class="inline-flex items-center justify-center rounded-sm border border-slate-200 bg-white h-9 w-9 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-aria-label="Previous page"
->
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-</svg>
-</button>
-
-{#each getPageNumbers(data.page, data.totalPages) as pg}
-{#if pg === '...'}
-<span class="inline-flex items-center justify-center h-9 w-9 text-sm text-slate-400">&hellip;</span>
-{:else}
-<button
-onclick={() => goToPage(pg as number)}
-class="inline-flex items-center justify-center rounded-sm h-9 w-9 text-sm font-medium transition-colors {data.page === pg ? 'bg-orange-500 text-white shadow-sm' : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'}"
-aria-current={data.page === pg ? 'page' : undefined}
->
-{pg}
-</button>
-{/if}
-{/each}
-
-<!-- Next -->
-<button
-onclick={() => goToPage(data.page + 1)}
-disabled={data.page >= data.totalPages}
-class="inline-flex items-center justify-center rounded-sm border border-slate-200 bg-white h-9 w-9 text-sm text-slate-500 hover:bg-slate-50 hover:text-slate-700 disabled:opacity-40 disabled:pointer-events-none transition-colors"
-aria-label="Next page"
->
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-</svg>
-</button>
-</nav>
-
-<p class="text-center text-sm text-slate-500 mt-3">
-Page {data.page} of {data.totalPages} &middot; Showing {((data.page - 1) * 48) + 1}–{Math.min(data.page * 48, data.total)} of {data.total}
-</p>
-{/if}
-{/if}
-</div>
-</div>
-</div>
+				<!-- Pagination -->
+				{#if data.totalPages > 1}
+					<nav class="mt-12 flex items-center justify-center gap-1.5" aria-label="Pagination">
+						<button
+							onclick={() => goToPage(data.page - 1)}
+							disabled={data.page <= 1}
+							class="grid size-10 place-items-center rounded-full border-[1.5px] border-line bg-white transition hover:border-ink disabled:pointer-events-none disabled:opacity-40"
+							aria-label="Previous page"
+						>
+							<Icon name="chevron-left" class="size-4" stroke={2.25} />
+						</button>
+						{#each getPageNumbers(data.page, data.totalPages) as pg}
+							{#if pg === '...'}
+								<span class="grid size-10 place-items-center text-sm text-slate-400">&hellip;</span>
+							{:else}
+								<button
+									onclick={() => goToPage(pg as number)}
+									class="grid size-10 place-items-center rounded-full text-sm font-bold transition {data.page === pg ? 'bg-ink text-white' : 'hover:bg-surface'}"
+									aria-current={data.page === pg ? 'page' : undefined}
+								>
+									{pg}
+								</button>
+							{/if}
+						{/each}
+						<button
+							onclick={() => goToPage(data.page + 1)}
+							disabled={data.page >= data.totalPages}
+							class="grid size-10 place-items-center rounded-full border-[1.5px] border-line bg-white transition hover:border-ink disabled:pointer-events-none disabled:opacity-40"
+							aria-label="Next page"
+						>
+							<Icon name="chevron-right" class="size-4" stroke={2.25} />
+						</button>
+					</nav>
+					<p class="mt-3 text-center text-xs text-slate-500">
+						Showing {(data.page - 1) * 48 + 1}–{Math.min(data.page * 48, data.total)} of {data.total}
+					</p>
+				{/if}
+			{/if}
+		</div>
+	</div>
 </div>
 
 <!-- Mobile filter drawer -->
 {#if mobileFiltersOpen}
-<!-- Backdrop -->
-<div
-class="fixed inset-0 bg-black/40 z-50 lg:hidden"
-onclick={() => mobileFiltersOpen = false}
-aria-hidden="true"
-></div>
-
-<!-- Drawer -->
-<div class="fixed inset-y-0 right-0 z-50 w-80 max-w-full bg-white shadow-2xl lg:hidden flex flex-col">
-<!-- Header -->
-<div class="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-<h2 class="text-base font-semibold text-slate-900">Filters</h2>
-<button
-onclick={() => mobileFiltersOpen = false}
-class="inline-flex h-8 w-8 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-aria-label="Close filters"
->
-<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-</svg>
-</button>
-</div>
-
-<!-- Body -->
-<div class="flex-1 overflow-y-auto px-4 py-4">
-<!-- Search in mobile -->
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Search</h3>
-<form onsubmit={(e) => { e.preventDefault(); applySearch(); mobileFiltersOpen = false; }} class="relative">
-<input
-type="text"
-bind:value={shopSearchQuery}
-placeholder="Search products..."
-class="w-full h-9 pl-3 pr-9 rounded-sm border border-slate-200 bg-white text-sm focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-/>
-<button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-orange-500" aria-label="Search">
-<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-</svg>
-</button>
-</form>
-</div>
-
-<!-- Categories -->
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Categories</h3>
-<div class="space-y-0.5">
-<button
-onclick={() => setCategory(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeCategory === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<span>All Products</span>
-</button>
-{#each data.categories as cat}
-<button
-onclick={() => setCategory(cat.slug)}
-class="w-full text-left flex items-center gap-2.5 rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeCategory === cat.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<div class="h-6 w-6 rounded overflow-hidden bg-slate-100 shrink-0">
-<img src={categoryImageSrc(cat)} alt="" class="h-full w-full object-cover" />
-</div>
-<span class="flex-1 truncate">{cat.name}</span>
-{#if cat.product_count !== undefined}
-<span class="text-xs text-slate-400">{cat.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-</div>
-
-<!-- Subcategories (mobile) -->
-{#if data.activeCategory && data.subcategories.length > 0}
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Subcategories</h3>
-<div class="space-y-0.5">
-<button
-onclick={() => setSubcategory(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeSubcategory === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<span>All {data.categories.find(c => c.slug === data.activeCategory)?.name}</span>
-</button>
-{#each data.subcategories as sub}
-<button
-onclick={() => setSubcategory(sub.slug)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeSubcategory === sub.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<span class="truncate">{sub.name}</span>
-{#if sub.product_count !== undefined}
-<span class="text-xs text-slate-400">{sub.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-</div>
-{/if}
-
-<!-- Brands (mobile) -->
-{#if data.brands.length > 0}
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Brands</h3>
-<div class="space-y-0.5">
-<button
-onclick={() => setBrand(null)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeBrand === null ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<span>All Brands</span>
-</button>
-{#each data.brands as brand}
-<button
-onclick={() => setBrand(brand.slug)}
-class="w-full text-left flex items-center justify-between rounded-sm px-3 py-2.5 text-sm transition-colors {data.activeBrand === brand.slug ? 'bg-orange-50 text-orange-700 font-medium' : 'text-slate-600 hover:bg-slate-50'}"
->
-<span class="truncate">{brand.name}</span>
-{#if brand.product_count !== undefined}
-<span class="text-xs text-slate-400">{brand.product_count}</span>
-{/if}
-</button>
-{/each}
-</div>
-</div>
-{/if}
-
-<!-- Price range -->
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">Price Range</h3>
-<RangeSlider
-min={data.priceRange.min}
-max={data.priceRange.max}
-step={100}
-bind:minValue={localMinPrice}
-bind:maxValue={localMaxPrice}
-onchange={applyPriceRange}
-/>
-<div class="flex items-center justify-between text-xs text-slate-500 mt-2">
-<span>{formatPrice(localMinPrice)}</span>
-<span>{formatPrice(localMaxPrice)}</span>
-</div>
-</div>
-
-<!-- Spec filters (mobile) -->
-{#each Object.entries(data.availableSpecs) as [specKey, specValues]}
-<div class="mb-5">
-<h3 class="text-sm font-semibold text-slate-900 mb-2 uppercase tracking-wide">{specKey}</h3>
-<div class="space-y-1">
-{#each specValues as val}
-<label class="flex items-center gap-2.5 rounded-sm px-3 py-1.5 text-sm cursor-pointer hover:bg-slate-50 transition-colors {isSpecActive(specKey, val) ? 'bg-orange-50 text-orange-700' : 'text-slate-600'}">
-<input
-type="checkbox"
-checked={isSpecActive(specKey, val)}
-onchange={() => toggleSpecFilter(specKey, val)}
-class="h-3.5 w-3.5 rounded border-slate-300 text-orange-500 focus:ring-orange-400"
-/>
-<span class="truncate">{val}</span>
-</label>
-{/each}
-</div>
-</div>
-{/each}
-</div>
-
-<!-- Footer -->
-<div class="border-t border-slate-200 px-4 py-3 flex gap-3">
-<button
-onclick={() => { clearAllFilters(); }}
-class="flex-1 rounded-sm border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
->
-Clear all
-</button>
-<button
-onclick={() => { applyPriceRange(); mobileFiltersOpen = false; }}
-class="flex-1 rounded-sm bg-orange-500 py-2.5 text-sm font-medium text-white hover:bg-orange-600 transition-colors"
->
-Apply filters
-</button>
-</div>
-</div>
+	<div class="fixed inset-0 z-[70] lg:hidden">
+		<button class="absolute inset-0 bg-ink/50 animate-fade-in" aria-label="Close filters" tabindex="-1" onclick={() => (mobileFiltersOpen = false)}></button>
+		<div role="dialog" aria-modal="true" aria-labelledby="filters-title" class="absolute inset-y-0 right-0 flex w-[90%] max-w-sm flex-col bg-white shadow-2xl animate-drawer-right">
+			<div class="flex items-center justify-between border-b border-line px-5 py-4">
+				<h2 id="filters-title" class="text-lg font-extrabold tracking-tight">Filters</h2>
+				<button onclick={() => (mobileFiltersOpen = false)} class="icon-btn -mr-2" aria-label="Close filters">
+					<Icon name="close" stroke={2} />
+				</button>
+			</div>
+			<div class="flex-1 overflow-y-auto px-5 py-4">
+				{@render filters()}
+			</div>
+			<div class="flex gap-3 border-t border-line px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+				<button onclick={clearAllFilters} class="cta cta-line flex-1">Clear all</button>
+				<button onclick={() => (mobileFiltersOpen = false)} class="cta cta-brand flex-1">Show {data.total} result{data.total !== 1 ? 's' : ''}</button>
+			</div>
+		</div>
+	</div>
 {/if}
