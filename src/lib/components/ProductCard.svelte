@@ -46,7 +46,7 @@
 			imageUrl: getImageUrl(product.image_key),
 			stock: product.stock
 		});
-		ui.openCart(product.name);
+		ui.added(product.name);
 	}
 </script>
 

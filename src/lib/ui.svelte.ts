@@ -3,16 +3,28 @@
 
 class UiStore {
 	cartOpen = $state(false);
-	/** Name of the product just added, shown as confirmation in the drawer. */
-	lastAdded = $state<string | null>(null);
+	/** Product just added — shown in a short "Added to cart" toast. */
+	toast = $state<{ id: number; name: string } | null>(null);
+	#timer: ReturnType<typeof setTimeout> | undefined;
 
-	openCart(addedName: string | null = null) {
-		this.lastAdded = addedName;
+	openCart() {
+		this.toast = null;
 		this.cartOpen = true;
 	}
 
 	closeCart() {
 		this.cartOpen = false;
+	}
+
+	added(name: string) {
+		clearTimeout(this.#timer);
+		this.toast = { id: Date.now(), name };
+		this.#timer = setTimeout(() => (this.toast = null), 3500);
+	}
+
+	dismissToast() {
+		clearTimeout(this.#timer);
+		this.toast = null;
 	}
 }
 

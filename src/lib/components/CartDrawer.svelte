@@ -50,15 +50,6 @@
 				</button>
 			</div>
 
-			{#if ui.lastAdded && cart.count > 0}
-				<div class="mx-5 mt-4 flex items-center gap-2.5 rounded-xl bg-ok-soft px-3.5 py-3 text-sm font-semibold text-ok-ink" role="status">
-					<span class="grid size-5 shrink-0 place-items-center rounded-full bg-ok text-white animate-pop">
-						<Icon name="check" class="size-3" stroke={3} />
-					</span>
-					<span class="line-clamp-1">Added: {ui.lastAdded}</span>
-				</div>
-			{/if}
-
 			{#if cart.items.length === 0}
 				<div class="flex flex-1 flex-col items-center justify-center px-8 text-center">
 					<div class="grid size-20 place-items-center rounded-full bg-surface">

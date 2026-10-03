@@ -13,6 +13,7 @@
 	import Logo from '$lib/components/Logo.svelte';
 	import SearchBox from '$lib/components/SearchBox.svelte';
 	import CartDrawer from '$lib/components/CartDrawer.svelte';
+	import CartToast from '$lib/components/CartToast.svelte';
 	import type { Category } from '$lib/types';
 	import type { LayoutData } from './$types';
 
@@ -363,6 +364,7 @@
 	{/if}
 
 	<CartDrawer {categories} />
+	<CartToast />
 
 	<main id="main" class="min-h-[60vh]">
 		{@render children()}

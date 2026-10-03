@@ -128,7 +128,7 @@
 			qty
 		);
 		quantity = 1;
-		if (openDrawer) ui.openCart(data.product.name);
+		if (openDrawer) ui.added(data.product.name);
 	}
 
 	function buyNow() {

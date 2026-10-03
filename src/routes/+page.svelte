@@ -111,7 +111,7 @@
 			imageUrl: getImageUrl(spotlight.image_key),
 			stock: spotlight.stock
 		});
-		ui.openCart(spotlight.name);
+		ui.added(spotlight.name);
 	}
 
 	// ── Structured data: the store + sitelinks search box ──
