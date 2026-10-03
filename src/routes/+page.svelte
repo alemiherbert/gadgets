@@ -129,6 +129,15 @@
 				logo: { '@type': 'ImageObject', url: absoluteUrl(site.logo), width: 512, height: 512 },
 				image: absoluteUrl(site.ogImage),
 				email: site.email,
+				telephone: site.phoneHref.replace('tel:', ''),
+				contactPoint: {
+					'@type': 'ContactPoint',
+					contactType: 'customer service',
+					telephone: site.phoneHref.replace('tel:', ''),
+					email: site.email,
+					areaServed: site.country,
+					availableLanguage: ['en']
+				},
 				address: { '@type': 'PostalAddress', addressLocality: site.city, addressCountry: site.country },
 				areaServed: { '@type': 'Country', name: 'Uganda' },
 				...(site.social.length ? { sameAs: site.social } : {})
@@ -173,12 +182,12 @@
 		<ul class="rail auto-cols-[76%] gap-3 py-4 sm:auto-cols-[44%] lg:grid-flow-row lg:grid-cols-4">
 			{#each perks as perk}
 				<li class="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5">
-					<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-sm">
+					<span class="icon-tile bg-white text-brand shadow-sm">
 						<Icon name={perk.icon} class="size-5" />
 					</span>
 					<span class="leading-tight">
 						<span class="block text-sm font-bold">{perk.title}</span>
-						<span class="mt-0.5 block text-xs text-slate-500">{perk.text}</span>
+						<span class="mt-0.5 block text-xs text-ink-muted">{perk.text}</span>
 					</span>
 				</li>
 			{/each}
@@ -187,8 +196,8 @@
 </section>
 
 <!-- ── Shop by category ── -->
-<section class="wrap pt-12 lg:pt-16">
-		<div class="mb-6 flex items-end justify-between gap-4">
+<section class="wrap pt-14 lg:pt-20">
+		<div class="mb-8 flex items-end justify-between gap-4">
 			<div>
 				<p class="eyebrow">{site.tagline}</p>
 				<h1 class="h-section mt-2">Shop phones, laptops & gadgets online in Uganda</h1>
@@ -199,7 +208,7 @@
 		<Rail label="Categories" class="auto-cols-[38%] gap-3 sm:auto-cols-[23%] lg:auto-cols-[calc((100%-5*1rem)/6)] lg:gap-4">
 			{#each data.categories as cat}
 				<a href="/shop?category={cat.slug}" class="group flex flex-col">
-					<span class="relative aspect-[4/5] overflow-hidden rounded-[1.375rem] bg-surface">
+					<span class="relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface">
 						<img
 							src={categoryImage(cat)}
 							alt=""
@@ -209,9 +218,9 @@
 						/>
 						<span class="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent"></span>
 						<span class="absolute inset-x-0 bottom-0 p-3.5 text-white">
-							<span class="block text-[15px] font-extrabold leading-tight tracking-tight">{cat.name}</span>
+							<span class="block text-base font-extrabold leading-tight tracking-tight">{cat.name}</span>
 							{#if cat.product_count}
-								<span class="mt-1 block text-xs font-medium text-white/70">{cat.product_count} products</span>
+								<span class="mt-1 block text-xs text-white/70">{cat.product_count} products</span>
 							{/if}
 						</span>
 						<span class="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-white/90 text-ink opacity-0 transition group-hover:opacity-100">
@@ -231,14 +240,14 @@
 			<div class="absolute -left-40 -top-40 size-[34rem] rounded-full bg-brand/40 blur-[120px]"></div>
 			<div class="absolute -bottom-48 right-0 size-[30rem] rounded-full bg-deal/30 blur-[120px]"></div>
 		</div>
-		<div class="wrap relative py-12 lg:py-16">
+		<div class="wrap relative section-y">
 			<div class="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:pr-44 lg:pr-56">
 				<div class="max-w-xl">
 					<p class="eyebrow text-sun"><Icon name="fire" class="size-4" /> Hot deals</p>
-					<h2 class="h-section mt-3">
+					<h2 class="h-section mt-2">
 						{#if maxDiscount > 0}Save up to <span class="text-sun">{maxDiscount}%</span> on top gadgets{:else}Top deals on top gadgets{/if}
 					</h2>
-					<p class="mt-3 max-w-md text-sm leading-relaxed text-white/60">Marked-down prices on stock we have right now. Pay when it arrives.</p>
+					<p class="mt-3 max-w-md text-sm leading-relaxed text-white/70">Marked-down prices on stock we have right now. Pay when it arrives.</p>
 				</div>
 				<a href="/shop?sort=discount" class="cta cta-sun shrink-0 self-start sm:self-auto">
 					Shop all deals
@@ -265,7 +274,7 @@
 
 <!-- ── Tabbed showcase ── -->
 {#if tabs.length > 0 && activeTab}
-	<section id="products" class="wrap scroll-mt-32 py-14 lg:py-20">
+	<section id="products" class="wrap scroll-mt-32 section-y">
 		<div class="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
 			<div>
 				<p class="eyebrow">Trending now</p>
@@ -292,7 +301,7 @@
 				id="panel-{activeTab.key}"
 				role="tabpanel"
 				aria-labelledby="tab-{activeTab.key}"
-				class="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5 animate-fade-in"
+				class="product-grid mt-8 md:grid-cols-4 animate-fade-in"
 			>
 				{#each activeTab.products.slice(0, 8) as product, i (product.id)}
 					<ProductCard {product} rank={activeTab.key === 'best' ? i + 1 : undefined} />
@@ -312,36 +321,36 @@
 <!-- ── Spotlight ── -->
 {#if spotlight}
 	<section class="wrap pb-14 lg:pb-20">
-		<div class="relative grid items-center overflow-hidden rounded-[2rem] bg-brand text-white lg:grid-cols-2">
+		<div class="relative grid items-center overflow-hidden rounded-3xl bg-brand text-white lg:grid-cols-2">
 			<div class="pointer-events-none absolute inset-0" aria-hidden="true">
 				<div class="absolute -right-24 -top-24 size-96 rounded-full bg-white/10 blur-2xl"></div>
 				<div class="absolute -bottom-32 left-10 size-80 rounded-full bg-sun/25 blur-3xl"></div>
 			</div>
 			<div class="relative order-2 p-6 pt-2 sm:p-10 lg:order-1 lg:p-14">
 				<p class="eyebrow text-sun"><Icon name="star" class="size-4" /> Editor's pick</p>
-				<h2 class="h-section mt-3">{spotlight.name}</h2>
+				<h2 class="h-section mt-2">{spotlight.name}</h2>
 				{#if spotlight.description}
 					<p class="mt-4 line-clamp-3 max-w-lg leading-relaxed text-white/80">{markdownExcerpt(spotlight.description, 220)}</p>
 				{/if}
 				<div class="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
 					<span class="text-3xl font-extrabold tracking-tight tabular-nums">{formatPrice(spotlight.price)}</span>
 					{#if spotlightDiscount > 0 && spotlight.compare_at_price}
-						<span class="text-base text-white/60 line-through tabular-nums">{formatPrice(spotlight.compare_at_price)}</span>
+						<span class="text-base text-white/70 line-through tabular-nums">{formatPrice(spotlight.compare_at_price)}</span>
 						<span class="tag tag-new">Save {formatPrice(spotlight.compare_at_price - spotlight.price)}</span>
 					{/if}
 				</div>
 				<div class="mt-7 flex flex-wrap gap-3">
 					{#if spotlight.stock > 0}
 						<button onclick={addSpotlight} disabled={spotlightInCart >= spotlight.stock} class="cta cta-sun cta-lg">
-							<Icon name="bag" class="size-[18px]" stroke={2} />
+							<Icon name="bag" class="size-5" stroke={2} />
 							{spotlightInCart >= spotlight.stock ? 'All stock in cart' : 'Add to cart'}
 						</button>
 					{/if}
-					<a href="/products/{spotlight.slug}" class="cta cta-lg border-white/40 text-white hover:bg-white hover:text-ink">View details</a>
+					<a href="/products/{spotlight.slug}" class="cta cta-lg border-white/50 text-white hover:bg-white hover:text-ink">View details</a>
 				</div>
 			</div>
 			<div class="relative order-1 p-6 pb-0 sm:p-10 sm:pb-0 lg:order-2 lg:p-12">
-				<a href="/products/{spotlight.slug}" class="group mx-auto block aspect-square max-w-md overflow-hidden rounded-[1.75rem] bg-white p-8 shadow-2xl" tabindex="-1" aria-hidden="true">
+				<a href="/products/{spotlight.slug}" class="group mx-auto block aspect-square max-w-md overflow-hidden rounded-3xl bg-white p-8 shadow-float" tabindex="-1" aria-hidden="true">
 					<img src={getImageUrl(spotlight.image_key)} alt="" loading="lazy" decoding="async" class="product-shot size-full transition duration-500 group-hover:scale-105" />
 				</a>
 			</div>
@@ -351,9 +360,9 @@
 
 <!-- ── Brands ── -->
 {#if data.brands.length > 0}
-	<section class="border-t border-line bg-surface py-14 lg:py-16">
+	<section class="border-t border-line bg-surface section-y">
 		<div class="wrap">
-			<div class="mb-6 flex items-end justify-between gap-4">
+			<div class="mb-8 flex items-end justify-between gap-4">
 				<div>
 					<p class="eyebrow">Top brands</p>
 					<h2 class="h-section mt-2">The names you trust</h2>
@@ -365,7 +374,7 @@
 					<li>
 						<a
 							href="/shop?brand={brand.slug}"
-							class="group relative flex h-20 items-center justify-center overflow-hidden rounded-2xl bg-ink px-3 text-center transition hover:-translate-y-0.5 hover:shadow-xl sm:h-24"
+							class="group relative flex h-20 items-center justify-center overflow-hidden rounded-2xl bg-ink px-3 text-center transition hover:-translate-y-0.5 hover:shadow-md sm:h-24"
 							aria-label="Shop {brand.name}"
 						>
 							{#if brand.logo_key}
@@ -383,12 +392,12 @@
 
 <!-- ── About (helps shoppers and search engines understand the store) ── -->
 <section class="border-t border-line">
-	<div class="wrap grid gap-8 py-14 lg:grid-cols-12 lg:gap-12 lg:py-16">
+	<div class="wrap grid gap-8 section-y lg:grid-cols-12 lg:gap-12">
 		<div class="lg:col-span-5">
 			<p class="eyebrow">About us</p>
 			<h2 class="h-section mt-2">{site.name}: {site.tagline.toLowerCase()}</h2>
 		</div>
-		<div class="space-y-4 leading-relaxed text-slate-600 lg:col-span-7">
+		<div class="space-y-4 leading-relaxed text-ink-muted lg:col-span-7">
 			<p>
 				{site.name} is an online shop for phones, tablets, laptops, audio, smart home gear, power banks and everyday tech
 				accessories in Uganda. Browse by category, compare prices in Ugandan shillings and order in a few taps.
@@ -410,8 +419,8 @@
 
 <!-- ── Recently viewed ── -->
 {#if recent.length > 1}
-	<section class="wrap py-14 lg:py-16">
-		<div class="mb-6 flex items-end justify-between">
+	<section class="wrap section-y">
+		<div class="mb-8 flex items-end justify-between">
 			<div>
 				<p class="eyebrow">Pick up where you left off</p>
 				<h2 class="h-section mt-2">Recently viewed</h2>
@@ -423,7 +432,7 @@
 					<span class="relative block aspect-square overflow-hidden rounded-2xl bg-surface">
 						<img src={getImageUrl(item.image_key)} alt="" loading="lazy" decoding="async" class="product-shot absolute inset-0 size-full p-[10%] transition duration-500 group-hover:scale-105" />
 					</span>
-					<span class="mt-2.5 line-clamp-2 text-[13px] font-semibold leading-snug group-hover:text-brand">{item.name}</span>
+					<span class="mt-2.5 line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{item.name}</span>
 					<span class="mt-1 block text-sm font-extrabold tabular-nums">{formatPrice(item.price)}</span>
 				</a>
 			{/each}

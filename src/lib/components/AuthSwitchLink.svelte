@@ -8,7 +8,7 @@
 	const linkText = $derived(mode === 'signin' ? 'Create one' : 'Sign in');
 </script>
 
-<p class="mt-8 text-center text-sm text-slate-500">
+<p class="mt-8 text-center text-sm text-ink-muted">
 	{promptText}
 	<a href={linkHref} class="font-bold text-brand hover:underline">{linkText}</a>
 </p>

@@ -134,7 +134,7 @@
 <div class="relative w-full" bind:this={root} onfocusout={onFocusOut}>
 	<form role="search" action="/shop" method="GET" onsubmit={submit} class="relative">
 		<label for={id} class="sr-only">Search products</label>
-		<Icon name="search" class="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-slate-500" stroke={2} />
+		<Icon name="search" class="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-ink-muted" stroke={2} />
 		<input
 			bind:this={input}
 			{id}
@@ -153,13 +153,13 @@
 			onfocus={() => (open = true)}
 			onkeydown={onKeydown}
 			{placeholder}
-			class="h-11 w-full rounded-full border-[1.5px] border-transparent bg-surface pl-11 pr-24 text-[15px] font-medium text-ink placeholder:font-normal placeholder:text-slate-500 transition focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/15 [&::-webkit-search-cancel-button]:hidden"
+			class="h-12 w-full rounded-full border-control border-transparent bg-surface pl-11 pr-24 text-base text-ink placeholder:font-normal placeholder:text-ink-muted transition focus:border-brand focus:bg-white focus:outline-none focus:ring-4 focus:ring-brand/15 [&::-webkit-search-cancel-button]:hidden"
 		/>
 		{#if query}
 			<button
 				type="button"
 				onclick={clear}
-				class="absolute right-[3.75rem] top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-slate-500 hover:bg-line hover:text-ink"
+				class="absolute right-[3.75rem] top-1/2 grid size-7 -translate-y-1/2 place-items-center rounded-full text-ink-muted hover:bg-line hover:text-ink"
 				aria-label="Clear search"
 			>
 				<Icon name="close" class="size-4" stroke={2} />
@@ -167,7 +167,7 @@
 		{/if}
 		<button
 			type="submit"
-			class="absolute right-1 top-1/2 inline-flex h-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand px-4 text-white transition hover:bg-brand-dark"
+			class="absolute right-1 top-1/2 inline-flex h-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand px-4 text-white transition hover:bg-brand-dark"
 			aria-label="Search"
 		>
 			<Icon name="arrow-right" class="size-4" stroke={2.25} />
@@ -176,10 +176,10 @@
 
 	{#if open && (showSuggestions || categories.length > 0)}
 		<div
-			class="absolute inset-x-0 top-full z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-line bg-white p-2 shadow-[0_24px_60px_-20px_rgba(11,18,32,0.35)] animate-fade-in"
+			class="absolute inset-x-0 top-full z-50 mt-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-line bg-white p-2 shadow-float animate-fade-in"
 		>
 			{#if !showSuggestions}
-				<p class="px-3 pb-2 pt-2 text-xs font-bold uppercase tracking-wider text-slate-500">Popular categories</p>
+				<p class="label-caps px-3 pb-2 pt-2">Popular categories</p>
 				<div class="flex flex-wrap gap-2 px-3 pb-3">
 					{#each categories as cat}
 						<a href="/shop?category={cat.slug}" class="chip" onclick={() => (open = false)}>{cat.name}</a>
@@ -200,7 +200,7 @@
 			{:else if results.length === 0}
 				<div class="px-3 py-5 text-center" aria-live="polite">
 					<p class="text-sm font-semibold text-ink">No matches for “{trimmed}”</p>
-					<p class="mt-1 text-sm text-slate-500">Try a brand or product type instead.</p>
+					<p class="mt-1 text-sm text-ink-muted">Try a brand or product type instead.</p>
 					{#if categories.length > 0}
 						<div class="mt-4 flex flex-wrap justify-center gap-2">
 							{#each categories.slice(0, 6) as cat}
@@ -227,14 +227,14 @@
 									<span class="mt-0.5 flex items-baseline gap-2">
 										<span class="text-sm font-extrabold {item.compare_at_price && item.compare_at_price > item.price ? 'text-deal' : 'text-ink'}">{formatPrice(item.price)}</span>
 										{#if item.compare_at_price && item.compare_at_price > item.price}
-											<span class="text-xs text-slate-400 line-through">{formatPrice(item.compare_at_price)}</span>
+											<span class="text-xs text-ink-subtle line-through">{formatPrice(item.compare_at_price)}</span>
 										{/if}
 										{#if item.stock <= 0}
-											<span class="text-xs font-semibold text-slate-500">Sold out</span>
+											<span class="text-xs font-semibold text-ink-muted">Sold out</span>
 										{/if}
 									</span>
 								</span>
-								<Icon name="chevron-right" class="size-4 shrink-0 text-slate-400" />
+								<Icon name="chevron-right" class="size-4 shrink-0 text-ink-subtle" />
 							</a>
 						</li>
 					{/each}
@@ -242,7 +242,7 @@
 				<button
 					type="button"
 					onclick={() => go(`/shop?q=${encodeURIComponent(trimmed)}`)}
-					class="mt-1 flex w-full items-center justify-between rounded-xl bg-brand-soft px-4 py-3 text-sm font-bold text-brand-dark transition hover:bg-[#d6e4ff]"
+					class="mt-1 flex w-full items-center justify-between rounded-xl bg-brand-soft px-4 py-3 text-sm font-bold text-brand-dark transition hover:bg-brand-tint"
 				>
 					See all {total} result{total === 1 ? '' : 's'} for “{trimmed}”
 					<Icon name="arrow-right" class="size-4" stroke={2} />

@@ -10,8 +10,8 @@
 <Seo title="Reset password" noindex />
 
 <div class="mb-8">
-	<h1 class="text-3xl font-extrabold tracking-tight">Reset your password</h1>
-	<p class="mt-2 text-sm text-slate-500">Enter your email and we'll send you a reset link</p>
+	<h1 class="h-page">Reset your password</h1>
+	<p class="mt-2 text-sm text-ink-muted">Enter your email and we'll send you a reset link</p>
 </div>
 
 {#if form?.success}
@@ -59,7 +59,7 @@
 	</button>
 </form>
 
-<p class="mt-8 text-center text-sm text-slate-500">
+<p class="mt-8 text-center text-sm text-ink-muted">
 	Remember your password?
 	<a href="/auth/login" class="font-bold text-brand hover:underline">Sign in</a>
 </p>

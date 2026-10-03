@@ -11,8 +11,8 @@
 
 {#if data.invalid}
 	<div class="mb-8">
-		<h1 class="text-3xl font-extrabold tracking-tight">Link expired</h1>
-		<p class="mt-2 text-sm text-slate-500">This reset link is invalid or has expired.</p>
+		<h1 class="h-page">Link expired</h1>
+		<p class="mt-2 text-sm text-ink-muted">This reset link is invalid or has expired.</p>
 	</div>
 
 	<a
@@ -22,14 +22,14 @@
 		Request a new link
 	</a>
 
-	<p class="mt-8 text-center text-sm text-slate-500">
+	<p class="mt-8 text-center text-sm text-ink-muted">
 		Remember your password?
 		<a href="/auth/login" class="font-bold text-brand hover:underline">Sign in</a>
 	</p>
 {:else}
 	<div class="mb-8">
-		<h1 class="text-3xl font-extrabold tracking-tight">Set a new password</h1>
-		<p class="mt-2 text-sm text-slate-500">Enter a new password for <span class="font-medium text-slate-700">{data.email}</span></p>
+		<h1 class="h-page">Set a new password</h1>
+		<p class="mt-2 text-sm text-ink-muted">Enter a new password for <span class="font-semibold text-ink">{data.email}</span></p>
 	</div>
 
 	{#if form?.error}
@@ -88,7 +88,7 @@
 		</button>
 	</form>
 
-	<p class="mt-8 text-center text-sm text-slate-500">
+	<p class="mt-8 text-center text-sm text-ink-muted">
 		Remember your password?
 		<a href="/auth/login" class="font-bold text-brand hover:underline">Sign in</a>
 	</p>

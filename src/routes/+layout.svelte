@@ -101,7 +101,7 @@
 
 	<!-- ── Announcement bar ── -->
 	<div class="bg-ink text-white">
-		<div class="wrap flex h-9 items-center justify-center text-[12.5px] font-semibold">
+		<div class="wrap flex h-9 items-center justify-center text-xs font-semibold">
 			<p class="flex items-center gap-2 md:hidden" aria-live="polite">
 				<Icon name="bolt-solid" class="size-3.5 text-sun" />
 				{#key announcementIndex}
@@ -136,28 +136,28 @@
 
 			<div class="ml-auto flex items-center gap-0.5 md:ml-0 lg:gap-1">
 				<button class="icon-btn md:hidden" onclick={() => (mobileSearchOpen = true)} aria-label="Search">
-					<Icon name="search" class="size-[22px]" />
+					<Icon name="search" class="size-6" />
 				</button>
 				<a
 					href={data.customer ? '/account' : '/auth/login'}
 					class="hidden items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 transition hover:bg-surface sm:flex"
 				>
 					<span class="grid size-8 place-items-center rounded-full bg-surface">
-						<Icon name="user" class="size-[18px]" />
+						<Icon name="user" class="size-5" />
 					</span>
 					<span class="hidden text-left leading-tight lg:block">
-						<span class="block text-[11px] font-medium text-slate-500">{data.customer ? `Hi, ${firstName}` : 'Welcome'}</span>
-						<span class="block text-[13px] font-bold">{data.customer ? 'My account' : 'Sign in'}</span>
+						<span class="block text-2xs text-ink-subtle">{data.customer ? `Hi, ${firstName}` : 'Welcome'}</span>
+						<span class="block text-sm font-bold">{data.customer ? 'My account' : 'Sign in'}</span>
 					</span>
 				</a>
 				<a href="/account/wishlist" class="icon-btn hidden sm:inline-flex" aria-label="Wishlist">
-					<Icon name="heart" class="size-[22px]" />
+					<Icon name="heart" class="size-6" />
 					{#if !data.customer && wishlist.count > 0}
 						<span class="count-dot">{wishlist.count}</span>
 					{/if}
 				</a>
 				<a href="/cart" onclick={openCart} class="icon-btn" aria-label="Cart, {cart.count} item{cart.count === 1 ? '' : 's'}">
-					<Icon name="bag" class="size-[22px]" />
+					<Icon name="bag" class="size-6" />
 					{#if cart.count > 0}
 						{#key cart.count}
 							<span class="count-dot !bg-brand animate-pop">{cart.count}</span>
@@ -176,7 +176,7 @@
 							<a
 								href="/shop?category={cat.slug}"
 								onfocus={() => openMenu(cat.slug)}
-								class="relative flex h-12 items-center px-3 text-[13.5px] font-semibold transition-colors hover:text-brand {menuSlug === cat.slug || activeCategory === cat.slug ? 'text-brand' : 'text-ink'}"
+								class="relative flex h-12 items-center px-3 text-sm font-semibold transition-colors hover:text-brand {menuSlug === cat.slug || activeCategory === cat.slug ? 'text-brand' : 'text-ink'}"
 								aria-haspopup="true"
 								aria-expanded={menuSlug === cat.slug}
 							>
@@ -189,32 +189,32 @@
 					{/each}
 				</ul>
 				<div class="ml-auto hidden items-center gap-1 xl:flex" onmouseenter={closeMenu} role="presentation">
-					<a href="/shop?sort=discount" class="flex h-9 items-center gap-1.5 rounded-full bg-deal-soft px-3.5 text-[13px] font-bold text-deal transition hover:bg-deal hover:text-white">
+					<a href="/shop?sort=discount" class="flex h-9 items-center gap-1.5 rounded-full bg-deal-soft px-3.5 text-sm font-bold text-deal transition hover:bg-deal hover:text-white">
 						<Icon name="fire" class="size-4" />
 						Deals
 					</a>
-					<a href="/shop?sort=newest" class="flex h-9 items-center rounded-full px-3.5 text-[13px] font-bold hover:bg-surface">New in</a>
-					<a href="/shop?sort=popular" class="flex h-9 items-center rounded-full px-3.5 text-[13px] font-bold hover:bg-surface">Best sellers</a>
+					<a href="/shop?sort=newest" class="flex h-9 items-center rounded-full px-3.5 text-sm font-bold hover:bg-surface">New in</a>
+					<a href="/shop?sort=popular" class="flex h-9 items-center rounded-full px-3.5 text-sm font-bold hover:bg-surface">Best sellers</a>
 				</div>
 			</div>
 
 			{#if menuCategory}
 				<div
-					class="absolute inset-x-0 top-full border-t border-line bg-white shadow-[0_30px_60px_-30px_rgba(11,18,32,0.35)] animate-fade-in"
+					class="absolute inset-x-0 top-full border-t border-line bg-white shadow-float animate-fade-in"
 					onmouseenter={() => clearTimeout(menuTimer)}
 					role="presentation"
 				>
 					<div class="wrap grid grid-cols-12 gap-10 py-8">
 						<div class="col-span-8">
 							<div class="flex items-baseline justify-between">
-								<p class="text-2xl font-extrabold tracking-tight">{menuCategory.name}</p>
+								<p class="h-block">{menuCategory.name}</p>
 								<a href="/shop?category={menuCategory.slug}" class="link-arrow">
 									Shop all {menuCategory.product_count ? `(${menuCategory.product_count})` : ''}
 									<Icon name="arrow-right" class="size-4" stroke={2} />
 								</a>
 							</div>
 							{#if menuCategory.description}
-								<p class="mt-1 text-sm text-slate-500">{menuCategory.description}</p>
+								<p class="mt-1 text-sm text-ink-muted">{menuCategory.description}</p>
 							{/if}
 							{#if subcategories[menuCategory.slug]?.length}
 								<ul class="mt-5 grid grid-cols-3 gap-x-4 gap-y-1">
@@ -222,10 +222,10 @@
 										<li>
 											<a
 												href="/shop?category={menuCategory.slug}&subcategory={sub.slug}"
-												class="group flex items-center justify-between rounded-xl px-3 py-2.5 text-[15px] font-semibold transition hover:bg-surface"
+												class="group flex items-center justify-between rounded-xl px-3 py-2.5 text-base font-semibold transition hover:bg-surface"
 											>
 												<span class="group-hover:text-brand">{sub.name}</span>
-												<Icon name="chevron-right" class="size-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-brand" />
+												<Icon name="chevron-right" class="size-4 text-ink-faint transition group-hover:translate-x-0.5 group-hover:text-brand" />
 											</a>
 										</li>
 									{/each}
@@ -236,7 +236,7 @@
 							<img src={categoryImage(menuCategory)} alt="" class="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105" />
 							<div class="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent"></div>
 							<div class="absolute inset-x-0 bottom-0 p-5 text-white">
-								<p class="text-lg font-extrabold tracking-tight">Explore {menuCategory.name}</p>
+								<p class="h-card">Explore {menuCategory.name}</p>
 								<span class="mt-2 inline-flex items-center gap-1 text-sm font-bold text-sun">
 									Shop now <Icon name="arrow-right" class="size-4" stroke={2} />
 								</span>
@@ -270,7 +270,7 @@
 	{#if mobileMenuOpen}
 		<div class="fixed inset-0 z-[70] lg:hidden">
 			<button class="absolute inset-0 bg-ink/50 animate-fade-in" aria-label="Close menu" tabindex="-1" onclick={() => (mobileMenuOpen = false)}></button>
-			<div role="dialog" aria-modal="true" aria-label="Menu" class="absolute inset-y-0 left-0 flex w-[88%] max-w-sm flex-col bg-white shadow-2xl animate-drawer-left">
+			<div role="dialog" aria-modal="true" aria-label="Menu" class="absolute inset-y-0 left-0 flex w-[88%] max-w-sm flex-col bg-white shadow-float animate-drawer-left">
 				<div class="flex items-center justify-between border-b border-line px-4 py-3">
 					<a href="/" onclick={() => (mobileMenuOpen = false)}><Logo /></a>
 					<button class="icon-btn -mr-1" onclick={() => (mobileMenuOpen = false)} aria-label="Close menu">
@@ -285,9 +285,9 @@
 								<span class="grid size-10 place-items-center rounded-full bg-brand text-sm font-extrabold text-white">{firstName.charAt(0).toUpperCase()}</span>
 								<span class="min-w-0 flex-1">
 									<span class="block text-sm font-bold">Hi, {firstName}</span>
-									<span class="block text-xs text-slate-500">Orders, wishlist & account</span>
+									<span class="block text-xs text-ink-muted">Orders, wishlist & account</span>
 								</span>
-								<Icon name="chevron-right" class="size-4 text-slate-400" />
+								<Icon name="chevron-right" class="size-4 text-ink-subtle" />
 							</a>
 						{:else}
 							<div class="grid grid-cols-2 gap-2">
@@ -312,7 +312,7 @@
 						</div>
 					</div>
 
-					<p class="px-5 pb-1 text-xs font-bold uppercase tracking-wider text-slate-500">Shop by category</p>
+					<p class="label-caps px-5 pb-1">Shop by category</p>
 					<ul class="px-2 pb-4">
 						{#each categories as cat}
 							{@const subs = subcategories[cat.slug] ?? []}
@@ -320,7 +320,7 @@
 								<div class="flex items-center">
 									<a href="/shop?category={cat.slug}" class="flex flex-1 items-center gap-3 rounded-xl px-3 py-2.5">
 										<img src={categoryImage(cat)} alt="" class="size-10 rounded-lg object-cover" loading="lazy" />
-										<span class="text-[15px] font-semibold">{cat.name}</span>
+										<span class="text-base font-semibold">{cat.name}</span>
 									</a>
 									{#if subs.length}
 										<button
@@ -337,7 +337,7 @@
 									<ul class="mb-2 ml-[3.75rem] border-l border-line pl-2 animate-fade-in">
 										{#each subs as sub}
 											<li>
-												<a href="/shop?category={cat.slug}&subcategory={sub.slug}" class="block rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-surface hover:text-ink">{sub.name}</a>
+												<a href="/shop?category={cat.slug}&subcategory={sub.slug}" class="block rounded-lg px-3 py-2 text-sm text-ink-muted hover:bg-surface hover:text-ink">{sub.name}</a>
 											</li>
 										{/each}
 									</ul>
@@ -352,7 +352,7 @@
 					<a href="mailto:{site.email}" class="flex items-center gap-2 font-semibold"><Icon name="mail" class="size-4 text-brand" /> {site.email}</a>
 					{#if data.customer}
 						<form method="POST" action="/auth/logout">
-							<button type="submit" class="flex items-center gap-2 font-semibold text-slate-500 hover:text-deal">
+							<button type="submit" class="flex items-center gap-2 font-semibold text-ink-muted hover:text-deal">
 								<Icon name="logout" class="size-4" /> Sign out
 							</button>
 						</form>
@@ -374,12 +374,12 @@
 			<ul class="wrap grid grid-cols-2 gap-x-4 gap-y-6 py-10 lg:grid-cols-4">
 				{#each perks as perk}
 					<li class="flex items-start gap-3">
-						<span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-bright text-white">
-							<Icon name={perk.icon} class="size-[22px]" />
+						<span class="icon-tile bg-brand-bright text-white">
+							<Icon name={perk.icon} class="size-6" />
 						</span>
 						<span>
 							<span class="block text-sm font-bold">{perk.title}</span>
-							<span class="block text-xs text-white/60">{perk.text}</span>
+							<span class="block text-xs text-white/70">{perk.text}</span>
 						</span>
 					</li>
 				{/each}
@@ -390,7 +390,7 @@
 			<div class="col-span-2 lg:col-span-4">
 				<Logo tone="dark" variant="inline" />
 				<p class="mt-4 text-lg font-semibold text-brand-bright">{site.tagline}</p>
-				<p class="mt-2 max-w-xs text-sm leading-relaxed text-white/60">Phones, laptops, audio, power and accessories — delivered across Uganda. Shop online, pay when it arrives.</p>
+				<p class="mt-2 max-w-xs text-sm leading-relaxed text-white/70">Phones, laptops, audio, power and accessories — delivered across Uganda. Shop online, pay when it arrives.</p>
 				<ul class="mt-6 space-y-2.5 text-sm">
 					<li><a href={site.phoneHref} class="inline-flex items-center gap-2 font-semibold hover:text-brand-bright"><Icon name="phone" class="size-4 text-brand-bright" /> {site.phone}</a></li>
 					<li><a href="mailto:{site.email}" class="inline-flex items-center gap-2 font-semibold hover:text-brand-bright"><Icon name="mail" class="size-4 text-brand-bright" /> {site.email}</a></li>
@@ -401,7 +401,7 @@
 			</div>
 
 			<div class="lg:col-span-3">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-white/50">Shop</h3>
+				<h3 class="label-caps text-white/50">Shop</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
 					{#each categories as cat}
 						<li><a href="/shop?category={cat.slug}" class="text-white/80 hover:text-white">{cat.name}</a></li>
@@ -410,7 +410,7 @@
 			</div>
 
 			<div class="lg:col-span-2">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-white/50">Discover</h3>
+				<h3 class="label-caps text-white/50">Discover</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
 					<li><a href="/shop?sort=discount" class="text-white/80 hover:text-white">Deals</a></li>
 					<li><a href="/shop?sort=newest" class="text-white/80 hover:text-white">New arrivals</a></li>
@@ -420,7 +420,7 @@
 			</div>
 
 			<div class="lg:col-span-3">
-				<h3 class="text-xs font-bold uppercase tracking-wider text-white/50">Account</h3>
+				<h3 class="label-caps text-white/50">Account</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
 					{#if data.customer}
 						<li><a href="/account" class="text-white/80 hover:text-white">My account</a></li>

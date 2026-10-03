@@ -257,7 +257,7 @@
 					<div
 						bind:this={gallery}
 						onscroll={onGalleryScroll}
-						class="rail auto-cols-[100%] bg-surface sm:rounded-[1.75rem]"
+						class="rail auto-cols-[100%] bg-surface sm:rounded-3xl"
 						role="region"
 						aria-label="Product images"
 					>
@@ -292,7 +292,7 @@
 						<button
 							onclick={() => showImage(Math.max(0, selectedImage - 1))}
 							disabled={selectedImage === 0}
-							class="absolute left-4 top-1/2 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md transition hover:scale-105 disabled:opacity-0 sm:grid"
+							class="absolute left-4 top-1/2 hidden size-12 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md transition hover:scale-105 disabled:opacity-0 sm:grid"
 							aria-label="Previous image"
 						>
 							<Icon name="chevron-left" class="size-5" stroke={2.25} />
@@ -300,7 +300,7 @@
 						<button
 							onclick={() => showImage(Math.min(allImages.length - 1, selectedImage + 1))}
 							disabled={selectedImage === allImages.length - 1}
-							class="absolute right-4 top-1/2 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md transition hover:scale-105 disabled:opacity-0 sm:grid"
+							class="absolute right-4 top-1/2 hidden size-12 -translate-y-1/2 place-items-center rounded-full bg-white shadow-md transition hover:scale-105 disabled:opacity-0 sm:grid"
 							aria-label="Next image"
 						>
 							<Icon name="chevron-right" class="size-5" stroke={2.25} />
@@ -316,7 +316,7 @@
 								onclick={() => showImage(i)}
 								aria-label="View image {i + 1}"
 								aria-current={i === selectedImage}
-								class="size-20 overflow-hidden rounded-2xl bg-surface ring-2 transition {i === selectedImage ? 'ring-brand' : 'ring-transparent hover:ring-line'}"
+								class="size-20 overflow-hidden rounded-xl bg-surface ring-2 transition {i === selectedImage ? 'ring-brand' : 'ring-transparent hover:ring-line'}"
 							>
 								<img src={getImageUrl(key)} alt="" loading="lazy" decoding="async" class="product-shot size-full p-1.5" />
 							</button>
@@ -328,33 +328,33 @@
 
 		<!-- ── Buy box ── -->
 		<div class="lg:col-span-5">
-			<h1 class="text-2xl font-extrabold leading-[1.15] tracking-tight text-balance sm:text-3xl">{data.product.name}</h1>
+			<h1 class="h-page text-2xl sm:text-3xl">{data.product.name}</h1>
 
 			<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
 				{#if data.reviews.length > 0}
 					<a href="#reviews" class="inline-flex items-center gap-1.5">
 						<Stars rating={avgRating} />
 						<span class="font-bold">{avgRating.toFixed(1)}</span>
-						<span class="text-slate-500 underline-offset-2 hover:underline">({data.reviews.length} review{data.reviews.length !== 1 ? 's' : ''})</span>
+						<span class="text-ink-muted underline-offset-2 hover:underline">({data.reviews.length} review{data.reviews.length !== 1 ? 's' : ''})</span>
 					</a>
 				{/if}
 				{#if data.product.sales_count > 0}
-					<span class="inline-flex items-center gap-1 font-semibold text-slate-600">
+					<span class="inline-flex items-center gap-1 font-semibold text-ink-muted">
 						<Icon name="fire" class="size-4 text-deal" />
 						{data.product.sales_count} sold
 					</span>
 				{/if}
 				{#if data.product.sku}
-					<span class="text-xs text-slate-400">SKU {data.product.sku}</span>
+					<span class="text-xs text-ink-subtle">SKU {data.product.sku}</span>
 				{/if}
 			</div>
 
 			<!-- Price -->
-			<div class="mt-5 rounded-[1.25rem] bg-surface p-5">
+			<div class="mt-5 rounded-2xl bg-surface p-5">
 				<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-					<span class="text-[2rem] font-extrabold leading-none tracking-tight tabular-nums {discount > 0 ? 'text-deal' : ''}">{formatPrice(data.product.price)}</span>
+					<span class="text-3xl font-extrabold leading-none tracking-tight tabular-nums {discount > 0 ? 'text-deal' : ''}">{formatPrice(data.product.price)}</span>
 					{#if discount > 0 && data.product.compare_at_price}
-						<span class="text-base text-slate-400 line-through tabular-nums">{formatPrice(data.product.compare_at_price)}</span>
+						<span class="text-base text-ink-subtle line-through tabular-nums">{formatPrice(data.product.compare_at_price)}</span>
 					{/if}
 				</div>
 				{#if savings > 0}
@@ -364,11 +364,11 @@
 				{/if}
 				<div class="mt-4 flex items-center gap-2 text-sm font-semibold">
 					{#if data.product.stock > 10}
-						<span class="size-2 rounded-full bg-[#12a150] ring-4 ring-[#12a150]/15"></span>
-						<span class="text-[#067647]">In stock — ready to deliver</span>
+						<span class="size-2 rounded-full bg-ok ring-4 ring-ok/15"></span>
+						<span class="text-ok-ink">In stock — ready to deliver</span>
 					{:else if data.product.stock > 0}
-						<span class="size-2 rounded-full bg-amber-500 ring-4 ring-amber-500/15"></span>
-						<span class="text-[#b54708]">Only {data.product.stock} left — order soon</span>
+						<span class="size-2 rounded-full bg-warn ring-4 ring-warn/15"></span>
+						<span class="text-warn-ink">Only {data.product.stock} left — order soon</span>
 					{:else}
 						<span class="size-2 rounded-full bg-deal ring-4 ring-deal/15"></span>
 						<span class="text-deal">Out of stock</span>
@@ -381,7 +381,7 @@
 				<dl class="mt-4 grid grid-cols-2 gap-2">
 					{#each keySpecs as [key, val]}
 						<div class="rounded-xl border border-line px-3.5 py-2.5">
-							<dt class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{key}</dt>
+							<dt class="label-caps">{key}</dt>
 							<dd class="mt-0.5 truncate text-sm font-bold" title={String(val)}>{val}</dd>
 						</div>
 					{/each}
@@ -393,10 +393,10 @@
 				{#if data.product.stock > 0}
 					{#if maxAddable > 0}
 						<div class="flex gap-2.5" bind:this={mainCta}>
-							<div class="flex h-14 shrink-0 items-center rounded-full border-[1.5px] border-line">
+							<div class="flex h-14 shrink-0 items-center rounded-full border-control border-line">
 								<button
 									onclick={() => (quantity = Math.max(1, quantity - 1))}
-									class="grid h-full w-11 place-items-center rounded-l-full text-slate-600 hover:bg-surface disabled:opacity-30"
+									class="grid h-full w-11 place-items-center rounded-l-full text-ink-muted hover:bg-surface disabled:opacity-30"
 									aria-label="Decrease quantity"
 									disabled={quantity <= 1}
 								>
@@ -412,7 +412,7 @@
 								/>
 								<button
 									onclick={() => (quantity = Math.min(maxAddable, quantity + 1))}
-									class="grid h-full w-11 place-items-center rounded-r-full text-slate-600 hover:bg-surface disabled:opacity-30"
+									class="grid h-full w-11 place-items-center rounded-r-full text-ink-muted hover:bg-surface disabled:opacity-30"
 									aria-label="Increase quantity"
 									disabled={quantity >= maxAddable}
 								>
@@ -429,10 +429,10 @@
 								<Icon name="bolt-solid" class="size-4 text-sun" />
 								Buy now
 							</button>
-							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-[1.5px] border-line transition hover:border-ink')}
+							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
 						{#if existingCartQty > 0}
-							<p class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-[#067647]">
+							<p class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ok-ink">
 								<Icon name="check" class="size-3.5" stroke={2.5} />
 								{existingCartQty} already in your cart · {maxAddable} more available
 							</p>
@@ -446,19 +446,19 @@
 								Go to checkout
 								<Icon name="arrow-right" class="size-4" stroke={2.25} />
 							</a>
-							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-[1.5px] border-line transition hover:border-ink')}
+							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
 					{/if}
 				{:else}
 					<div class="flex gap-2.5">
-						<div class="cta cta-lg flex-1 cursor-not-allowed bg-surface text-slate-500">Sold out</div>
-						{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-[1.5px] border-line transition hover:border-ink')}
+						<div class="cta cta-lg flex-1 cursor-not-allowed bg-surface text-ink-muted">Sold out</div>
+						{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 					</div>
-					<p class="mt-2 text-xs text-slate-500">Save it to your wishlist and check back soon.</p>
+					<p class="mt-2 text-xs text-ink-muted">Save it to your wishlist and check back soon.</p>
 				{/if}
 
 				{#if whatsapp}
-					<a href={whatsapp} target="_blank" rel="noopener" class="cta cta-lg mt-2.5 w-full border-[#25d366] text-[#128c4a] hover:bg-[#25d366] hover:text-white">
+					<a href={whatsapp} target="_blank" rel="noopener" class="cta cta-lg mt-2.5 w-full border-whatsapp text-whatsapp-ink hover:bg-whatsapp hover:text-white">
 						<Icon name="whatsapp" class="size-5" />
 						Order on WhatsApp
 					</a>
@@ -466,26 +466,26 @@
 			</div>
 
 			<!-- Reassurance -->
-			<ul class="mt-6 divide-y divide-line rounded-[1.25rem] border border-line">
+			<ul class="mt-6 divide-y divide-line rounded-2xl border border-line">
 				<li class="flex items-start gap-3 p-4">
-					<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="cash" class="size-5" /></span>
+					<span class="icon-tile bg-brand-soft text-brand"><Icon name="cash" class="size-5" /></span>
 					<span class="text-sm">
 						<span class="block font-bold">Pay on delivery</span>
-						<span class="block text-slate-500">Pay when your order arrives — no card needed.</span>
+						<span class="block text-ink-muted">Pay when your order arrives — no card needed.</span>
 					</span>
 				</li>
 				<li class="flex items-start gap-3 p-4">
-					<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="truck" class="size-5" /></span>
+					<span class="icon-tile bg-brand-soft text-brand"><Icon name="truck" class="size-5" /></span>
 					<span class="text-sm">
 						<span class="block font-bold">Kampala delivery {formatPrice(site.kampalaDeliveryFee)}</span>
-						<span class="block text-slate-500">Outside Kampala? We confirm the fee by phone.</span>
+						<span class="block text-ink-muted">Outside Kampala? We confirm the fee by phone.</span>
 					</span>
 				</li>
 				<li class="flex items-start gap-3 p-4">
-					<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="package" class="size-5" /></span>
+					<span class="icon-tile bg-brand-soft text-brand"><Icon name="package" class="size-5" /></span>
 					<span class="text-sm">
 						<span class="block font-bold">Track your order</span>
-						<span class="block text-slate-500">Follow its status any time from your account.</span>
+						<span class="block text-ink-muted">Follow its status any time from your account.</span>
 					</span>
 				</li>
 			</ul>
@@ -494,9 +494,9 @@
 				<div class="mt-6 grid grid-cols-2 gap-2.5">
 					{#if data.adjacent.prev}
 						<a href="/products/{data.adjacent.prev.slug}" class="group flex min-w-0 items-center gap-2.5 rounded-2xl p-2 transition hover:bg-surface">
-							<img src={getImageUrl(data.adjacent.prev.image_key)} alt="" class="product-shot size-11 shrink-0 rounded-xl bg-surface p-1" loading="lazy" />
+							<img src={getImageUrl(data.adjacent.prev.image_key)} alt="" class="product-shot size-12 shrink-0 rounded-xl bg-surface p-1" loading="lazy" />
 							<span class="min-w-0">
-								<span class="block text-[11px] font-semibold text-slate-400">← Previous</span>
+								<span class="block text-2xs font-semibold text-ink-subtle">← Previous</span>
 								<span class="block truncate text-xs font-bold group-hover:text-brand">{data.adjacent.prev.name}</span>
 							</span>
 						</a>
@@ -506,10 +506,10 @@
 					{#if data.adjacent.next}
 						<a href="/products/{data.adjacent.next.slug}" class="group flex min-w-0 items-center justify-end gap-2.5 rounded-2xl p-2 text-right transition hover:bg-surface">
 							<span class="min-w-0">
-								<span class="block text-[11px] font-semibold text-slate-400">Next →</span>
+								<span class="block text-2xs font-semibold text-ink-subtle">Next →</span>
 								<span class="block truncate text-xs font-bold group-hover:text-brand">{data.adjacent.next.name}</span>
 							</span>
-							<img src={getImageUrl(data.adjacent.next.image_key)} alt="" class="product-shot size-11 shrink-0 rounded-xl bg-surface p-1" loading="lazy" />
+							<img src={getImageUrl(data.adjacent.next.image_key)} alt="" class="product-shot size-12 shrink-0 rounded-xl bg-surface p-1" loading="lazy" />
 						</a>
 					{/if}
 				</div>
@@ -519,12 +519,12 @@
 
 	<!-- ── Details ── -->
 	{#if data.product.description || specs.length > 0}
-		<div class="mt-16 grid gap-10 border-t border-line pt-12 lg:grid-cols-12 lg:gap-12">
+		<div class="block-sep grid gap-10 lg:grid-cols-12 lg:gap-12">
 			{#if data.product.description}
 				<section class="{specs.length > 0 ? 'lg:col-span-7' : 'lg:col-span-12'}">
-					<h2 class="text-2xl font-extrabold tracking-tight">Overview</h2>
-					<div class="relative mt-4">
-						<div class="prose-copy text-[15px] {descriptionLong && !descriptionExpanded ? 'max-h-80 overflow-hidden' : ''}">
+					<h2 class="h-block">Overview</h2>
+					<div class="relative mt-5">
+						<div class="prose-copy text-base {descriptionLong && !descriptionExpanded ? 'max-h-80 overflow-hidden' : ''}">
 							{@html descriptionHtml}
 						</div>
 						{#if descriptionLong && !descriptionExpanded}
@@ -542,11 +542,11 @@
 
 			{#if specs.length > 0}
 				<section class="{data.product.description ? 'lg:col-span-5' : 'lg:col-span-12'}">
-					<h2 class="text-2xl font-extrabold tracking-tight">Specifications</h2>
-					<dl class="mt-4 overflow-hidden rounded-[1.25rem] border border-line">
+					<h2 class="h-block">Specifications</h2>
+					<dl class="mt-5 overflow-hidden rounded-2xl border border-line">
 						{#each visibleSpecs as [key, val], i}
 							<div class="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-4 px-4 py-3 text-sm {i % 2 === 0 ? 'bg-surface/60' : ''}">
-								<dt class="text-slate-500">{key}</dt>
+								<dt class="text-ink-muted">{key}</dt>
 								<dd class="font-semibold">{val}</dd>
 							</div>
 						{/each}
@@ -562,16 +562,16 @@
 	{/if}
 
 	<!-- ── Reviews ── -->
-	<section id="reviews" class="mt-16 scroll-mt-36 border-t border-line pt-12">
+	<section id="reviews" class="block-sep scroll-mt-36">
 		<div class="grid gap-10 lg:grid-cols-12 lg:gap-12">
 			<div class="lg:col-span-4">
-				<h2 class="text-2xl font-extrabold tracking-tight">Customer reviews</h2>
+				<h2 class="h-block">Customer reviews</h2>
 				{#if data.reviews.length > 0}
-					<div class="mt-4 flex items-center gap-4">
+					<div class="mt-5 flex items-center gap-4">
 						<span class="text-5xl font-extrabold tracking-tight">{avgRating.toFixed(1)}</span>
 						<div>
 							<Stars rating={avgRating} class="size-5" />
-							<p class="mt-1 text-sm text-slate-500">Based on {data.reviews.length} review{data.reviews.length !== 1 ? 's' : ''}</p>
+							<p class="mt-1 text-sm text-ink-muted">Based on {data.reviews.length} review{data.reviews.length !== 1 ? 's' : ''}</p>
 						</div>
 					</div>
 					<ul class="mt-5 space-y-2">
@@ -579,26 +579,26 @@
 							<li class="flex items-center gap-3 text-sm">
 								<span class="w-8 font-semibold tabular-nums">{row.star}★</span>
 								<span class="h-2 flex-1 overflow-hidden rounded-full bg-surface">
-									<span class="block h-full rounded-full bg-amber-400" style="width: {(row.count / data.reviews.length) * 100}%"></span>
+									<span class="block h-full rounded-full bg-sun" style="width: {(row.count / data.reviews.length) * 100}%"></span>
 								</span>
-								<span class="w-6 text-right tabular-nums text-slate-500">{row.count}</span>
+								<span class="w-6 text-right tabular-nums text-ink-muted">{row.count}</span>
 							</li>
 						{/each}
 					</ul>
 				{:else}
-					<p class="mt-2 text-sm text-slate-500">No reviews yet. Customers who buy this can share their experience here.</p>
+					<p class="mt-2 text-sm text-ink-muted">No reviews yet. Customers who buy this can share their experience here.</p>
 				{/if}
 
 				{#if data.hasReviewed}
-					<p class="mt-6 rounded-2xl bg-surface px-4 py-3 text-sm font-medium text-slate-600">You've reviewed this product — thank you!</p>
+					<p class="mt-6 rounded-2xl bg-surface px-4 py-3 text-sm text-ink-muted">You've reviewed this product — thank you!</p>
 				{/if}
 			</div>
 
 			<div class="lg:col-span-8">
 				{#if data.canReview}
-					<div class="mb-8 rounded-[1.5rem] bg-brand-soft p-5 sm:p-6">
-						<h3 class="text-lg font-extrabold tracking-tight">Share your experience</h3>
-						<p class="mt-1 text-sm text-slate-600">You bought this — your review helps other shoppers decide.</p>
+					<div class="mb-8 rounded-2xl bg-brand-soft p-5 sm:p-6">
+						<h3 class="h-card">Share your experience</h3>
+						<p class="mt-1 text-sm text-ink-muted">You bought this — your review helps other shoppers decide.</p>
 
 						{#if form?.error}
 							<div class="notice notice-error mt-4">{form.error}</div>
@@ -620,7 +620,7 @@
 											aria-label="{s} star{s !== 1 ? 's' : ''}"
 											class="transition-transform hover:scale-110"
 										>
-											<Icon name="star" class="size-8 {s <= (hoverRating || selectedRating) ? 'text-amber-400' : 'text-white'}" />
+											<Icon name="star" class="size-8 {s <= (hoverRating || selectedRating) ? 'text-sun' : 'text-white'}" />
 										</button>
 									{/each}
 								</div>
@@ -640,21 +640,21 @@
 				{/if}
 
 				{#if data.reviews.length === 0}
-					<div class="rounded-[1.5rem] border border-dashed border-line px-6 py-12 text-center">
-						<Icon name="chat" class="mx-auto size-10 text-slate-300" stroke={1.5} />
+					<div class="rounded-3xl border border-dashed border-line px-6 py-12 text-center">
+						<Icon name="chat" class="mx-auto size-10 text-ink-faint" stroke={1.5} />
 						<p class="mt-3 font-bold">No reviews yet</p>
-						<p class="mt-1 text-sm text-slate-500">Be the first to share your thoughts after purchasing.</p>
+						<p class="mt-1 text-sm text-ink-muted">Be the first to share your thoughts after purchasing.</p>
 					</div>
 				{:else}
 					<ul class="space-y-4">
 						{#each data.reviews as review}
-							<li class="rounded-[1.25rem] border border-line p-5">
+							<li class="rounded-2xl border border-line p-5">
 								<div class="flex items-start justify-between gap-4">
 									<div class="flex items-center gap-3">
 										<span class="grid size-10 shrink-0 place-items-center rounded-full bg-surface text-sm font-extrabold">{review.customer_name.charAt(0).toUpperCase()}</span>
 										<div>
 											<p class="text-sm font-bold">{review.customer_name}</p>
-											<p class="text-xs text-slate-500">{new Date(review.created_at).toLocaleDateString('en-UG', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
+											<p class="text-xs text-ink-muted">{new Date(review.created_at).toLocaleDateString('en-UG', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
 										</div>
 									</div>
 									<Stars rating={review.rating} />
@@ -663,7 +663,7 @@
 									<p class="mt-3 font-bold">{review.title}</p>
 								{/if}
 								{#if review.body}
-									<p class="mt-1 text-sm leading-relaxed text-slate-600">{review.body}</p>
+									<p class="mt-1 text-sm leading-relaxed text-ink-muted">{review.body}</p>
 								{/if}
 							</li>
 						{/each}
@@ -675,7 +675,7 @@
 
 	<!-- ── Recommendations ── -->
 	{#if data.recommendations && data.recommendations.length > 0}
-		<section class="mt-16 border-t border-line pt-12">
+		<section class="block-sep">
 			<p class="eyebrow">Complete your setup</p>
 			<h2 class="h-section mt-2">You might also like</h2>
 			<div class="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 md:gap-x-5">
@@ -688,16 +688,16 @@
 
 	<!-- ── Recently viewed ── -->
 	{#if recentlyViewed.length > 0}
-		<section class="mt-16 border-t border-line pt-12">
-			<h2 class="text-2xl font-extrabold tracking-tight">Recently viewed</h2>
-			<div class="mt-6">
+		<section class="block-sep">
+			<h2 class="h-block">Recently viewed</h2>
+			<div class="mt-5">
 				<Rail label="Recently viewed" class="auto-cols-[40%] gap-3 sm:auto-cols-[24%] lg:auto-cols-[calc((100%-5*1rem)/6)] lg:gap-4">
 					{#each recentlyViewed as item (item.id)}
 						<a href="/products/{item.slug}" class="group block">
 							<span class="relative block aspect-square overflow-hidden rounded-2xl bg-surface">
 								<img src={getImageUrl(item.image_key)} alt="" loading="lazy" decoding="async" class="product-shot absolute inset-0 size-full p-[10%] transition duration-500 group-hover:scale-105" />
 							</span>
-							<span class="mt-2.5 line-clamp-2 text-[13px] font-semibold leading-snug group-hover:text-brand">{item.name}</span>
+							<span class="mt-2.5 line-clamp-2 text-sm font-semibold leading-snug group-hover:text-brand">{item.name}</span>
 							<span class="mt-1 block text-sm font-extrabold tabular-nums">{formatPrice(item.price)}</span>
 						</a>
 					{/each}
@@ -711,9 +711,9 @@
 {#if showStickyBar && data.product.stock > 0}
 	<div class="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md animate-fade-in lg:hidden">
 		<div class="flex items-center gap-3">
-			<img src={getImageUrl(data.product.image_key)} alt="" class="product-shot size-11 shrink-0 rounded-xl bg-surface p-1" />
+			<img src={getImageUrl(data.product.image_key)} alt="" class="product-shot size-12 shrink-0 rounded-xl bg-surface p-1" />
 			<div class="min-w-0 flex-1">
-				<p class="truncate text-xs font-semibold text-slate-500">{data.product.name}</p>
+				<p class="truncate text-xs font-semibold text-ink-muted">{data.product.name}</p>
 				<p class="text-base font-extrabold tabular-nums {discount > 0 ? 'text-deal' : ''}">{formatPrice(data.product.price)}</p>
 			</div>
 			{#if maxAddable > 0}

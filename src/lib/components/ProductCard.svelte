@@ -50,7 +50,7 @@
 	}
 </script>
 
-<article class="group relative flex h-full flex-col {variant === 'panel' ? 'rounded-[1.25rem] bg-white p-2.5 text-ink' : ''}">
+<article class="group relative flex h-full flex-col {variant === 'panel' ? 'rounded-3xl bg-white p-2.5 text-ink' : ''}">
 	<a
 		href="/products/{product.slug}"
 		class="relative block aspect-square overflow-hidden rounded-2xl bg-surface"
@@ -77,7 +77,7 @@
 		</span>
 
 		{#if rank}
-			<span class="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full bg-ink text-[11px] font-extrabold text-white">#{rank}</span>
+			<span class="absolute right-2.5 top-2.5 grid size-7 place-items-center rounded-full bg-ink text-2xs font-extrabold text-white">#{rank}</span>
 		{/if}
 
 		{#if lowStock}
@@ -86,28 +86,28 @@
 	</a>
 
 	<div class="flex flex-1 flex-col px-1 pt-3">
-		<h3 class="line-clamp-2 min-h-[2.6em] text-[13.5px] font-semibold leading-[1.3] sm:text-sm">
+		<h3 class="line-clamp-2 min-h-[2.75em] text-sm font-semibold leading-snug">
 			<a href="/products/{product.slug}" class="transition-colors hover:text-brand">{product.name}</a>
 		</h3>
 
 		{#if product.rating}
 			<div class="mt-1.5 flex items-center gap-1">
 				<Stars rating={product.rating} class="size-3.5" />
-				<span class="text-xs text-slate-500">({product.review_count ?? 0})</span>
+				<span class="text-xs text-ink-muted">({product.review_count ?? 0})</span>
 			</div>
 		{/if}
 
 		<div class="mt-2 flex flex-wrap items-baseline gap-x-2">
-			<span class="text-base font-extrabold tracking-tight tabular-nums sm:text-[17px] {discount > 0 ? 'text-deal' : ''}">{formatPrice(product.price)}</span>
+			<span class="text-base font-extrabold tracking-tight tabular-nums sm:text-lg {discount > 0 ? 'text-deal' : ''}">{formatPrice(product.price)}</span>
 			{#if discount > 0 && product.compare_at_price}
-				<span class="text-xs text-slate-400 line-through tabular-nums">{formatPrice(product.compare_at_price)}</span>
+				<span class="text-xs text-ink-subtle line-through tabular-nums">{formatPrice(product.compare_at_price)}</span>
 			{/if}
 		</div>
 		{#if savings > 0}
 			<p class="mt-0.5 text-xs font-bold text-deal">Save {formatPrice(savings)}</p>
 		{/if}
 		{#if inCart > 0}
-			<p class="mt-1 flex items-center gap-1 text-xs font-semibold text-[#067647]">
+			<p class="mt-1 flex items-center gap-1 text-xs font-semibold text-ok-ink">
 				<Icon name="check" class="size-3.5" stroke={2.5} />
 				{inCart} in your cart
 			</p>
@@ -115,7 +115,7 @@
 
 		<div class="mt-auto pt-3">
 			{#if soldOut}
-				<button class="cta cta-sm w-full bg-surface text-slate-500" disabled>Sold out</button>
+				<button class="cta cta-sm w-full bg-surface text-ink-muted" disabled>Sold out</button>
 			{:else}
 				<button
 					onclick={add}

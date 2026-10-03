@@ -15,7 +15,7 @@
 		<div class="w-full border-t border-line"></div>
 	</div>
 	<div class="relative flex justify-center text-sm">
-		<span class="bg-white px-4 text-xs font-semibold uppercase tracking-wider text-slate-400">{dividerText}</span>
+		<span class="label-caps bg-white px-4">{dividerText}</span>
 	</div>
 </div>
 

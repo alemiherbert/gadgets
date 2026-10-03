@@ -19,8 +19,8 @@
 <div class="wrap py-8 lg:py-12">
 	<!-- Steps -->
 	<ol class="flex items-center gap-2 text-xs font-bold sm:text-sm">
-		<li class="flex items-center gap-2 text-[#067647]">
-			<span class="grid size-6 place-items-center rounded-full bg-[#12a150] text-white"><Icon name="check" class="size-3.5" stroke={3} /></span>
+		<li class="flex items-center gap-2 text-ok-ink">
+			<span class="grid size-6 place-items-center rounded-full bg-ok text-white"><Icon name="check" class="size-3.5" stroke={3} /></span>
 			<a href="/cart" class="hover:underline">Cart</a>
 		</li>
 		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
@@ -29,13 +29,13 @@
 			Details
 		</li>
 		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
-		<li class="flex items-center gap-2 text-slate-400">
+		<li class="flex items-center gap-2 text-ink-subtle">
 			<span class="grid size-6 place-items-center rounded-full bg-surface">3</span>
 			Done
 		</li>
 	</ol>
 
-	<h1 class="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">Checkout</h1>
+	<h1 class="mt-5 h-page">Checkout</h1>
 
 	{#if form?.error}
 		<div class="notice notice-error mt-6 flex items-start gap-2" role="alert">
@@ -45,9 +45,9 @@
 	{/if}
 
 	{#if cart.items.length === 0}
-		<div class="mt-8 rounded-[1.75rem] bg-surface px-6 py-16 text-center">
-			<h2 class="text-xl font-extrabold tracking-tight">Your cart is empty</h2>
-			<p class="mt-1 text-sm text-slate-500">Add a few items before checking out.</p>
+		<div class="mt-8 rounded-3xl bg-surface px-6 py-16 text-center">
+			<h2 class="h-card">Your cart is empty</h2>
+			<p class="mt-1 text-sm text-ink-muted">Add a few items before checking out.</p>
 			<a href="/shop" class="cta cta-brand mt-6">Browse products</a>
 		</div>
 	{:else}
@@ -67,13 +67,13 @@
 			<div class="lg:grid lg:grid-cols-12 lg:items-start lg:gap-10">
 				<div class="space-y-5 lg:col-span-7">
 					<!-- Contact -->
-					<section class="panel p-5 sm:p-7">
-						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+					<section class="panel p-5 sm:p-6">
+						<h2 class="flex items-center gap-2.5 h-card">
 							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">1</span>
 							Contact details
 						</h2>
 						{#if data.customer}
-							<p class="mt-2 text-sm text-slate-500">Signed in as <span class="font-semibold text-ink">{data.customer.email}</span></p>
+							<p class="mt-2 text-sm text-ink-muted">Signed in as <span class="font-semibold text-ink">{data.customer.email}</span></p>
 						{/if}
 						<div class="mt-5 grid gap-4 sm:grid-cols-2">
 							<div>
@@ -104,8 +104,8 @@
 					</section>
 
 					<!-- Delivery -->
-					<section class="panel p-5 sm:p-7">
-						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+					<section class="panel p-5 sm:p-6">
+						<h2 class="flex items-center gap-2.5 h-card">
 							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">2</span>
 							Delivery address
 						</h2>
@@ -123,11 +123,11 @@
 								<input id="state" name="state" type="text" required minlength="2" autocomplete="address-level1" class="field" placeholder="Kampala" />
 							</div>
 							<div class="sm:col-span-2">
-								<label for="notes" class="field-label">Delivery notes <span class="font-normal text-slate-400">(optional)</span></label>
+								<label for="notes" class="field-label">Delivery notes <span class="font-normal text-ink-subtle">(optional)</span></label>
 								<textarea id="notes" name="notes" rows="2" maxlength="500" class="field" placeholder="Nearby landmark, gate colour, best time to call…"></textarea>
 							</div>
 						</div>
-						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-medium text-brand-dark">
+						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-semibold text-brand-dark">
 							<Icon name="truck" class="size-5 shrink-0" />
 							{#if kampalaShipping}
 								Kampala delivery: {formatPrice(site.kampalaDeliveryFee)}
@@ -138,18 +138,18 @@
 					</section>
 
 					<!-- Payment -->
-					<section class="panel p-5 sm:p-7">
-						<h2 class="flex items-center gap-2.5 text-lg font-extrabold tracking-tight">
+					<section class="panel p-5 sm:p-6">
+						<h2 class="flex items-center gap-2.5 h-card">
 							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">3</span>
 							Payment
 						</h2>
 						<div class="mt-5 flex items-center gap-4 rounded-2xl border-2 border-brand bg-brand-soft/50 p-4">
-							<span class="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-brand shadow-sm">
+							<span class="icon-tile bg-white text-brand shadow-sm">
 								<Icon name="cash" class="size-6" />
 							</span>
 							<div class="flex-1">
 								<p class="font-bold">Pay on delivery</p>
-								<p class="text-sm text-slate-600">Pay when your order arrives. No online payment needed.</p>
+								<p class="text-sm text-ink-muted">Pay when your order arrives. No online payment needed.</p>
 							</div>
 							<span class="grid size-6 shrink-0 place-items-center rounded-full bg-brand text-white">
 								<Icon name="check" class="size-3.5" stroke={3} />
@@ -160,14 +160,14 @@
 
 				<!-- Summary -->
 				<aside class="mt-6 lg:sticky lg:top-36 lg:col-span-5 lg:mt-0">
-					<div class="rounded-[1.5rem] bg-surface p-5 sm:p-7">
-						<h2 class="text-lg font-extrabold tracking-tight">Order summary</h2>
-						<ul class="mt-4 max-h-72 space-y-3 overflow-y-auto pr-1">
+					<div class="rounded-2xl bg-surface p-5 sm:p-6">
+						<h2 class="h-card">Order summary</h2>
+						<ul class="mt-3 max-h-72 space-y-3 overflow-y-auto pr-2 pt-2">
 							{#each cart.items as item (item.productId)}
 								<li class="flex items-center gap-3">
 									<span class="relative grid size-16 shrink-0 place-items-center rounded-xl bg-white">
 										<img src={item.imageUrl} alt={item.name} class="product-shot size-full p-1.5" loading="lazy" />
-										<span class="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink text-[10px] font-extrabold text-white">{item.quantity}</span>
+										<span class="absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink text-2xs font-extrabold text-white">{item.quantity}</span>
 									</span>
 									<p class="line-clamp-2 min-w-0 flex-1 text-sm font-semibold leading-snug">{item.name}</p>
 									<p class="shrink-0 text-sm font-bold tabular-nums">{formatPrice(item.price * item.quantity)}</p>
@@ -177,15 +177,15 @@
 
 						<dl class="mt-5 space-y-2.5 border-t border-line pt-5 text-sm">
 							<div class="flex justify-between">
-								<dt class="text-slate-600">Subtotal</dt>
+								<dt class="text-ink-muted">Subtotal</dt>
 								<dd class="font-bold tabular-nums">{formatPrice(cart.total)}</dd>
 							</div>
 							<div class="flex justify-between">
-								<dt class="text-slate-600">Delivery</dt>
+								<dt class="text-ink-muted">Delivery</dt>
 								{#if kampalaShipping}
 									<dd class="font-bold tabular-nums">{formatPrice(site.kampalaDeliveryFee)}</dd>
 								{:else}
-									<dd class="text-xs font-semibold text-[#b54708]">Confirmed by phone</dd>
+									<dd class="text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
 								{/if}
 							</div>
 						</dl>
@@ -193,7 +193,7 @@
 							<span class="font-bold">Total</span>
 							<span class="text-right">
 								<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(total)}</span>
-								{#if !kampalaShipping}<span class="block text-xs text-slate-500">+ delivery</span>{/if}
+								{#if !kampalaShipping}<span class="block text-xs text-ink-muted">+ delivery</span>{/if}
 							</span>
 						</div>
 
@@ -205,8 +205,8 @@
 								Place order · {formatPrice(total)}
 							{/if}
 						</button>
-						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-500">
-							<Icon name="shield" class="size-4 text-[#12a150]" />
+						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-muted">
+							<Icon name="shield" class="size-4 text-ok" />
 							Nothing to pay now — you pay on delivery
 						</p>
 					</div>

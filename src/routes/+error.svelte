@@ -12,20 +12,20 @@
 		<p class="text-[7rem] font-extrabold leading-none tracking-[-0.06em] text-surface [-webkit-text-stroke:2px_var(--color-line)]">{$page.status}</p>
 
 		{#if $page.status === 404}
-			<h1 class="-mt-6 text-3xl font-extrabold tracking-tight">We couldn't find that page</h1>
-			<p class="mt-3 leading-relaxed text-slate-500">It may have moved, or the product is no longer available. Try a search or browse our best sellers.</p>
+			<h1 class="-mt-6 h-page">We couldn't find that page</h1>
+			<p class="mt-3 leading-relaxed text-ink-muted">It may have moved, or the product is no longer available. Try a search or browse our best sellers.</p>
 		{:else if $page.status === 403}
-			<h1 class="-mt-6 text-3xl font-extrabold tracking-tight">Access denied</h1>
-			<p class="mt-3 leading-relaxed text-slate-500">You don't have permission to view this page. Please sign in or contact support if you think this is a mistake.</p>
+			<h1 class="-mt-6 h-page">Access denied</h1>
+			<p class="mt-3 leading-relaxed text-ink-muted">You don't have permission to view this page. Please sign in or contact support if you think this is a mistake.</p>
 		{:else if $page.status >= 500}
-			<h1 class="-mt-6 text-3xl font-extrabold tracking-tight">Something went wrong</h1>
-			<p class="mt-3 leading-relaxed text-slate-500">
+			<h1 class="-mt-6 h-page">Something went wrong</h1>
+			<p class="mt-3 leading-relaxed text-ink-muted">
 				We're having trouble loading this page. Please try again in a moment, or email
 				<a href="mailto:{site.email}" class="font-bold text-brand hover:underline">{site.email}</a>.
 			</p>
 		{:else}
-			<h1 class="-mt-6 text-3xl font-extrabold tracking-tight">Something's not right</h1>
-			<p class="mt-3 leading-relaxed text-slate-500">{$page.error?.message || 'An unexpected error occurred. Please try again.'}</p>
+			<h1 class="-mt-6 h-page">Something's not right</h1>
+			<p class="mt-3 leading-relaxed text-ink-muted">{$page.error?.message || 'An unexpected error occurred. Please try again.'}</p>
 		{/if}
 
 		<div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

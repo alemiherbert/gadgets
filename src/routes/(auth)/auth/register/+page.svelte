@@ -12,8 +12,8 @@
 <Seo title="Create account" noindex />
 
 <div class="mb-8">
-	<h1 class="text-3xl font-extrabold tracking-tight">Create your account</h1>
-	<p class="mt-2 text-sm text-slate-500">Sign up to track orders and checkout faster</p>
+	<h1 class="h-page">Create your account</h1>
+	<p class="mt-2 text-sm text-ink-muted">Sign up to track orders and checkout faster</p>
 </div>
 
 {#if form?.error}
@@ -61,7 +61,7 @@
 	</div>
 
 	<div>
-		<label for="phone" class="field-label">Phone <span class="font-normal text-slate-400">(optional)</span></label>
+		<label for="phone" class="field-label">Phone <span class="font-normal text-ink-subtle">(optional)</span></label>
 		<input
 			id="phone"
 			name="phone"

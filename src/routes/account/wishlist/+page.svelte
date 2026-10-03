@@ -18,8 +18,8 @@
 <div class="wrap py-8 lg:py-12">
 	<div class="flex flex-wrap items-end justify-between gap-4">
 		<div>
-			<h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Wishlist</h1>
-			<p class="mt-1 text-sm text-slate-500">
+			<h1 class="h-page">Wishlist</h1>
+			<p class="mt-1 text-sm text-ink-muted">
 				{#if data.customer}
 					{count} saved item{count === 1 ? '' : 's'}
 				{:else}
@@ -34,23 +34,23 @@
 	{/if}
 
 	{#if count === 0}
-		<div class="mt-8 rounded-[1.75rem] bg-surface px-6 py-16 text-center">
+		<div class="mt-8 rounded-3xl bg-surface px-6 py-16 text-center">
 			<div class="mx-auto grid size-20 place-items-center rounded-full bg-white">
-				<Icon name="heart" class="size-9 text-slate-400" stroke={1.5} />
+				<Icon name="heart" class="size-9 text-ink-subtle" stroke={1.5} />
 			</div>
-			<h2 class="mt-5 text-xl font-extrabold tracking-tight">Nothing saved yet</h2>
-			<p class="mt-1 text-sm text-slate-500">Tap the heart on any product to save it here.</p>
+			<h2 class="mt-5 h-card">Nothing saved yet</h2>
+			<p class="mt-1 text-sm text-ink-muted">Tap the heart on any product to save it here.</p>
 			<a href="/shop" class="cta cta-brand mt-6">Browse products</a>
 		</div>
 	{:else if data.customer}
 		<!-- Signed in: saved in the database -->
-		<div class="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+		<div class="product-grid mt-8 sm:grid-cols-3 lg:grid-cols-4">
 			{#each data.wishlist as item (item.id)}
 				<div class="flex flex-col">
 					<ProductCard product={item.product} />
 					<form method="POST" action="?/remove" use:enhance class="mt-2">
 						<input type="hidden" name="productId" value={item.product_id} />
-						<button type="submit" class="flex h-9 w-full items-center justify-center gap-1.5 rounded-full text-xs font-bold text-slate-500 transition hover:bg-deal-soft hover:text-deal">
+						<button type="submit" class="flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-xs font-bold text-ink-muted transition hover:bg-deal-soft hover:text-deal">
 							<Icon name="trash" class="size-3.5" />
 							Remove
 						</button>
@@ -60,7 +60,7 @@
 		</div>
 	{:else}
 		<!-- Anonymous: saved in localStorage -->
-		<div class="mt-8 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 md:gap-x-5 lg:grid-cols-4">
+		<div class="product-grid mt-8 sm:grid-cols-3 lg:grid-cols-4">
 			{#each wishlist.items as item (item.productId)}
 				<div class="group flex flex-col">
 					<a href="/products/{item.slug}" class="relative block aspect-square overflow-hidden rounded-2xl bg-surface">
@@ -73,7 +73,7 @@
 						<button
 							type="button"
 							onclick={() => wishlist.removeItem(item.productId)}
-							class="mt-2 flex h-9 w-full items-center justify-center gap-1.5 rounded-full text-xs font-bold text-slate-500 transition hover:bg-deal-soft hover:text-deal"
+							class="mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-full text-xs font-bold text-ink-muted transition hover:bg-deal-soft hover:text-deal"
 						>
 							<Icon name="trash" class="size-3.5" />
 							Remove

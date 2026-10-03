@@ -14,8 +14,8 @@
 <Seo title="Sign in" noindex />
 
 <div class="mb-8">
-	<h1 class="text-3xl font-extrabold tracking-tight">Welcome back</h1>
-	<p class="mt-2 text-sm text-slate-500">Sign in to track orders and manage your profile</p>
+	<h1 class="h-page">Welcome back</h1>
+	<p class="mt-2 text-sm text-ink-muted">Sign in to track orders and manage your profile</p>
 </div>
 
 {#if resetSuccess}

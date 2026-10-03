@@ -22,6 +22,40 @@
   --color-sun: #ffc83d;
   --color-surface: #f3f5f6;
   --color-line: #e3e6e9;
+  --color-line-strong: #c9ced3;
+
+  /* Neutral text greys that sit with ink (slate is blue-tinted).
+     muted = secondary text (7:1), subtle = captions/meta (4.6:1),
+     faint = decorative icons and empty stars only — never body text. */
+  --color-ink-muted: #545a61;
+  --color-ink-subtle: #70767d;
+  --color-ink-faint: #b3b8bd;
+
+  /* Status */
+  --color-ok: #12a150;
+  --color-ok-ink: #067647;
+  --color-ok-soft: #e7f8ee;
+  --color-warn: #f59e0b;
+  --color-warn-ink: #b54708;
+  --color-warn-soft: #fff4e5;
+  --color-deal-ink: #b0091d;
+  --color-brand-tint: #cdebf3;
+  --color-whatsapp: #25d366;
+  --color-whatsapp-ink: #128c4a;
+
+  /* Radius scale — lg: small tiles & icons · xl: controls, fields, small cards
+     2xl: cards, panels, image wells · 3xl: feature blocks. Pills use rounded-full. */
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+
+  /* Micro text for tags and counters */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+
+  /* Elevation — float: drawers, dropdowns, menus and sheets */
+  --shadow-float: 0 24px 60px -20px rgb(14 16 18 / 0.35);
 
   /* Softer heavy weights + relaxed tracking for easier reading */
   --font-weight-extrabold: 760;
@@ -33,11 +67,11 @@
   --color-primary-light: #008cb2;
   --color-primary-dark: #00637e;
   --color-muted: #f3f5f6;
-  --color-muted-foreground: #667085;
+  --color-muted-foreground: #545a61;
   --color-accent: #e3f4f8;
   --color-accent-foreground: #0e1012;
   --color-border: #e3e6e9;
-  --color-input: #d0d5dd;
+  --color-input: #c9ced3;
   --color-ring: #007c9e;
   --color-destructive: #e0122b;
   --color-success: #12a150;
@@ -157,7 +191,7 @@ button {
     height: 3rem;
     padding-inline: 1.5rem;
     border-radius: 9999px;
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 700;
     letter-spacing: -0.005em;
     line-height: 1;
@@ -231,13 +265,13 @@ button {
   }
 
   .cta-soft:hover:not(:disabled) {
-    background: #cdebf3;
+    background: var(--color-brand-tint);
   }
 
   .cta-sm {
-    height: 2.375rem;
-    padding-inline: 1rem;
-    font-size: 0.8125rem;
+    height: 2.5rem;
+    padding-inline: 1.125rem;
+    font-size: 0.875rem;
   }
 
   .cta-lg {
@@ -273,19 +307,21 @@ button {
     background: var(--color-deal);
     color: #fff;
     font-size: 0.625rem;
-    font-weight: 800;
+    font-weight: var(--font-weight-extrabold);
     line-height: 1.125rem;
     text-align: center;
     box-shadow: 0 0 0 2px #fff;
   }
 
-  /* --- Type --- */
+  /* --- Type roles ---
+     h-display: hero · h-section: page bands · h-page: page titles
+     h-block: sections within a page · h-card: panel/card titles */
   .eyebrow {
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
     font-size: 0.75rem;
-    font-weight: 800;
+    font-weight: var(--font-weight-extrabold);
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-brand);
@@ -293,7 +329,7 @@ button {
 
   .h-display {
     font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.25rem);
-    font-weight: 760;
+    font-weight: var(--font-weight-extrabold);
     letter-spacing: -0.02em;
     line-height: 1.04;
     text-wrap: balance;
@@ -301,10 +337,86 @@ button {
 
   .h-section {
     font-size: clamp(1.5rem, 1.15rem + 1.3vw, 2.25rem);
-    font-weight: 740;
+    font-weight: var(--font-weight-extrabold);
     letter-spacing: -0.015em;
     line-height: 1.12;
     text-wrap: balance;
+  }
+
+  .h-page {
+    font-size: 1.875rem;
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: -0.015em;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  @media (min-width: 640px) {
+    .h-page { font-size: 2.25rem; }
+  }
+
+  .h-block {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+
+  .h-card {
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  /* Small uppercase labels (menu groups, spec keys, dividers) */
+  .label-caps {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-subtle);
+  }
+
+  /* --- Layout rhythm --- */
+  .section-y {
+    padding-block: 3.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .section-y { padding-block: 5rem; }
+  }
+
+  /* A ruled block inside a page (PDP overview, reviews, related) */
+  .block-sep {
+    margin-top: 3rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--color-line);
+  }
+
+  @media (min-width: 1024px) {
+    .block-sep { margin-top: 4rem; padding-top: 4rem; }
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.75rem;
+    row-gap: 2rem;
+  }
+
+  @media (min-width: 768px) {
+    .product-grid { column-gap: 1.25rem; }
+  }
+
+  /* 40px icon tile used for perks, steps and reassurance rows */
+  .icon-tile {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-lg);
   }
 
   .link-arrow {
@@ -332,13 +444,13 @@ button {
   /* --- Surfaces --- */
   .well {
     background: var(--color-surface);
-    border-radius: 1rem;
+    border-radius: var(--radius-2xl);
   }
 
   .panel {
     background: #fff;
     border: 1px solid var(--color-line);
-    border-radius: 1.25rem;
+    border-radius: var(--radius-2xl);
   }
 
   /* Product shots sit on the grey well; multiply melts white backgrounds into it. */
@@ -356,7 +468,7 @@ button {
     padding-inline: 0.5rem;
     border-radius: 9999px;
     font-size: 0.6875rem;
-    font-weight: 800;
+    font-weight: var(--font-weight-extrabold);
     letter-spacing: 0.01em;
     white-space: nowrap;
     line-height: 1;
@@ -364,10 +476,10 @@ button {
 
   .tag-deal { background: var(--color-deal); color: #fff; }
   .tag-new { background: var(--color-sun); color: var(--color-ink); }
-  .tag-low { background: #fff4e5; color: #b54708; }
+  .tag-low { background: var(--color-warn-soft); color: var(--color-warn-ink); }
   .tag-ink { background: var(--color-ink); color: #fff; }
   .tag-soft { background: var(--color-brand-soft); color: var(--color-brand-dark); }
-  .tag-ok { background: #e7f8ee; color: #067647; }
+  .tag-ok { background: var(--color-ok-soft); color: var(--color-ok-ink); }
 
   /* --- Chips --- */
   .chip {
@@ -380,7 +492,7 @@ button {
     border: 1.5px solid var(--color-line);
     background: #fff;
     color: var(--color-ink);
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 600;
     white-space: nowrap;
     transition: background-color 0.15s, border-color 0.15s, color 0.15s;
@@ -388,6 +500,12 @@ button {
 
   .chip:hover {
     border-color: var(--color-ink);
+  }
+
+  .chip-sm {
+    height: 2rem;
+    padding-inline: 0.75rem;
+    font-size: 0.75rem;
   }
 
   .chip.is-active,
@@ -404,7 +522,7 @@ button {
     width: 100%;
     height: 3rem;
     padding-inline: 1rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-xl);
     border: 1.5px solid var(--color-line);
     background: #fff;
     color: var(--color-ink);
@@ -420,23 +538,23 @@ button {
   }
 
   .field::placeholder {
-    color: #98a2b3;
+    color: var(--color-ink-subtle);
   }
 
   .field:hover {
-    border-color: #c4cad4;
+    border-color: var(--color-line-strong);
   }
 
   .field:focus {
     outline: none;
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 4px rgb(0 124 158 / 0.18);
+    box-shadow: 0 0 0 4px rgb(0 124 158 / 0.15);
   }
 
   .field-label {
     display: block;
     margin-bottom: 0.375rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 700;
     color: var(--color-ink);
   }
@@ -444,18 +562,18 @@ button {
   .field-hint {
     margin-top: 0.375rem;
     font-size: 0.75rem;
-    color: #667085;
+    color: var(--color-ink-subtle);
   }
 
   .notice {
-    border-radius: 0.875rem;
+    border-radius: var(--radius-xl);
     padding: 0.875rem 1rem;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
   }
 
-  .notice-error { background: var(--color-deal-soft); color: #b0091d; }
-  .notice-ok { background: #e7f8ee; color: #067647; }
+  .notice-error { background: var(--color-deal-soft); color: var(--color-deal-ink); }
+  .notice-ok { background: var(--color-ok-soft); color: var(--color-ok-ink); }
 
   /* --- Horizontal rails --- */
   .rail {
@@ -478,13 +596,13 @@ button {
 
   /* --- Markdown product copy --- */
   .prose-copy {
-    color: #344054;
+    color: var(--color-ink-soft);
     line-height: 1.7;
   }
 
   .prose-copy :where(h1, h2, h3, h4, h5, h6) {
     margin: 1.25rem 0 0.5rem;
-    font-weight: 800;
+    font-weight: var(--font-weight-extrabold);
     letter-spacing: -0.015em;
     line-height: 1.25;
     color: var(--color-ink);
@@ -509,7 +627,7 @@ button {
     margin: 0.75rem 0;
     padding-left: 0.875rem;
     border-left: 3px solid var(--color-brand);
-    color: #475467;
+    color: var(--color-ink-muted);
   }
 
   .prose-copy :where(a) {
@@ -523,6 +641,12 @@ button {
    SHARED UTILITIES (used across admin + account pages)
    ═══════════════════════════════════════════════════════ */
 
+/* Interactive controls (fields, chips, steppers, outline buttons) use a 1.5px
+   border; static surfaces (panels, dividers) use 1px. */
+@utility border-control {
+  border-width: 1.5px;
+}
+
 /* --- Button --- */
 
 @utility btn {
@@ -534,7 +658,7 @@ button {
   font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 600;
-  border-radius: 0.625rem;
+  border-radius: var(--radius-lg);
   border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -567,7 +691,7 @@ button {
   border-color: var(--color-border);
 
   &:hover {
-    background-color: #cdebf3;
+    background-color: var(--color-brand-tint);
   }
 }
 
@@ -596,7 +720,7 @@ button {
   color: white;
 
   &:hover {
-    background-color: #b0091d;
+    background-color: var(--color-deal-ink);
   }
 }
 
@@ -629,7 +753,7 @@ button {
 @utility card {
   background: white;
   border: 1px solid var(--color-border);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-xl);
 }
 
 /* --- Badge --- */
@@ -663,48 +787,48 @@ button {
 }
 
 @utility badge-success {
-  background: #e7f8ee;
-  color: #067647;
+  background: var(--color-ok-soft);
+  color: var(--color-ok-ink);
 }
 
 @utility badge-info {
-  background: #e3f4f8;
-  color: #00637e;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-dark);
 }
 
 @utility badge-warning {
-  background: #fff4e5;
-  color: #b54708;
+  background: var(--color-warn-soft);
+  color: var(--color-warn-ink);
 }
 
 @utility badge-destructive {
-  background: #fff0f1;
-  color: #b0091d;
+  background: var(--color-deal-soft);
+  color: var(--color-deal-ink);
 }
 
 @utility badge-pending {
-  background: #fff4e5;
-  color: #b54708;
+  background: var(--color-warn-soft);
+  color: var(--color-warn-ink);
 }
 
 @utility badge-confirmed {
-  background: #e3f4f8;
-  color: #00637e;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-dark);
 }
 
 @utility badge-shipped {
-  background: #eef0ff;
-  color: #3538cd;
+  background: var(--color-ink);
+  color: #fff;
 }
 
 @utility badge-delivered {
-  background: #e7f8ee;
-  color: #067647;
+  background: var(--color-ok-soft);
+  color: var(--color-ok-ink);
 }
 
 @utility badge-cancelled {
-  background: #fff0f1;
-  color: #b0091d;
+  background: var(--color-deal-soft);
+  color: var(--color-deal-ink);
 }
 
 /* --- Alert --- */
@@ -713,7 +837,7 @@ button {
   position: relative;
   width: 100%;
   padding: 1rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
   font-size: 0.875rem;
   margin-bottom: 1rem;
@@ -721,20 +845,20 @@ button {
 
 @utility alert-error {
   border-color: #fecdd3;
-  background: #fff0f1;
-  color: #b0091d;
+  background: var(--color-deal-soft);
+  color: var(--color-deal-ink);
 }
 
 @utility alert-success {
   border-color: #bbf7d0;
-  background: #f0fdf4;
-  color: #067647;
+  background: var(--color-ok-soft);
+  color: var(--color-ok-ink);
 }
 
 @utility alert-warning {
   border-color: #fde68a;
-  background: #fffbeb;
-  color: #b54708;
+  background: var(--color-warn-soft);
+  color: var(--color-warn-ink);
 }
 
 /* --- Separator --- */
@@ -752,7 +876,7 @@ button {
   display: flex;
   height: 2.5rem;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-input);
   background: #fff;
   padding: 0.5rem 0.75rem;
@@ -767,7 +891,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.15);
   }
 
   &:disabled {
@@ -780,7 +904,7 @@ button {
   display: flex;
   min-height: 5rem;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-input);
   background: #fff;
   padding: 0.5rem 0.75rem;
@@ -796,7 +920,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.15);
   }
 }
 
@@ -804,7 +928,7 @@ button {
   display: flex;
   height: 2.5rem;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--color-input);
   background: white;
   padding: 0.5rem 0.75rem;
@@ -817,7 +941,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.15);
   }
 }
 
@@ -926,7 +1050,7 @@ th {
 .stat-card {
   background: white;
   border: 1px solid var(--color-border);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-xl);
   padding: 1.5rem;
 }
 

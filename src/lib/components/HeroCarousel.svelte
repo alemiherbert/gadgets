@@ -146,7 +146,7 @@
 
 				{#if slide.productSrc && !hasBg}
 					<div class="absolute inset-x-0 top-6 flex h-[42%] justify-center md:inset-y-0 md:left-auto md:right-[6%] md:top-0 md:h-full md:w-[42%] md:items-center">
-						<div class="relative aspect-square h-full max-h-[420px] rounded-[2rem] bg-white/95 p-6 shadow-2xl md:h-auto md:w-full {isActive && cycle > 0 ? 'animate-fade-up' : ''}">
+						<div class="relative aspect-square h-full max-h-[420px] rounded-3xl bg-white/95 p-6 shadow-float md:h-auto md:w-full {isActive && cycle > 0 ? 'animate-fade-up' : ''}">
 							<img src={slide.productSrc} alt="" class="product-shot size-full" loading={i === 0 ? 'eager' : 'lazy'} />
 						</div>
 					</div>
@@ -155,7 +155,7 @@
 				<div class="wrap relative flex h-full items-end pb-24 md:items-center md:pb-0">
 					<div class="max-w-xl {slide.productSrc && !hasBg ? 'md:max-w-[48%]' : ''}">
 						{#if slide.eyebrow}
-							<p class="mb-4 inline-flex items-center gap-1.5 rounded-full bg-sun px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-ink {reveal(isActive)}">
+							<p class="mb-4 inline-flex items-center gap-1.5 rounded-full bg-sun px-3 py-1 label-caps text-2xs text-ink {reveal(isActive)}">
 								<Icon name="bolt-solid" class="size-3" />
 								{slide.eyebrow}
 							</p>
@@ -169,7 +169,7 @@
 						<div class="mt-7 {reveal(isActive)}" style="animation-delay: 240ms;">
 							<a href={slide.ctaLink} class="cta cta-light cta-lg group/cta" tabindex={isActive ? 0 : -1}>
 								{slide.ctaText}
-								<Icon name="arrow-right" class="size-[18px] transition group-hover/cta:translate-x-1" stroke={2.25} />
+								<Icon name="arrow-right" class="size-5 transition group-hover/cta:translate-x-1" stroke={2.25} />
 							</a>
 						</div>
 					</div>
@@ -214,10 +214,10 @@
 						{/if}
 					</button>
 					<div class="ml-auto hidden gap-2 sm:flex">
-						<button onclick={() => go(current - 1)} class="grid size-11 place-items-center rounded-full bg-current/15 backdrop-blur transition hover:bg-current/25" aria-label="Previous slide">
+						<button onclick={() => go(current - 1)} class="grid size-12 place-items-center rounded-full bg-current/15 backdrop-blur transition hover:bg-current/25" aria-label="Previous slide">
 							<Icon name="chevron-left" class="size-5" stroke={2.25} />
 						</button>
-						<button onclick={() => go(current + 1)} class="grid size-11 place-items-center rounded-full bg-current/15 backdrop-blur transition hover:bg-current/25" aria-label="Next slide">
+						<button onclick={() => go(current + 1)} class="grid size-12 place-items-center rounded-full bg-current/15 backdrop-blur transition hover:bg-current/25" aria-label="Next slide">
 							<Icon name="chevron-right" class="size-5" stroke={2.25} />
 						</button>
 					</div>
