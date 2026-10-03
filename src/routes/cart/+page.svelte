@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { cart } from '$lib/cart.svelte';
 	import { formatPrice } from '$lib/utils';
 	import { site } from '$lib/site';
@@ -8,11 +9,7 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
-<svelte:head>
-	<title>Shopping Cart — Gadgeteria</title>
-	<meta name="description" content="Review your shopping cart at Gadgeteria. Fast delivery on electronics, audio, wearables and more." />
-	<meta name="robots" content="noindex, follow" />
-</svelte:head>
+<Seo title="Your cart" noindex />
 
 <div class="wrap py-8 lg:py-12">
 	<div class="flex items-baseline justify-between gap-4">
@@ -121,7 +118,7 @@
 				</div>
 				<ul class="mt-4 space-y-3 px-2 text-sm">
 					<li class="flex items-center gap-2.5"><Icon name="cash" class="size-5 text-brand" /> <span><b>Pay on delivery</b> — no card needed</span></li>
-					<li class="flex items-center gap-2.5"><Icon name="return" class="size-5 text-brand" /> <span><b>{site.returnDays}-day returns</b> on every order</span></li>
+					<li class="flex items-center gap-2.5"><Icon name="package" class="size-5 text-brand" /> <span><b>Track your order</b> from your account</span></li>
 				</ul>
 			</aside>
 		</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import type { PageData } from './$types';
 	import { formatPrice, orderStatusBadge } from '$lib/utils';
 	import Icon from '$lib/components/Icon.svelte';
@@ -8,9 +9,7 @@
 	const firstName = $derived(data.customer.name.split(' ')[0]);
 </script>
 
-<svelte:head>
-	<title>My Account — Gadgeteria</title>
-</svelte:head>
+<Seo title="My account" noindex />
 
 <div class="wrap max-w-5xl py-8 lg:py-12">
 	<div class="flex flex-wrap items-center justify-between gap-4">
@@ -41,7 +40,7 @@
 			<p class="text-sm text-slate-500">Items you've saved for later</p>
 		</a>
 		<a href="/shop?sort=discount" class="group rounded-[1.25rem] bg-ink p-5 text-white transition hover:bg-black">
-			<Icon name="fire" class="size-6 text-volt" />
+			<Icon name="fire" class="size-6 text-sun" />
 			<p class="mt-3 font-bold">Today's deals</p>
 			<p class="text-sm text-white/60">Marked-down prices on top gadgets</p>
 		</a>

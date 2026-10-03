@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import type { PageData, ActionData } from './$types';
 	import { cart } from '$lib/cart.svelte';
 	import { formatPrice } from '$lib/utils';
@@ -13,9 +14,7 @@
 	let total = $derived(cart.total + (kampalaShipping ? site.kampalaDeliveryFee : 0));
 </script>
 
-<svelte:head>
-	<title>Checkout — Gadgeteria</title>
-</svelte:head>
+<Seo title="Checkout" noindex />
 
 <div class="wrap py-8 lg:py-12">
 	<!-- Steps -->

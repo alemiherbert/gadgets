@@ -1,11 +1,11 @@
 {
-  "name": "Gadgeteria",
-  "short_name": "Gadgeteria",
-  "description": "Premium electronics and tech accessories",
+  "name": "OJ's Online Store",
+  "short_name": "OJ's",
+  "description": "Find it, love it, buy it. Phones, laptops and gadgets delivered across Uganda.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#0b1220",
+  "theme_color": "#0e1012",
   "orientation": "portrait-primary",
   "icons": [
     {

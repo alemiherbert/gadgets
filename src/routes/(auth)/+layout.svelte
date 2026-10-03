@@ -2,7 +2,7 @@
 	import '../../app.css';
 	import Logo from '$lib/components/Logo.svelte';
 	import Icon from '$lib/components/Icon.svelte';
-	import { perks } from '$lib/site';
+	import { perks, site } from '$lib/site';
 
 	let { children }: { children: any } = $props();
 </script>
@@ -12,16 +12,17 @@
 	<div class="relative hidden overflow-hidden bg-ink text-white lg:flex lg:w-[46%] lg:flex-col">
 		<img src="/img/categories/computing.avif" alt="" class="absolute inset-0 size-full object-cover opacity-35" />
 		<div class="absolute inset-0 bg-gradient-to-br from-brand/70 via-ink/80 to-ink"></div>
-		<div class="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-volt/20 blur-3xl"></div>
+		<div class="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-brand-bright/25 blur-3xl"></div>
 
 		<div class="relative flex flex-1 flex-col justify-between p-12">
-			<a href="/" aria-label="Gadgeteria home"><Logo tone="light" /></a>
+			<a href="/" aria-label="{site.name} home"><Logo tone="dark" variant="inline" /></a>
 			<div>
-				<h2 class="h-display max-w-md text-[3.25rem]">Genuine gadgets, delivered to your door.</h2>
+				<p class="h-display max-w-md text-[3.25rem]">Find it, love it, <span class="text-brand-bright">buy it.</span></p>
+				<p class="mt-4 max-w-sm text-white/70">Phones, laptops, audio and accessories delivered across Uganda — pay when your order arrives.</p>
 				<ul class="mt-10 grid max-w-md grid-cols-2 gap-x-6 gap-y-5">
 					{#each perks as perk}
 						<li class="flex items-start gap-3">
-							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-volt text-ink">
+							<span class="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-bright text-white">
 								<Icon name={perk.icon} class="size-5" />
 							</span>
 							<span>
@@ -38,7 +39,7 @@
 	<!-- Form -->
 	<div class="flex flex-1 flex-col bg-white px-5 py-8 sm:px-12 lg:px-16">
 		<div class="flex items-center justify-between">
-			<a href="/" class="lg:hidden" aria-label="Gadgeteria home"><Logo /></a>
+			<a href="/" class="lg:hidden" aria-label="{site.name} home"><Logo /></a>
 			<a href="/" class="ml-auto inline-flex items-center gap-1 text-sm font-bold text-slate-500 hover:text-ink">
 				<Icon name="chevron-left" class="size-4" stroke={2.25} />
 				Back to shop

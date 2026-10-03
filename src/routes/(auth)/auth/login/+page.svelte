@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { enhance } from '$app/forms';
 	import { page } from '$app/state';
 	import AuthGoogleButton from '$lib/components/AuthGoogleButton.svelte';
@@ -10,9 +11,7 @@
 	const resetSuccess = $derived(page.url.searchParams.get('reset') === 'success');
 </script>
 
-<svelte:head>
-	<title>Sign In — Gadgeteria</title>
-</svelte:head>
+<Seo title="Sign in" noindex />
 
 <div class="mb-8">
 	<h1 class="text-3xl font-extrabold tracking-tight">Welcome back</h1>

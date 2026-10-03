@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import type { ActionData, PageData } from './$types';
 	import { formatPrice } from '$lib/utils';
 	import { getImageUrl } from '$lib/r2';
@@ -12,9 +13,7 @@
 	const count = $derived(data.customer ? data.wishlist.length : wishlist.items.length);
 </script>
 
-<svelte:head>
-	<title>My Wishlist - Gadgeteria</title>
-</svelte:head>
+<Seo title="My wishlist" noindex />
 
 <div class="wrap py-8 lg:py-12">
 	<div class="flex flex-wrap items-end justify-between gap-4">

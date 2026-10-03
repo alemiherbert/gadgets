@@ -37,7 +37,7 @@
 	{#if !atStart}
 		<button
 			onclick={() => scroll(-1)}
-			class="absolute left-0 top-[38%] z-10 hidden size-11 -translate-x-1/3 -translate-y-1/2 place-items-center rounded-full shadow-lg transition hover:scale-105 lg:grid {tone === 'dark' ? 'bg-volt text-ink' : 'bg-white text-ink ring-1 ring-line'}"
+			class="absolute left-0 top-[38%] z-10 hidden size-11 -translate-x-1/3 -translate-y-1/2 place-items-center rounded-full shadow-lg transition hover:scale-105 lg:grid {tone === 'dark' ? 'bg-sun text-ink' : 'bg-white text-ink ring-1 ring-line'}"
 			aria-label="Scroll left"
 		>
 			<Icon name="chevron-left" class="size-5" stroke={2.25} />
@@ -46,7 +46,7 @@
 	{#if !atEnd}
 		<button
 			onclick={() => scroll(1)}
-			class="absolute right-0 top-[38%] z-10 hidden size-11 -translate-y-1/2 translate-x-1/3 place-items-center rounded-full shadow-lg transition hover:scale-105 lg:grid {tone === 'dark' ? 'bg-volt text-ink' : 'bg-white text-ink ring-1 ring-line'}"
+			class="absolute right-0 top-[38%] z-10 hidden size-11 -translate-y-1/2 translate-x-1/3 place-items-center rounded-full shadow-lg transition hover:scale-105 lg:grid {tone === 'dark' ? 'bg-sun text-ink' : 'bg-white text-ink ring-1 ring-line'}"
 			aria-label="Scroll right"
 		>
 			<Icon name="chevron-right" class="size-5" stroke={2.25} />

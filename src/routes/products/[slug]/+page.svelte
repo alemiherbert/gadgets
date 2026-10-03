@@ -7,11 +7,12 @@
 	import type { PageData, ActionData } from './$types';
 	import { getImageUrl } from '$lib/r2';
 	import { formatPrice, discountPercent } from '$lib/utils';
-	import { renderMarkdown } from '$lib/markdown';
+	import { renderMarkdown, markdownExcerpt } from '$lib/markdown';
+	import Seo from '$lib/components/Seo.svelte';
 	import { cart } from '$lib/cart.svelte';
 	import { wishlist } from '$lib/wishlist.svelte';
 	import { ui } from '$lib/ui.svelte';
-	import { site, whatsappLink } from '$lib/site';
+	import { site, whatsappLink, absoluteUrl } from '$lib/site';
 	import { recordRecent, type RecentItem } from '$lib/recent';
 	import { enhance } from '$app/forms';
 	import { afterNavigate, goto } from '$app/navigation';
@@ -64,7 +65,7 @@
 
 	let isWishlisted = $derived(data.customer ? data.isWishlisted : wishlist.isInWishlist(data.product.id));
 	let whatsapp = $derived(
-		whatsappLink(`Hi Gadgeteria! I'd like to order: ${data.product.name} (${formatPrice(data.product.price)}) — ${site.url}/products/${data.product.slug}`)
+		whatsappLink(`Hi ${site.name}! I'd like to order: ${data.product.name} (${formatPrice(data.product.price)}) — ${site.url}/products/${data.product.slug}`)
 	);
 
 	// ── Recently viewed + reset per product ──
@@ -145,41 +146,56 @@
 		});
 	}
 
-	// SEO structured data
-	let jsonLd = $derived.by(() => {
-		const p = data.product;
-		const priceVal = (p.price / 100).toFixed(2);
+	// ── SEO ──
+	function clip(text: string, max: number) {
+		const clean = text.replace(/\s+/g, ' ').trim();
+		if (clean.length <= max) return clean;
+		return clean.slice(0, clean.lastIndexOf(' ', max - 1)).replace(/[,.;:\s]+$/, '') + '…';
+	}
 
-		const productSchema: Record<string, any> = {
-			'@context': 'https://schema.org',
+	let productPath = $derived(`/products/${data.product.slug}`);
+
+	let seoDescription = $derived.by(() => {
+		const p = data.product;
+		const lead = `${p.name} — ${formatPrice(p.price)}${discount > 0 ? ` (save ${discount}%)` : ''} at ${site.name}.`;
+		const stock = p.stock > 0 ? 'In stock with pay on delivery in Uganda.' : 'Currently out of stock.';
+		const excerpt = p.description ? markdownExcerpt(p.description, 220) : '';
+		return clip(`${lead} ${stock} ${excerpt}`, 158);
+	});
+
+	let schema = $derived.by(() => {
+		const p = data.product;
+		const url = absoluteUrl(productPath);
+
+		const product: Record<string, any> = {
 			'@type': 'Product',
+			'@id': `${url}#product`,
 			name: p.name,
-			description: p.description || p.name,
-			image: allImages.map((k) => getImageUrl(k)),
-			sku: String(p.id),
+			description: p.description ? markdownExcerpt(p.description, 5000) : p.name,
+			image: allImages.map((k) => absoluteUrl(getImageUrl(k))),
+			sku: p.sku || String(p.id),
+			url,
 			offers: {
 				'@type': 'Offer',
-				url: `https://gadgeteria.net/products/${p.slug}`,
-				priceCurrency: 'UGX',
-				price: priceVal,
+				url,
+				priceCurrency: site.currency,
+				price: String(Math.round(p.price / 100)),
 				availability: p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-				itemCondition: 'https://schema.org/NewCondition'
+				itemCondition: 'https://schema.org/NewCondition',
+				seller: { '@type': 'Organization', '@id': `${site.url}/#store`, name: site.name },
+				...(discount > 0 ? { priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0] } : {})
 			}
 		};
 
-		if (p.compare_at_price && p.compare_at_price > p.price) {
-			productSchema.offers.priceValidUntil = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
-		}
-
 		if (data.reviews.length > 0) {
-			productSchema.aggregateRating = {
+			product.aggregateRating = {
 				'@type': 'AggregateRating',
 				ratingValue: avgRating.toFixed(1),
 				reviewCount: data.reviews.length,
 				bestRating: 5,
 				worstRating: 1
 			};
-			productSchema.review = data.reviews.slice(0, 5).map((r) => ({
+			product.review = data.reviews.slice(0, 5).map((r) => ({
 				'@type': 'Review',
 				author: { '@type': 'Person', name: r.customer_name },
 				datePublished: r.created_at,
@@ -189,47 +205,32 @@
 			}));
 		}
 
-		const breadcrumbSchema = {
-			'@context': 'https://schema.org',
+		const breadcrumbs = {
 			'@type': 'BreadcrumbList',
 			itemListElement: [
-				{ '@type': 'ListItem', position: 1, name: 'Home', item: '/' },
-				{ '@type': 'ListItem', position: 2, name: 'Shop', item: '/shop' },
-				{ '@type': 'ListItem', position: 3, name: p.name }
+				{ '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+				{ '@type': 'ListItem', position: 2, name: 'Shop', item: absoluteUrl('/shop') },
+				{ '@type': 'ListItem', position: 3, name: p.name, item: url }
 			]
 		};
 
-		return JSON.stringify([productSchema, breadcrumbSchema]);
+		return { '@context': 'https://schema.org', '@graph': [product, breadcrumbs] };
 	});
 </script>
 
-<svelte:head>
-	<title>{data.product.name} — Gadgeteria</title>
-	<meta name="description" content={data.product.description ? data.product.description.slice(0, 160) : `Buy ${data.product.name} at Gadgeteria. ${formatPrice(data.product.price)}. Fast delivery.`} />
-	<meta name="robots" content="index, follow" />
-	<link rel="canonical" href="https://gadgeteria.net/products/{data.product.slug}" />
-
-	<!-- Open Graph -->
-	<meta property="og:type" content="product" />
-	<meta property="og:title" content="{data.product.name} — Gadgeteria" />
-	<meta property="og:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
-	<meta property="og:image" content="https://gadgeteria.net{getImageUrl(data.product.image_key)}" />
-	<meta property="og:url" content="https://gadgeteria.net/products/{data.product.slug}" />
-	<meta property="og:site_name" content="Gadgeteria" />
-	<meta property="product:price:amount" content={(data.product.price / 100).toFixed(2)} />
-	<meta property="product:price:currency" content="UGX" />
+<Seo
+	title="{data.product.name} Price in Uganda"
+	description={seoDescription}
+	canonical={productPath}
+	type="product"
+	image={getImageUrl(data.product.image_key)}
+	imageAlt={data.product.name}
+	{schema}
+>
+	<meta property="product:price:amount" content={String(Math.round(data.product.price / 100))} />
+	<meta property="product:price:currency" content={site.currency} />
 	<meta property="product:availability" content={data.product.stock > 0 ? 'in stock' : 'out of stock'} />
-
-	<!-- Twitter Card -->
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="{data.product.name} — Gadgeteria" />
-	<meta name="twitter:description" content={data.product.description ? data.product.description.slice(0, 200) : `Buy ${data.product.name} at the best price.`} />
-	<meta name="twitter:image" content="https://gadgeteria.net{getImageUrl(data.product.image_key)}" />
-	<meta name="twitter:site" content="@gadgeteria" />
-
-	<!-- JSON-LD Structured Data -->
-	{@html `<script type="application/ld+json">${jsonLd}</script>`}
-</svelte:head>
+</Seo>
 
 {#snippet wishlistButton(classes: string)}
 	{#if data.customer}
@@ -425,7 +426,7 @@
 						</div>
 						<div class="mt-2.5 flex gap-2.5">
 							<button onclick={buyNow} class="cta cta-dark cta-lg flex-1">
-								<Icon name="bolt-solid" class="size-4 text-volt" />
+								<Icon name="bolt-solid" class="size-4 text-sun" />
 								Buy now
 							</button>
 							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-[1.5px] border-line transition hover:border-ink')}
@@ -481,10 +482,10 @@
 					</span>
 				</li>
 				<li class="flex items-start gap-3 p-4">
-					<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="return" class="size-5" /></span>
+					<span class="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Icon name="package" class="size-5" /></span>
 					<span class="text-sm">
-						<span class="block font-bold">{site.returnDays}-day returns</span>
-						<span class="block text-slate-500">Not right? Send it back within {site.returnDays} days.</span>
+						<span class="block font-bold">Track your order</span>
+						<span class="block text-slate-500">Follow its status any time from your account.</span>
 					</span>
 				</li>
 			</ul>

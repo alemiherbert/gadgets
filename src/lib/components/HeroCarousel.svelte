@@ -155,7 +155,7 @@
 				<div class="wrap relative flex h-full items-end pb-24 md:items-center md:pb-0">
 					<div class="max-w-xl {slide.productSrc && !hasBg ? 'md:max-w-[48%]' : ''}">
 						{#if slide.eyebrow}
-							<p class="mb-4 inline-flex items-center gap-1.5 rounded-full bg-volt px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-ink {reveal(isActive)}">
+							<p class="mb-4 inline-flex items-center gap-1.5 rounded-full bg-sun px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-ink {reveal(isActive)}">
 								<Icon name="bolt-solid" class="size-3" />
 								{slide.eyebrow}
 							</p>

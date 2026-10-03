@@ -1,59 +1,77 @@
 import type { RequestHandler } from './$types';
-import { getAllCategories, getSitemapProducts } from '$lib/db';
+import { getAllCategories, getAllSubcategoriesGrouped, getAllBrands, getSitemapProducts } from '$lib/db';
+import { site } from '$lib/site';
 
 export const prerender = false; // Dynamic sitemap generation
 
-export const GET: RequestHandler = async ({ locals, url }) => {
+type SitemapEntry = { loc: string; priority: string; changefreq: string; lastmod?: string };
+
+function escapeXml(value: string): string {
+	return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+
+export const GET: RequestHandler = async ({ locals }) => {
 	const db = locals.db;
-	const baseUrl = 'https://gadgeteria.net';
+	const baseUrl = site.url;
 
 	try {
-		const [categories, products] = await Promise.all([
+		const [categories, subcategoriesGrouped, brands, products] = await Promise.all([
 			getAllCategories(db),
+			getAllSubcategoriesGrouped(db),
+			getAllBrands(db),
 			getSitemapProducts(db)
 		]);
 
-		// Static pages
-		const staticPages = [
-			{ loc: baseUrl, priority: '1.0', changefreq: 'daily' },
-			{ loc: `${baseUrl}/shop`, priority: '0.9', changefreq: 'daily' },
-			{ loc: `${baseUrl}/cart`, priority: '0.3', changefreq: 'weekly' },
-			{ loc: `${baseUrl}/checkout`, priority: '0.3', changefreq: 'weekly' },
+		// Indexable pages only (cart, checkout and account pages are noindex)
+		const staticPages: SitemapEntry[] = [
+			{ loc: `${baseUrl}/`, priority: '1.0', changefreq: 'daily' },
+			{ loc: `${baseUrl}/shop`, priority: '0.9', changefreq: 'daily' }
 		];
 
-		// Category pages
-		const categoryPages = categories.map(cat => ({
-			loc: `${baseUrl}/shop?category=${cat.slug}`,
+		const categoryPages: SitemapEntry[] = categories.map((cat) => ({
+			loc: `${baseUrl}/shop?category=${encodeURIComponent(cat.slug)}`,
 			priority: '0.8',
 			changefreq: 'daily'
 		}));
 
-		// Product pages
-		const productPages = products.map(product => ({
-			loc: `${baseUrl}/products/${product.slug}`,
+		const subcategoryPages: SitemapEntry[] = Object.entries(subcategoriesGrouped).flatMap(([categorySlug, subs]) =>
+			subs
+				.filter((sub) => (sub.product_count ?? 1) > 0)
+				.map((sub) => ({
+					loc: `${baseUrl}/shop?category=${encodeURIComponent(categorySlug)}&subcategory=${encodeURIComponent(sub.slug)}`,
+					priority: '0.7',
+					changefreq: 'daily'
+				}))
+		);
+
+		const brandPages: SitemapEntry[] = brands
+			.filter((brand) => (brand.product_count ?? 1) > 0)
+			.map((brand) => ({
+				loc: `${baseUrl}/shop?brand=${encodeURIComponent(brand.slug)}`,
+				priority: '0.6',
+				changefreq: 'weekly'
+			}));
+
+		const productPages: SitemapEntry[] = products.map((product) => ({
+			loc: `${baseUrl}/products/${encodeURIComponent(product.slug)}`,
 			lastmod: product.updated_at || product.created_at,
 			priority: '0.7',
 			changefreq: 'weekly'
 		}));
 
-		const allPages: { loc: string; priority: string; changefreq: string; lastmod?: string }[] = [...staticPages, ...categoryPages, ...productPages];
+		const allPages = [...staticPages, ...categoryPages, ...subcategoryPages, ...brandPages, ...productPages];
 
 		const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
-        xmlns:mobile="http://www.google.com/schemas/sitemap-mobile/1.0"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allPages
-				.map(
-					page => `  <url>
-    <loc>${page.loc}</loc>${page.lastmod ? `\n    <lastmod>${new Date(page.lastmod).toISOString().split('T')[0]}</lastmod>` : ''}
+	.map(
+		(page) => `  <url>
+    <loc>${escapeXml(page.loc)}</loc>${page.lastmod ? `\n    <lastmod>${new Date(page.lastmod).toISOString().split('T')[0]}</lastmod>` : ''}
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
   </url>`
-				)
-				.join('\n')}
+	)
+	.join('\n')}
 </urlset>`;
 
 		return new Response(xml, {

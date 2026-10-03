@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { enhance } from '$app/forms';
 	import AuthGoogleButton from '$lib/components/AuthGoogleButton.svelte';
 	import AuthSwitchLink from '$lib/components/AuthSwitchLink.svelte';
@@ -8,9 +9,7 @@
 	let submitting = $state(false);
 </script>
 
-<svelte:head>
-	<title>Create Account — Gadgeteria</title>
-</svelte:head>
+<Seo title="Create account" noindex />
 
 <div class="mb-8">
 	<h1 class="text-3xl font-extrabold tracking-tight">Create your account</h1>

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import '@fontsource-variable/plus-jakarta-sans';
-	import fontLatin from '@fontsource-variable/plus-jakarta-sans/files/plus-jakarta-sans-latin-wght-normal.woff2?url';
+	import '@fontsource-variable/figtree';
+	import fontLatin from '@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2?url';
 	import '../app.css';
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -28,7 +28,7 @@
 
 	const firstName = $derived(data.customer?.name?.split(' ')[0] ?? '');
 	const activeCategory = $derived(page.url.pathname === '/shop' ? page.url.searchParams.get('category') : null);
-	const whatsapp = whatsappLink('Hi Gadgeteria, I would like to place an order.');
+	const whatsapp = whatsappLink(`Hi ${site.name}, I would like to place an order.`);
 
 	// ── Announcement rotation (mobile shows one at a time) ──
 	let announcementIndex = $state(0);
@@ -91,50 +91,7 @@
 </script>
 
 <svelte:head>
-	<title>Gadgeteria</title>
 	<link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin="anonymous" />
-	<!-- Global Site Structured Data -->
-	{@html `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Gadgeteria",
-  "url": "https://gadgeteria.net",
-  "logo": "https://gadgeteria.net/img/logo.png",
-  "description": "Premium electronics and tech accessories in Uganda",
-  "address": {
-    "@type": "PostalAddress",
-    "addressCountry": "UG",
-    "addressLocality": "Kampala"
-  },
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "Customer Service",
-    "email": "support@gadgeteria.net"
-  },
-  "sameAs": [
-    "https://twitter.com/gadgeteria",
-    "https://www.facebook.com/gadgeteria",
-    "https://www.instagram.com/gadgeteria"
-  ]
-}
-</script>`}
-	{@html `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "Gadgeteria",
-  "url": "https://gadgeteria.net",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://gadgeteria.net/shop?q={search_term_string}"
-    },
-    "query-input": "required name=search_term_string"
-  }
-}
-</script>`}
 </svelte:head>
 
 {#if hideChrome}
@@ -146,7 +103,7 @@
 	<div class="bg-ink text-white">
 		<div class="wrap flex h-9 items-center justify-center text-[12.5px] font-semibold">
 			<p class="flex items-center gap-2 md:hidden" aria-live="polite">
-				<Icon name="bolt-solid" class="size-3.5 text-volt" />
+				<Icon name="bolt-solid" class="size-3.5 text-sun" />
 				{#key announcementIndex}
 					<span class="animate-fade-in">{announcements[announcementIndex]}</span>
 				{/key}
@@ -154,7 +111,7 @@
 			<ul class="hidden items-center gap-8 md:flex">
 				{#each announcements as message}
 					<li class="flex items-center gap-2">
-						<Icon name="bolt-solid" class="size-3.5 text-volt" />
+						<Icon name="bolt-solid" class="size-3.5 text-sun" />
 						{message}
 					</li>
 				{/each}
@@ -169,7 +126,7 @@
 				<Icon name="menu" class="size-6" />
 			</button>
 
-			<a href="/" class="shrink-0" aria-label="Gadgeteria home">
+			<a href="/" class="shrink-0" aria-label="{site.name} home">
 				<Logo />
 			</a>
 
@@ -280,7 +237,7 @@
 							<div class="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent"></div>
 							<div class="absolute inset-x-0 bottom-0 p-5 text-white">
 								<p class="text-lg font-extrabold tracking-tight">Explore {menuCategory.name}</p>
-								<span class="mt-2 inline-flex items-center gap-1 text-sm font-bold text-volt">
+								<span class="mt-2 inline-flex items-center gap-1 text-sm font-bold text-sun">
 									Shop now <Icon name="arrow-right" class="size-4" stroke={2} />
 								</span>
 							</div>
@@ -417,7 +374,7 @@
 			<ul class="wrap grid grid-cols-2 gap-x-4 gap-y-6 py-10 lg:grid-cols-4">
 				{#each perks as perk}
 					<li class="flex items-start gap-3">
-						<span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-volt text-ink">
+						<span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-brand-bright text-white">
 							<Icon name={perk.icon} class="size-[22px]" />
 						</span>
 						<span>
@@ -431,13 +388,14 @@
 
 		<div class="wrap grid grid-cols-2 gap-x-6 gap-y-10 py-12 lg:grid-cols-12">
 			<div class="col-span-2 lg:col-span-4">
-				<Logo tone="light" />
-				<p class="mt-4 max-w-xs text-sm leading-relaxed text-white/60">{site.tagline} Shop online, pay when it arrives.</p>
+				<Logo tone="dark" variant="inline" />
+				<p class="mt-4 text-lg font-semibold text-brand-bright">{site.tagline}</p>
+				<p class="mt-2 max-w-xs text-sm leading-relaxed text-white/60">Phones, laptops, audio, power and accessories — delivered across Uganda. Shop online, pay when it arrives.</p>
 				<ul class="mt-6 space-y-2.5 text-sm">
-					<li><a href={site.phoneHref} class="inline-flex items-center gap-2 font-semibold hover:text-volt"><Icon name="phone" class="size-4 text-volt" /> {site.phone}</a></li>
-					<li><a href="mailto:{site.email}" class="inline-flex items-center gap-2 font-semibold hover:text-volt"><Icon name="mail" class="size-4 text-volt" /> {site.email}</a></li>
+					<li><a href={site.phoneHref} class="inline-flex items-center gap-2 font-semibold hover:text-brand-bright"><Icon name="phone" class="size-4 text-brand-bright" /> {site.phone}</a></li>
+					<li><a href="mailto:{site.email}" class="inline-flex items-center gap-2 font-semibold hover:text-brand-bright"><Icon name="mail" class="size-4 text-brand-bright" /> {site.email}</a></li>
 					{#if whatsapp}
-						<li><a href={whatsapp} target="_blank" rel="noopener" class="inline-flex items-center gap-2 font-semibold hover:text-volt"><Icon name="whatsapp" class="size-4 text-volt" /> Chat on WhatsApp</a></li>
+						<li><a href={whatsapp} target="_blank" rel="noopener" class="inline-flex items-center gap-2 font-semibold hover:text-brand-bright"><Icon name="whatsapp" class="size-4 text-brand-bright" /> Chat on WhatsApp</a></li>
 					{/if}
 				</ul>
 			</div>
@@ -479,9 +437,9 @@
 
 		<div class="border-t border-white/10">
 			<div class="wrap flex flex-col items-center justify-between gap-3 py-6 text-xs text-white/50 sm:flex-row">
-				<p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved. Prices in Ugandan shillings.</p>
+				<p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved. Prices in Ugandan shillings (UGX).</p>
 				<p class="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 font-semibold text-white/80">
-					<Icon name="cash" class="size-4 text-volt" />
+					<Icon name="cash" class="size-4 text-brand-bright" />
 					Cash on delivery
 				</p>
 			</div>

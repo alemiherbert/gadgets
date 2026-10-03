@@ -8,6 +8,8 @@ import ProductCard from '$lib/components/ProductCard.svelte';
 import RangeSlider from '$lib/components/RangeSlider.svelte';
 import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 import Icon from '$lib/components/Icon.svelte';
+import Seo from '$lib/components/Seo.svelte';
+import { site, absoluteUrl } from '$lib/site';
 
 let { data }: { data: PageData } = $props();
 
@@ -261,106 +263,97 @@ const sortOptions = [
 	{ value: 'discount', label: 'Biggest discount' },
 ];
 
-// Dynamic SEO content
-const pageTitle = $derived(() => {
-	const parts = [];
-	if (data.activeSearch) return `Search: ${data.activeSearch} | Gadgeteria`;
-	if (data.activeSubcategory) {
-		const sub = data.subcategories.find(s => s.slug === data.activeSubcategory);
-		if (sub) parts.push(sub.name);
-	}
-	if (data.activeCategory) {
-		const cat = data.categories.find(c => c.slug === data.activeCategory);
-		if (cat) parts.push(cat.name);
-	}
-	parts.push('Shop', 'Gadgeteria');
-	return parts.join(' | ');
+// ── SEO ──
+// Search results and price/spec filters are thin duplicates: keep them out of the index.
+const noindex = $derived(
+	!!data.activeSearch ||
+		data.activeMinPrice !== null ||
+		data.activeMaxPrice !== null ||
+		Object.keys(data.activeSpecFilters).length > 0
+);
+
+const seoTitle = $derived.by(() => {
+	if (data.activeSearch) return `Search results for “${data.activeSearch}”`;
+	const place = activeSubcategoryObj?.name ?? activeCategoryObj?.name;
+	let t: string;
+	if (activeBrandObj && place) t = `${activeBrandObj.name} ${place} Prices in Uganda`;
+	else if (activeSubcategoryObj) t = `${activeSubcategoryObj.name} Prices in Uganda`;
+	else if (activeCategoryObj) t = `${activeCategoryObj.name} — Shop Online in Uganda`;
+	else if (activeBrandObj) t = `${activeBrandObj.name} Products & Prices in Uganda`;
+	else t = 'Shop Phones, Laptops & Gadgets in Uganda';
+	return data.page > 1 ? `${t} — Page ${data.page}` : t;
 });
 
-const pageDescription = $derived(() => {
-	if (data.activeSearch) {
-		return `Found ${data.total} results for "${data.activeSearch}". Browse premium electronics and tech accessories with fast delivery across Uganda.`;
+const seoDescription = $derived.by(() => {
+	const count = `${data.total} product${data.total === 1 ? '' : 's'}`;
+	const perks = 'Pay on delivery; flat UGX 5,500 delivery in Kampala.';
+	if (data.activeSearch) return `${count} matching “${data.activeSearch}” at ${site.name}. ${perks}`;
+	if (activeSubcategoryObj) return `Shop ${activeSubcategoryObj.name} online in Uganda — ${count} with prices in UGX. ${perks}`;
+	if (activeCategoryObj) {
+		const intro = activeCategoryObj.description ? `${activeCategoryObj.description.replace(/\.$/, '')}. ` : '';
+		return `${intro}Browse ${count} with prices in UGX. ${perks}`;
 	}
-	const cat = data.activeCategory ? data.categories.find(c => c.slug === data.activeCategory) : null;
-	const sub = data.activeSubcategory ? data.subcategories.find(s => s.slug === data.activeSubcategory) : null;
-	if (sub) {
-		return `Shop ${sub.name} in Uganda. ${data.total} products available. Premium quality, competitive prices, fast nationwide delivery.`;
-	}
-	if (cat) {
-		return `Browse ${data.total} ${cat.name.toLowerCase()} products. Premium quality electronics with fast delivery across Uganda. Shop now!`;
-	}
-	return `Browse ${data.total} premium tech products. Shop smartphones, audio gear, wearables, and accessories. Fast delivery across Uganda.`;
+	if (activeBrandObj) return `Shop ${count} from ${activeBrandObj.name} in Uganda at ${site.name}. ${perks}`;
+	return `Browse ${count}: phones, laptops, audio, power and accessories in Uganda. ${perks}`;
 });
 
-const canonicalUrl = $derived(() => {
-	const base = 'https://gadgeteria.net/shop';
+function shopPath(pageNumber: number) {
 	const params = new URLSearchParams();
 	if (data.activeCategory) params.set('category', data.activeCategory);
 	if (data.activeSubcategory) params.set('subcategory', data.activeSubcategory);
 	if (data.activeBrand) params.set('brand', data.activeBrand);
-	if (data.activeSearch) params.set('q', data.activeSearch);
+	if (pageNumber > 1) params.set('page', String(pageNumber));
 	const query = params.toString();
-	return query ? `${base}?${query}` : base;
-});
+	return query ? `/shop?${query}` : '/shop';
+}
 
-// Pagination URLs for SEO
-const prevPageUrl = $derived(() => {
-	if (data.page <= 1) return null;
-	const base = 'https://gadgeteria.net/shop';
-	const params = new URLSearchParams($page.url.searchParams);
-	params.set('page', String(data.page - 1));
-	return `${base}?${params.toString()}`;
-});
+const canonicalPath = $derived(shopPath(data.page));
 
-const nextPageUrl = $derived(() => {
-	if (data.page >= data.totalPages) return null;
-	const base = 'https://gadgeteria.net/shop';
-	const params = new URLSearchParams($page.url.searchParams);
-	params.set('page', String(data.page + 1));
-	return `${base}?${params.toString()}`;
-});
+const schema = $derived(
+	noindex
+		? undefined
+		: {
+				'@context': 'https://schema.org',
+				'@graph': [
+					{
+						'@type': 'CollectionPage',
+						name: seoTitle,
+						description: seoDescription,
+						url: absoluteUrl(canonicalPath),
+						isPartOf: { '@id': `${site.url}/#website` },
+						mainEntity: {
+							'@type': 'ItemList',
+							numberOfItems: data.total,
+							itemListElement: data.products.map((p, i) => ({
+								'@type': 'ListItem',
+								position: (data.page - 1) * 48 + i + 1,
+								url: absoluteUrl(`/products/${p.slug}`),
+								name: p.name
+							}))
+						}
+					},
+					{
+						'@type': 'BreadcrumbList',
+						itemListElement: crumbs.map((c, i) => ({
+							'@type': 'ListItem',
+							position: i + 1,
+							name: c.label,
+							...('href' in c && c.href ? { item: absoluteUrl(c.href) } : {})
+						}))
+					}
+				]
+			}
+);
 </script>
 
-<svelte:head>
-<title>{pageTitle()}</title>
-<meta name="description" content={pageDescription()} />
-<meta name="robots" content="index, follow" />
-<link rel="canonical" href={canonicalUrl()} />
-
-<!-- Pagination links for SEO -->
-{#if prevPageUrl()}
-<link rel="prev" href={prevPageUrl()} />
-{/if}
-{#if nextPageUrl()}
-<link rel="next" href={nextPageUrl()} />
-{/if}
-
-<!-- Open Graph -->
-<meta property="og:type" content="website" />
-<meta property="og:url" content={canonicalUrl()} />
-<meta property="og:title" content={pageTitle()} />
-<meta property="og:description" content={pageDescription()} />
-<meta property="og:image" content="https://gadgeteria.net/img/og-shop.jpg" />
-<meta property="og:site_name" content="Gadgeteria" />
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content={pageTitle()} />
-<meta name="twitter:description" content={pageDescription()} />
-<meta name="twitter:image" content="https://gadgeteria.net/img/og-shop.jpg" />
-
-<!-- Structured Data for Product Listing -->
-{@html `<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "CollectionPage",
-  "name": "${pageTitle().replace(/"/g, '\\"')}",
-  "description": "${pageDescription().replace(/"/g, '\\"')}",
-  "url": "${canonicalUrl()}",
-  "numberOfItems": ${data.total}
-}
-</script>`}
-</svelte:head>
+<Seo title={seoTitle} description={seoDescription} canonical={canonicalPath} {noindex} {schema}>
+	{#if !noindex && data.page > 1}
+		<link rel="prev" href={absoluteUrl(shopPath(data.page - 1))} />
+	{/if}
+	{#if !noindex && data.page < data.totalPages}
+		<link rel="next" href={absoluteUrl(shopPath(data.page + 1))} />
+	{/if}
+</Seo>
 
 {#snippet filterHeading(key: string, label: string)}
 	<button onclick={() => toggleSection(key)} class="flex w-full items-center justify-between py-1 text-left" aria-expanded={openSections[key]}>

@@ -1,37 +1,44 @@
 @import 'tailwindcss';
 
 /* ═══════════════════════════════════════════════════════
-   THEME
-   Brand blue drives every buy action, deal red marks savings,
-   volt is the high-energy accent, ink anchors the chrome.
+   THEME — OJ's Online Store
+   Logo teal drives every buy action, deal red marks savings,
+   sun is the warm accent, ink (logo black) anchors the chrome.
    ═══════════════════════════════════════════════════════ */
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Figtree Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
-  --color-brand: #0a66ff;
-  --color-brand-dark: #0050d1;
-  --color-brand-soft: #eaf1ff;
-  --color-ink: #0b1220;
-  --color-ink-soft: #1d2939;
+  /* Teal from the OJ's logo. brand = AA-contrast teal for buttons/links,
+     brand-bright = exact logo teal for the mark and large accents. */
+  --color-brand: #007c9e;
+  --color-brand-bright: #008cb2;
+  --color-brand-dark: #00637e;
+  --color-brand-soft: #e3f4f8;
+  --color-ink: #0e1012;
+  --color-ink-soft: #24282d;
   --color-deal: #e0122b;
   --color-deal-soft: #fff0f1;
-  --color-volt: #c6f432;
-  --color-surface: #f2f4f7;
-  --color-line: #e4e7ec;
+  --color-sun: #ffc83d;
+  --color-surface: #f3f5f6;
+  --color-line: #e3e6e9;
+
+  /* Softer heavy weights + relaxed tracking for easier reading */
+  --font-weight-extrabold: 760;
+  --tracking-tight: -0.015em;
 
   /* Legacy tokens (admin + shared utilities) */
-  --color-primary: #0a66ff;
+  --color-primary: #007c9e;
   --color-primary-foreground: #ffffff;
-  --color-primary-light: #3d86ff;
-  --color-primary-dark: #0050d1;
-  --color-muted: #f2f4f7;
+  --color-primary-light: #008cb2;
+  --color-primary-dark: #00637e;
+  --color-muted: #f3f5f6;
   --color-muted-foreground: #667085;
-  --color-accent: #eaf1ff;
-  --color-accent-foreground: #0b1220;
-  --color-border: #e4e7ec;
+  --color-accent: #e3f4f8;
+  --color-accent-foreground: #0e1012;
+  --color-border: #e3e6e9;
   --color-input: #d0d5dd;
-  --color-ring: #0a66ff;
+  --color-ring: #007c9e;
   --color-destructive: #e0122b;
   --color-success: #12a150;
   --radius: 0.75rem;
@@ -96,7 +103,7 @@ body {
 }
 
 ::selection {
-  background: var(--color-volt);
+  background: var(--color-sun);
   color: var(--color-ink);
 }
 
@@ -173,7 +180,7 @@ button {
   .cta-brand {
     background: var(--color-brand);
     color: #fff;
-    box-shadow: 0 10px 24px -12px rgb(10 102 255 / 0.75);
+    box-shadow: 0 10px 24px -12px rgb(0 124 158 / 0.6);
   }
 
   .cta-brand:hover:not(:disabled) {
@@ -195,16 +202,16 @@ button {
   }
 
   .cta-light:hover:not(:disabled) {
-    background: var(--color-volt);
+    background: var(--color-sun);
   }
 
-  .cta-volt {
-    background: var(--color-volt);
+  .cta-sun {
+    background: var(--color-sun);
     color: var(--color-ink);
   }
 
-  .cta-volt:hover:not(:disabled) {
-    background: #b5e61f;
+  .cta-sun:hover:not(:disabled) {
+    background: #f5b800;
   }
 
   .cta-line {
@@ -224,7 +231,7 @@ button {
   }
 
   .cta-soft:hover:not(:disabled) {
-    background: #d6e4ff;
+    background: #cdebf3;
   }
 
   .cta-sm {
@@ -286,17 +293,17 @@ button {
 
   .h-display {
     font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4.25rem);
-    font-weight: 800;
-    letter-spacing: -0.035em;
-    line-height: 1;
+    font-weight: 760;
+    letter-spacing: -0.02em;
+    line-height: 1.04;
     text-wrap: balance;
   }
 
   .h-section {
     font-size: clamp(1.5rem, 1.15rem + 1.3vw, 2.25rem);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.08;
+    font-weight: 740;
+    letter-spacing: -0.015em;
+    line-height: 1.12;
     text-wrap: balance;
   }
 
@@ -356,7 +363,7 @@ button {
   }
 
   .tag-deal { background: var(--color-deal); color: #fff; }
-  .tag-new { background: var(--color-volt); color: var(--color-ink); }
+  .tag-new { background: var(--color-sun); color: var(--color-ink); }
   .tag-low { background: #fff4e5; color: #b54708; }
   .tag-ink { background: var(--color-ink); color: #fff; }
   .tag-soft { background: var(--color-brand-soft); color: var(--color-brand-dark); }
@@ -423,7 +430,7 @@ button {
   .field:focus {
     outline: none;
     border-color: var(--color-brand);
-    box-shadow: 0 0 0 4px rgb(10 102 255 / 0.14);
+    box-shadow: 0 0 0 4px rgb(0 124 158 / 0.18);
   }
 
   .field-label {
@@ -560,7 +567,7 @@ button {
   border-color: var(--color-border);
 
   &:hover {
-    background-color: #d6e4ff;
+    background-color: #cdebf3;
   }
 }
 
@@ -661,8 +668,8 @@ button {
 }
 
 @utility badge-info {
-  background: #eaf1ff;
-  color: #0050d1;
+  background: #e3f4f8;
+  color: #00637e;
 }
 
 @utility badge-warning {
@@ -681,8 +688,8 @@ button {
 }
 
 @utility badge-confirmed {
-  background: #eaf1ff;
-  color: #0050d1;
+  background: #e3f4f8;
+  color: #00637e;
 }
 
 @utility badge-shipped {
@@ -760,7 +767,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(10 102 255 / 0.15);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
   }
 
   &:disabled {
@@ -789,7 +796,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(10 102 255 / 0.15);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
   }
 }
 
@@ -810,7 +817,7 @@ button {
   &:focus {
     outline: none;
     border-color: var(--color-ring);
-    box-shadow: 0 0 0 3px rgb(10 102 255 / 0.15);
+    box-shadow: 0 0 0 3px rgb(0 124 158 / 0.18);
   }
 }
 

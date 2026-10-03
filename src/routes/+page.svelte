@@ -7,7 +7,8 @@
 	import { markdownExcerpt } from '$lib/markdown';
 	import { cart } from '$lib/cart.svelte';
 	import { ui } from '$lib/ui.svelte';
-	import { perks } from '$lib/site';
+	import { perks, site, absoluteUrl } from '$lib/site';
+	import Seo from '$lib/components/Seo.svelte';
 	import { loadRecent, type RecentItem } from '$lib/recent';
 	import ProductCard from '$lib/components/ProductCard.svelte';
 	import HeroCarousel, { type HeroSlide } from '$lib/components/HeroCarousel.svelte';
@@ -29,7 +30,7 @@
 				subtitle: s.subtitle,
 				ctaText: s.cta_text || 'Shop now',
 				ctaLink: s.cta_link || '/shop',
-				bgColor: s.bg_color || '#0a66ff',
+				bgColor: s.bg_color || '#007c9e',
 				textColor: s.text_color || '#ffffff',
 				desktopSrc: s.bg_image_desktop_key ? getImageUrl(s.bg_image_desktop_key) : null,
 				mobileSrc: s.bg_image_mobile_key ? getImageUrl(s.bg_image_mobile_key) : null,
@@ -38,12 +39,12 @@
 				productSrc: s.image_key ? getImageUrl(s.image_key) : null
 			}));
 		}
-		const palette = ['#0a66ff', '#0b1220', '#e0122b'];
+		const palette = ['#007c9e', '#0e1012', '#e0122b'];
 		const cats = data.categories.slice(0, 3);
 		if (cats.length > 0) {
 			return cats.map((c, i) => ({
 				id: `cat-${c.id}`,
-				eyebrow: i === 0 ? 'Pay on delivery' : undefined,
+				eyebrow: i === 0 ? site.tagline : undefined,
 				title: c.name,
 				subtitle: c.description,
 				ctaText: `Shop ${c.name}`,
@@ -60,12 +61,12 @@
 		return [
 			{
 				id: 'default',
-				eyebrow: 'Pay on delivery',
-				title: 'Genuine gadgets, delivered.',
+				eyebrow: site.tagline,
+				title: 'Phones, laptops & gadgets, delivered.',
 				subtitle: 'Phones, audio, power and accessories — pay when it arrives.',
 				ctaText: 'Shop all products',
 				ctaLink: '/shop',
-				bgColor: '#0a66ff',
+				bgColor: '#007c9e',
 				textColor: '#ffffff',
 				desktopSrc: null,
 				mobileSrc: null,
@@ -113,6 +114,41 @@
 		ui.openCart(spotlight.name);
 	}
 
+	// ── Structured data: the store + sitelinks search box ──
+	const schema = {
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'OnlineStore',
+				'@id': `${site.url}/#store`,
+				name: site.name,
+				alternateName: site.shortName,
+				slogan: site.tagline,
+				description: site.description,
+				url: `${site.url}/`,
+				logo: { '@type': 'ImageObject', url: absoluteUrl(site.logo), width: 512, height: 512 },
+				image: absoluteUrl(site.ogImage),
+				email: site.email,
+				address: { '@type': 'PostalAddress', addressLocality: site.city, addressCountry: site.country },
+				areaServed: { '@type': 'Country', name: 'Uganda' },
+				...(site.social.length ? { sameAs: site.social } : {})
+			},
+			{
+				'@type': 'WebSite',
+				'@id': `${site.url}/#website`,
+				url: `${site.url}/`,
+				name: site.name,
+				inLanguage: 'en-UG',
+				publisher: { '@id': `${site.url}/#store` },
+				potentialAction: {
+					'@type': 'SearchAction',
+					target: { '@type': 'EntryPoint', urlTemplate: `${site.url}/shop?q={search_term_string}` },
+					'query-input': 'required name=search_term_string'
+				}
+			}
+		]
+	};
+
 	// ── Recently viewed ──
 	let recent = $state<RecentItem[]>([]);
 	onMount(() => {
@@ -120,45 +156,13 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Gadgeteria | Phones, Audio, Power & Tech Accessories in Uganda | Pay on Delivery</title>
-	<meta
-		name="description"
-		content="Shop the latest smartphones, earbuds, power banks, laptops and tech accessories in Uganda. Great prices, Kampala delivery and pay on delivery."
-	/>
-	<meta
-		name="keywords"
-		content="gadgeteria, electronics, smartphones, wireless earbuds, smartwatch, tech accessories, buy electronics online, uganda"
-	/>
-	<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-	<link rel="canonical" href="https://gadgeteria.net/" />
-	<meta property="og:type" content="website" />
-	<meta property="og:url" content="https://gadgeteria.net/" />
-	<meta property="og:title" content="Gadgeteria | Premium Tech & Electronics" />
-	<meta
-		property="og:description"
-		content="Shop premium smartphones, wireless earbuds, power banks and tech accessories. Fast delivery across Uganda, pay on delivery."
-	/>
-	<meta property="og:image" content="https://gadgeteria.net/img/og-home.jpg" />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
-	<meta property="og:site_name" content="Gadgeteria" />
-	<meta property="og:locale" content="en_UG" />
-	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:site" content="@gadgeteria" />
-	<meta name="twitter:creator" content="@gadgeteria" />
-	<meta name="twitter:title" content="Gadgeteria | Premium Tech & Electronics" />
-	<meta
-		name="twitter:description"
-		content="Shop premium smartphones, wireless earbuds, power banks and tech accessories. Fast delivery across Uganda."
-	/>
-	<meta name="twitter:image" content="https://gadgeteria.net/img/og-home.jpg" />
-	<meta name="mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-capable" content="yes" />
-	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-</svelte:head>
-
-<h1 class="sr-only">Gadgeteria — phones, audio, power and tech accessories in Uganda</h1>
+<Seo
+	rawTitle="{site.name} — Phones, Laptops & Gadgets in Uganda"
+	description={site.description}
+	canonical="/"
+	imageAlt="{site.name} — {site.tagline}"
+	{schema}
+/>
 
 <!-- ── Hero ── -->
 <HeroCarousel slides={heroSlides} />
@@ -183,15 +187,15 @@
 </section>
 
 <!-- ── Shop by category ── -->
-{#if data.categories.length > 0}
-	<section class="wrap pt-12 lg:pt-16">
+<section class="wrap pt-12 lg:pt-16">
 		<div class="mb-6 flex items-end justify-between gap-4">
 			<div>
-				<p class="eyebrow">Shop by category</p>
-				<h2 class="h-section mt-2">What are you looking for?</h2>
+				<p class="eyebrow">{site.tagline}</p>
+				<h1 class="h-section mt-2">Shop phones, laptops & gadgets online in Uganda</h1>
 			</div>
 			<a href="/shop" class="link-arrow max-sm:hidden">All products <Icon name="arrow-right" class="size-4" stroke={2} /></a>
 		</div>
+		{#if data.categories.length > 0}
 		<Rail label="Categories" class="auto-cols-[38%] gap-3 sm:auto-cols-[23%] lg:auto-cols-[calc((100%-5*1rem)/6)] lg:gap-4">
 			{#each data.categories as cat}
 				<a href="/shop?category={cat.slug}" class="group flex flex-col">
@@ -217,8 +221,8 @@
 				</a>
 			{/each}
 		</Rail>
+		{/if}
 	</section>
-{/if}
 
 <!-- ── Deals ── -->
 {#if data.deals.length > 0}
@@ -230,13 +234,13 @@
 		<div class="wrap relative py-12 lg:py-16">
 			<div class="relative flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between sm:pr-44 lg:pr-56">
 				<div class="max-w-xl">
-					<p class="eyebrow text-volt"><Icon name="fire" class="size-4" /> Hot deals</p>
+					<p class="eyebrow text-sun"><Icon name="fire" class="size-4" /> Hot deals</p>
 					<h2 class="h-section mt-3">
-						{#if maxDiscount > 0}Save up to <span class="text-volt">{maxDiscount}%</span> on top gadgets{:else}Top deals on top gadgets{/if}
+						{#if maxDiscount > 0}Save up to <span class="text-sun">{maxDiscount}%</span> on top gadgets{:else}Top deals on top gadgets{/if}
 					</h2>
 					<p class="mt-3 max-w-md text-sm leading-relaxed text-white/60">Marked-down prices on stock we have right now. Pay when it arrives.</p>
 				</div>
-				<a href="/shop?sort=discount" class="cta cta-volt shrink-0 self-start sm:self-auto">
+				<a href="/shop?sort=discount" class="cta cta-sun shrink-0 self-start sm:self-auto">
 					Shop all deals
 					<Icon name="arrow-right" class="size-4" stroke={2.25} />
 				</a>
@@ -311,10 +315,10 @@
 		<div class="relative grid items-center overflow-hidden rounded-[2rem] bg-brand text-white lg:grid-cols-2">
 			<div class="pointer-events-none absolute inset-0" aria-hidden="true">
 				<div class="absolute -right-24 -top-24 size-96 rounded-full bg-white/10 blur-2xl"></div>
-				<div class="absolute -bottom-32 left-10 size-80 rounded-full bg-volt/25 blur-3xl"></div>
+				<div class="absolute -bottom-32 left-10 size-80 rounded-full bg-sun/25 blur-3xl"></div>
 			</div>
 			<div class="relative order-2 p-6 pt-2 sm:p-10 lg:order-1 lg:p-14">
-				<p class="eyebrow text-volt"><Icon name="star" class="size-4" /> Editor's pick</p>
+				<p class="eyebrow text-sun"><Icon name="star" class="size-4" /> Editor's pick</p>
 				<h2 class="h-section mt-3">{spotlight.name}</h2>
 				{#if spotlight.description}
 					<p class="mt-4 line-clamp-3 max-w-lg leading-relaxed text-white/80">{markdownExcerpt(spotlight.description, 220)}</p>
@@ -328,7 +332,7 @@
 				</div>
 				<div class="mt-7 flex flex-wrap gap-3">
 					{#if spotlight.stock > 0}
-						<button onclick={addSpotlight} disabled={spotlightInCart >= spotlight.stock} class="cta cta-volt cta-lg">
+						<button onclick={addSpotlight} disabled={spotlightInCart >= spotlight.stock} class="cta cta-sun cta-lg">
 							<Icon name="bag" class="size-[18px]" stroke={2} />
 							{spotlightInCart >= spotlight.stock ? 'All stock in cart' : 'Add to cart'}
 						</button>
@@ -376,6 +380,33 @@
 		</div>
 	</section>
 {/if}
+
+<!-- ── About (helps shoppers and search engines understand the store) ── -->
+<section class="border-t border-line">
+	<div class="wrap grid gap-8 py-14 lg:grid-cols-12 lg:gap-12 lg:py-16">
+		<div class="lg:col-span-5">
+			<p class="eyebrow">About us</p>
+			<h2 class="h-section mt-2">{site.name}: {site.tagline.toLowerCase()}</h2>
+		</div>
+		<div class="space-y-4 leading-relaxed text-slate-600 lg:col-span-7">
+			<p>
+				{site.name} is an online shop for phones, tablets, laptops, audio, smart home gear, power banks and everyday tech
+				accessories in Uganda. Browse by category, compare prices in Ugandan shillings and order in a few taps.
+			</p>
+			<p>
+				You pay when your order arrives — no card needed. Delivery anywhere in Kampala is a flat UGX 5,500, and for other
+				towns we confirm the delivery fee with you by phone before dispatch.
+			</p>
+			{#if data.categories.length > 0}
+				<p class="flex flex-wrap gap-2 pt-2">
+					{#each data.categories as cat}
+						<a href="/shop?category={cat.slug}" class="chip">{cat.name}</a>
+					{/each}
+				</p>
+			{/if}
+		</div>
+	</div>
+</section>
 
 <!-- ── Recently viewed ── -->
 {#if recent.length > 1}

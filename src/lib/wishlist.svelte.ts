@@ -9,7 +9,7 @@ export interface WishlistItem {
     imageKey: string | null;
 }
 
-const WISHLIST_KEY = 'gadgeteria_wishlist';
+const WISHLIST_KEY = 'ojs_wishlist';
 
 function loadWishlist(): WishlistItem[] {
     if (typeof window === 'undefined') return [];

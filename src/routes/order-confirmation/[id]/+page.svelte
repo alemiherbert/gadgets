@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import type { PageData } from './$types';
 	import { formatPrice, orderStatusBadge } from '$lib/utils';
 	import { getImageUrl } from '$lib/r2';
@@ -15,9 +16,7 @@
 	});
 </script>
 
-<svelte:head>
-	<title>Order Confirmed — Gadgeteria</title>
-</svelte:head>
+<Seo title="Order confirmed" noindex />
 
 <div class="wrap max-w-3xl py-10 lg:py-16">
 	<div class="text-center">

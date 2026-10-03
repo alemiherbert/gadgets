@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { enhance } from '$app/forms';
 	import type { ActionData, PageData } from './$types';
 
@@ -6,9 +7,7 @@
 	let submitting = $state(false);
 </script>
 
-<svelte:head>
-	<title>Reset Password — Gadgeteria</title>
-</svelte:head>
+<Seo title="Set a new password" noindex />
 
 {#if data.invalid}
 	<div class="mb-8">

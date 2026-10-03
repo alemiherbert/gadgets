@@ -2,7 +2,7 @@
 
 export type RecentItem = { id: number; slug: string; name: string; image_key: string | null; price: number };
 
-const RECENT_KEY = 'gadgeteria_recently_viewed';
+const RECENT_KEY = 'ojs_recently_viewed';
 const RECENT_MAX = 12;
 
 export function loadRecent(): RecentItem[] {

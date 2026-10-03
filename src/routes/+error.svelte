@@ -1,13 +1,11 @@
 <script lang="ts">
+	import Seo from '$lib/components/Seo.svelte';
 	import { page } from '$app/stores';
 	import { site } from '$lib/site';
 	import Icon from '$lib/components/Icon.svelte';
 </script>
 
-<svelte:head>
-	<title>{$page.status} — Gadgeteria</title>
-	<meta name="robots" content="noindex" />
-</svelte:head>
+<Seo title={`${$page.status} — ${$page.status === 404 ? 'Page not found' : 'Something went wrong'}`} noindex />
 
 <div class="wrap flex min-h-[60vh] items-center justify-center py-16">
 	<div class="max-w-md text-center">

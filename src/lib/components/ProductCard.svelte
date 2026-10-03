@@ -59,7 +59,7 @@
 	>
 		<img
 			src={getImageUrl(product.image_key)}
-			alt=""
+			alt={product.name}
 			loading={eager ? 'eager' : 'lazy'}
 			decoding="async"
 			class="product-shot absolute inset-0 size-full p-[9%] transition-transform duration-500 ease-out group-hover:scale-[1.06]"
