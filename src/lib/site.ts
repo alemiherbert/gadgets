@@ -8,7 +8,7 @@ export const site = {
 	tagline: 'Find it, love it, buy it.',
 	/** Default meta description (keep under ~155 characters). */
 	description:
-		"Find it, love it, buy it. Shop phones, laptops, audio, power banks and accessories online in Uganda. Kampala delivery and pay on delivery.",
+		"Find it, love it, buy it. Shop phones, laptops, audio, power banks and accessories online in Uganda. Delivery countrywide, pay on delivery.",
 	/** Canonical production origin, no trailing slash. Update if the store moves to a new domain. */
 	url: 'https://ojsonlinestore.com',
 	locale: 'en_UG',
@@ -24,25 +24,23 @@ export const site = {
 	social: [] as string[],
 	/** Twitter/X handle including "@", or null. */
 	twitter: null as string | null,
-	/** Flat Kampala delivery fee in minor units — the checkout action charges this amount. */
-	kampalaDeliveryFee: 550000,
 	/** Default social share image (1200×630), path under /static. */
 	ogImage: '/og-image.png',
 	logo: '/logo.png'
 };
 
-export type PerkIcon = 'cash' | 'truck' | 'map' | 'package';
+export type PerkIcon = 'cash' | 'truck' | 'phone' | 'package';
 
 export const perks: { icon: PerkIcon; title: string; text: string }[] = [
 	{ icon: 'cash', title: 'Pay on delivery', text: 'Pay when your order arrives' },
-	{ icon: 'truck', title: 'Kampala delivery', text: 'Flat UGX 5,500 to your door' },
-	{ icon: 'map', title: 'Countrywide shipping', text: 'Fee confirmed by phone' },
+	{ icon: 'truck', title: 'Delivery across Uganda', text: 'We call to confirm the fee' },
+	{ icon: 'phone', title: 'Order by phone', text: site.phone },
 	{ icon: 'package', title: 'Track your order', text: 'Follow every order in your account' }
 ];
 
 export const announcements = [
 	'Pay on delivery — no card needed',
-	'Flat UGX 5,500 delivery anywhere in Kampala',
+	`Delivery across Uganda — call ${site.phone}`,
 	`${site.tagline} Shop online across Uganda`
 ];
 

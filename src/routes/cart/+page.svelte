@@ -2,7 +2,6 @@
 	import Seo from '$lib/components/Seo.svelte';
 	import { cart } from '$lib/cart.svelte';
 	import { formatPrice } from '$lib/utils';
-	import { site } from '$lib/site';
 	import Icon from '$lib/components/Icon.svelte';
 	import type { PageData } from './$types';
 
@@ -99,10 +98,7 @@
 						</div>
 						<div class="flex justify-between gap-4">
 							<dt class="text-ink-muted">Delivery</dt>
-							<dd class="text-right text-ink-muted">
-								<span class="block font-bold text-ink">{formatPrice(site.kampalaDeliveryFee)} in Kampala</span>
-								<span class="block text-xs">Elsewhere confirmed by phone</span>
-							</dd>
+							<dd class="text-right text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
 						</div>
 					</dl>
 					<div class="my-5 h-px bg-line"></div>

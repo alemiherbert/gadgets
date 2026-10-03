@@ -3,15 +3,11 @@
 	import type { PageData, ActionData } from './$types';
 	import { cart } from '$lib/cart.svelte';
 	import { formatPrice } from '$lib/utils';
-	import { site } from '$lib/site';
 	import { enhance } from '$app/forms';
 	import Icon from '$lib/components/Icon.svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let submitting = $state(false);
-	let cityValue = $state('');
-	let kampalaShipping = $derived(cityValue.trim().toLowerCase() === 'kampala');
-	let total = $derived(cart.total + (kampalaShipping ? site.kampalaDeliveryFee : 0));
 </script>
 
 <Seo title="Checkout" noindex />
@@ -116,7 +112,7 @@
 							</div>
 							<div>
 								<label for="city" class="field-label">City / town</label>
-								<input id="city" name="city" type="text" required minlength="2" autocomplete="address-level2" class="field" placeholder="Kampala" bind:value={cityValue} />
+								<input id="city" name="city" type="text" required minlength="2" autocomplete="address-level2" class="field" placeholder="Kampala" />
 							</div>
 							<div>
 								<label for="state" class="field-label">District</label>
@@ -129,11 +125,7 @@
 						</div>
 						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-semibold text-brand-dark">
 							<Icon name="truck" class="size-5 shrink-0" />
-							{#if kampalaShipping}
-								Kampala delivery: {formatPrice(site.kampalaDeliveryFee)}
-							{:else}
-								Kampala delivery is {formatPrice(site.kampalaDeliveryFee)}. Elsewhere, we'll confirm the fee by phone.
-							{/if}
+							We deliver across Uganda and will call to confirm your delivery fee before dispatch.
 						</p>
 					</section>
 
@@ -182,18 +174,14 @@
 							</div>
 							<div class="flex justify-between">
 								<dt class="text-ink-muted">Delivery</dt>
-								{#if kampalaShipping}
-									<dd class="font-bold tabular-nums">{formatPrice(site.kampalaDeliveryFee)}</dd>
-								{:else}
-									<dd class="text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
-								{/if}
+								<dd class="text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
 							</div>
 						</dl>
 						<div class="mt-4 flex items-baseline justify-between border-t border-line pt-4">
 							<span class="font-bold">Total</span>
 							<span class="text-right">
-								<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(total)}</span>
-								{#if !kampalaShipping}<span class="block text-xs text-ink-muted">+ delivery</span>{/if}
+								<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(cart.total)}</span>
+								<span class="block text-xs text-ink-muted">+ delivery</span>
 							</span>
 						</div>
 
@@ -202,7 +190,7 @@
 								<svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
 								Placing order…
 							{:else}
-								Place order · {formatPrice(total)}
+								Place order · {formatPrice(cart.total)}
 							{/if}
 						</button>
 						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-muted">

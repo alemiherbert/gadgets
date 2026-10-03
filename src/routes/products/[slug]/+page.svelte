@@ -477,8 +477,8 @@
 				<li class="flex items-start gap-3 p-4">
 					<span class="icon-tile bg-brand-soft text-brand"><Icon name="truck" class="size-5" /></span>
 					<span class="text-sm">
-						<span class="block font-bold">Kampala delivery {formatPrice(site.kampalaDeliveryFee)}</span>
-						<span class="block text-ink-muted">Outside Kampala? We confirm the fee by phone.</span>
+						<span class="block font-bold">Delivery across Uganda</span>
+						<span class="block text-ink-muted">We call to confirm the delivery fee before dispatch.</span>
 					</span>
 				</li>
 				<li class="flex items-start gap-3 p-4">

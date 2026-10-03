@@ -403,8 +403,8 @@
 				accessories in Uganda. Browse by category, compare prices in Ugandan shillings and order in a few taps.
 			</p>
 			<p>
-				You pay when your order arrives — no card needed. Delivery anywhere in Kampala is a flat UGX 5,500, and for other
-				towns we confirm the delivery fee with you by phone before dispatch.
+				You pay when your order arrives — no card needed. We deliver across Uganda and call you to confirm the delivery
+				fee before dispatch. Prefer to talk? Call us on {site.phone}.
 			</p>
 			{#if data.categories.length > 0}
 				<p class="flex flex-wrap gap-2 pt-2">

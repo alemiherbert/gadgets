@@ -286,7 +286,7 @@ const seoTitle = $derived.by(() => {
 
 const seoDescription = $derived.by(() => {
 	const count = `${data.total} product${data.total === 1 ? '' : 's'}`;
-	const perks = 'Pay on delivery; flat UGX 5,500 delivery in Kampala.';
+	const perks = 'Delivery across Uganda, pay on delivery.';
 	if (data.activeSearch) return `${count} matching “${data.activeSearch}” at ${site.name}. ${perks}`;
 	if (activeSubcategoryObj) return `Shop ${activeSubcategoryObj.name} online in Uganda — ${count} with prices in UGX. ${perks}`;
 	if (activeCategoryObj) {

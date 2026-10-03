@@ -3,7 +3,6 @@
 	import { cart } from '$lib/cart.svelte';
 	import { ui } from '$lib/ui.svelte';
 	import { formatPrice } from '$lib/utils';
-	import { site } from '$lib/site';
 	import type { Category } from '$lib/types';
 	import Icon from './Icon.svelte';
 
@@ -127,7 +126,7 @@
 					</div>
 					<p class="mt-1 flex items-center gap-1.5 text-xs text-ink-muted">
 						<Icon name="truck" class="size-4 text-brand" />
-						Kampala delivery {formatPrice(site.kampalaDeliveryFee)} · Pay on delivery
+						Delivery fee confirmed by phone · Pay on delivery
 					</p>
 					<a href="/checkout" class="cta cta-brand cta-lg mt-4 w-full">
 						Checkout
