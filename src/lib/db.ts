@@ -529,6 +529,11 @@ const { error } = await db.from('admins').update({ password_hash: passwordHash }
 if (error) throw error;
 }
 
+export async function updateAdminEmail(db: SupabaseClient, adminId: number, email: string): Promise<void> {
+const { error } = await db.from('admins').update({ email }).eq('id', adminId);
+if (error) throw error;
+}
+
 export async function deleteAllAdminSessions(db: SupabaseClient, adminId: number): Promise<void> {
 const { error } = await db.from('admin_sessions').delete().eq('admin_id', adminId);
 if (error) throw error;

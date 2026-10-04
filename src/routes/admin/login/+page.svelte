@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
+import AuthShell from '$lib/components/admin/AuthShell.svelte';
 import { page } from '$app/state';
 import type { ActionData } from './$types';
 
@@ -11,17 +12,11 @@ let submitting = $state(false);
 <title>Admin Login — OJ's Online Store</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-<div class="w-full max-w-sm">
-<div class="text-center mb-8">
-<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 mb-4">
-<span class="text-lg font-bold text-white">G</span>
-</div>
-<h1 class="text-xl font-bold tracking-tight text-zinc-900">Admin Login</h1>
-<p class="text-sm text-zinc-500 mt-1">Sign in to the admin panel</p>
-</div>
+<AuthShell title="Sign in" subtitle="Manage orders, products and customers">
 
-{#if page.url.searchParams.get('reset') === 'success' && !form?.error}
+{#if page.url.searchParams.get('setup') === 'done' && !form?.error}
+<div class="alert alert-success mb-6">Admin account created. Sign in to continue.</div>
+{:else if page.url.searchParams.get('reset') === 'success' && !form?.error}
 <div class="alert alert-success mb-6">Password updated. Sign in with your new password.</div>
 {/if}
 
@@ -33,12 +28,12 @@ let submitting = $state(false);
 <div class="card p-6 space-y-4">
 <div class="form-group">
 <label for="email" class="label">Email</label>
-<input id="email" name="email" type="email" required value={form?.email ?? ''} class="input" placeholder="admin@store.com" />
+<input id="email" name="email" type="email" required value={form?.email ?? ''} class="input" placeholder="support@ojsonlinestore.com" />
 </div>
 <div class="form-group">
 <div class="flex items-center justify-between">
 <label for="password" class="label">Password</label>
-<a href="/admin/forgot-password" class="text-xs font-semibold text-zinc-500 hover:text-zinc-900 hover:underline">Forgot password?</a>
+<a href="/admin/forgot-password" class="text-xs font-semibold text-ink-muted hover:text-brand">Forgot password?</a>
 </div>
 <input id="password" name="password" type="password" required class="input" placeholder="••••••••" />
 </div>
@@ -47,5 +42,4 @@ let submitting = $state(false);
 </button>
 </div>
 </form>
-</div>
-</div>
+</AuthShell>

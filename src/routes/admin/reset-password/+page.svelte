@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
+import AuthShell from '$lib/components/admin/AuthShell.svelte';
 import { ADMIN_PASSWORD_MIN, ADMIN_PASSWORD_MAX } from '$lib/admin-reset';
 import type { ActionData, PageData } from './$types';
 
@@ -12,20 +13,10 @@ let submitting = $state(false);
 <meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-<div class="w-full max-w-sm">
-<div class="text-center mb-8">
-<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 mb-4">
-<span class="text-lg font-bold text-white">G</span>
-</div>
-{#if data.invalid}
-<h1 class="text-xl font-bold tracking-tight text-zinc-900">Link expired</h1>
-<p class="text-sm text-zinc-500 mt-1">This reset link is invalid, expired or already used.</p>
-{:else}
-<h1 class="text-xl font-bold tracking-tight text-zinc-900">Set a new password</h1>
-<p class="text-sm text-zinc-500 mt-1">For <span class="font-semibold text-zinc-900">{data.email}</span></p>
-{/if}
-</div>
+<AuthShell
+	title={data.invalid ? 'Link expired' : 'Set a new password'}
+	subtitle={data.invalid ? 'This reset link is invalid, expired or already used.' : `For ${data.email}`}
+>
 
 {#if data.invalid}
 <a href="/admin/forgot-password" class="btn btn-primary w-full h-10 font-semibold">Request a new link</a>
@@ -55,5 +46,4 @@ let submitting = $state(false);
 <p class="mt-6 text-center text-sm text-zinc-500">
 <a href="/admin/login" class="font-semibold text-zinc-900 hover:underline">Back to sign in</a>
 </p>
-</div>
-</div>
+</AuthShell>

@@ -1,43 +1,41 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
-import type { ActionData } from './$types';
+import AuthShell from '$lib/components/admin/AuthShell.svelte';
+import { ADMIN_PASSWORD_MIN, ADMIN_PASSWORD_MAX } from '$lib/admin-reset';
+import type { ActionData, PageData } from './$types';
 
-let { form }: { form: ActionData } = $props();
+let { data, form }: { data: PageData; form: ActionData } = $props();
 let submitting = $state(false);
 </script>
 
 <svelte:head>
 <title>Admin Setup — OJ's Online Store</title>
+<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-<div class="w-full max-w-sm">
-<div class="text-center mb-8">
-<div class="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-900 mb-4">
-<span class="text-lg font-bold text-white">G</span>
-</div>
-<h1 class="text-xl font-bold tracking-tight text-zinc-900">Initial Setup</h1>
-<p class="text-sm text-zinc-500 mt-1">Create the first admin account</p>
-</div>
-
+<AuthShell title="Set up your admin" subtitle="Choose a password for the store's admin account">
 {#if form?.error}
 <div class="alert alert-error mb-6">{form.error}</div>
 {/if}
 
 <form method="POST" use:enhance={() => { submitting = true; return async ({ update }) => { submitting = false; await update(); }; }}>
 <div class="card p-6 space-y-4">
-<div class="rounded-lg bg-zinc-50 border border-zinc-200 p-4">
-<p class="text-sm text-zinc-600">This will create a default admin account:</p>
-<div class="mt-2 space-y-1 text-sm">
-<p class="text-zinc-900 font-medium">Email: admin@store.com</p>
-<p class="text-zinc-900 font-medium">Password: admin123</p>
+<div class="form-group">
+<span class="label">Admin email</span>
+<p class="flex h-10 items-center rounded-lg bg-surface px-3 text-sm font-semibold">{data.email}</p>
+<p class="mt-1.5 text-xs text-ink-muted">Order alerts and password resets go here. You can change it later under Account.</p>
 </div>
-<p class="text-xs text-zinc-500 mt-2">Change these credentials after first login.</p>
+<div class="form-group">
+<label for="password" class="label">Password</label>
+<input id="password" name="password" type="password" required minlength={ADMIN_PASSWORD_MIN} maxlength={ADMIN_PASSWORD_MAX} autocomplete="new-password" class="input" placeholder="At least {ADMIN_PASSWORD_MIN} characters" />
+</div>
+<div class="form-group">
+<label for="confirmPassword" class="label">Confirm password</label>
+<input id="confirmPassword" name="confirmPassword" type="password" required minlength={ADMIN_PASSWORD_MIN} maxlength={ADMIN_PASSWORD_MAX} autocomplete="new-password" class="input" placeholder="Repeat the password" />
 </div>
 <button type="submit" disabled={submitting} class="btn btn-primary w-full h-10 font-semibold">
-{submitting ? 'Creating…' : 'Create Admin Account'}
+{submitting ? 'Creating…' : 'Create admin account'}
 </button>
 </div>
 </form>
-</div>
-</div>
+</AuthShell>

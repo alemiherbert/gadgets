@@ -5,10 +5,11 @@ import { site } from './site';
 
 const FROM_EMAIL = 'noreply@ojsonlinestore.com';
 const FROM_NAME = "OJ's Online Store";
-const ADMIN_EMAIL = 'admin@store.com';
+// New-order alerts and admin mail go to the store's support inbox
+const ADMIN_EMAIL = site.email;
 
 function formatPrice(cents: number): string {
-	return `$${(cents / 100).toFixed(2)}`;
+	return `UGX ${Math.round(cents / 100).toLocaleString('en-UG')}`;
 }
 
 function buildItemsTable(items: OrderItemWithProduct[]): string {

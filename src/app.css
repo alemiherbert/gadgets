@@ -1081,3 +1081,27 @@ th {
 .text-success {
   color: var(--color-success);
 }
+
+/* ═══════════════════════════════════════════════════════
+   ADMIN THEME
+   Admin pages were built on Tailwind's zinc palette and tiny radii.
+   Inside .admin-ui those map onto the store's neutrals and radius scale,
+   so every admin screen shares the storefront's look.
+   ═══════════════════════════════════════════════════════ */
+
+.admin-ui {
+  --color-zinc-50: #f8f9fa;
+  --color-zinc-100: var(--color-surface);
+  --color-zinc-200: var(--color-line);
+  --color-zinc-300: var(--color-line-strong);
+  --color-zinc-400: var(--color-ink-faint);
+  --color-zinc-500: var(--color-ink-subtle);
+  --color-zinc-600: var(--color-ink-muted);
+  --color-zinc-700: #3a3f45;
+  --color-zinc-800: var(--color-ink-soft);
+  --color-zinc-900: var(--color-ink);
+  --color-zinc-950: var(--color-ink);
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+}
