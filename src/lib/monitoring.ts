@@ -1,7 +1,7 @@
 // Security monitoring and logging utilities
 
 export interface SecurityEvent {
-	type: 'failed_login' | 'rate_limit' | 'idor_attempt' | 'unauthorized_access' | 'suspicious_activity' | 'admin_action';
+	type: 'failed_login' | 'rate_limit' | 'idor_attempt' | 'unauthorized_access' | 'suspicious_activity' | 'admin_action' | 'password_reset';
 	severity: 'low' | 'medium' | 'high' | 'critical';
 	userId?: number;
 	userType?: 'customer' | 'admin' | 'anonymous';

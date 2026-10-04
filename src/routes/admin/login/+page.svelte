@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
+import { page } from '$app/state';
 import type { ActionData } from './$types';
 
 let { form }: { form: ActionData } = $props();
@@ -20,6 +21,10 @@ let submitting = $state(false);
 <p class="text-sm text-zinc-500 mt-1">Sign in to the admin panel</p>
 </div>
 
+{#if page.url.searchParams.get('reset') === 'success' && !form?.error}
+<div class="alert alert-success mb-6">Password updated. Sign in with your new password.</div>
+{/if}
+
 {#if form?.error}
 <div class="alert alert-error mb-6">{form.error}</div>
 {/if}
@@ -31,7 +36,10 @@ let submitting = $state(false);
 <input id="email" name="email" type="email" required value={form?.email ?? ''} class="input" placeholder="admin@store.com" />
 </div>
 <div class="form-group">
+<div class="flex items-center justify-between">
 <label for="password" class="label">Password</label>
+<a href="/admin/forgot-password" class="text-xs font-semibold text-zinc-500 hover:text-zinc-900 hover:underline">Forgot password?</a>
+</div>
 <input id="password" name="password" type="password" required class="input" placeholder="••••••••" />
 </div>
 <button type="submit" disabled={submitting} class="btn btn-primary w-full h-10 font-semibold">

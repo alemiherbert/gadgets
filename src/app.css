@@ -82,6 +82,7 @@
   --animate-drawer-left: drawer-left 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   --animate-fade-in: fade-in 0.2s ease both;
   --animate-pop: pop 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.4) both;
+  --animate-toast-down: toast-down 0.35s cubic-bezier(0.2, 0.8, 0.2, 1.2) both;
 }
 
 @keyframes fade-up {
@@ -102,6 +103,11 @@
 @keyframes drawer-left {
   from { transform: translateX(-100%); }
   to { transform: none; }
+}
+
+@keyframes toast-down {
+  from { opacity: 0; transform: translateY(-120%); }
+  to { opacity: 1; transform: none; }
 }
 
 @keyframes pop {

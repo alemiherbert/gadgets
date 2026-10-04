@@ -41,7 +41,21 @@ export async function verifyPassword(password: string, stored: string): Promise<
 		HASH_LENGTH * 8
 	);
 	const hashHex = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-	return hashHex === storedHashHex;
+	return timingSafeEqual(hashHex, storedHashHex);
+}
+
+/** Constant-time string comparison, so response timing doesn't reveal how much of a secret matched. */
+export function timingSafeEqual(a: string, b: string): boolean {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	return diff === 0;
+}
+
+/** SHA-256 hex digest. Reset tokens are stored hashed so a leaked table can't be replayed. */
+export async function hashToken(token: string): Promise<string> {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token));
+	return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export function generateSessionId(): string {

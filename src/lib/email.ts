@@ -151,6 +151,41 @@ export async function sendPasswordResetEmail(
 	await sendEmail(customerEmail, "Reset your password — OJ's Online Store", html);
 }
 
+export async function sendAdminPasswordResetEmail(
+	adminEmail: string,
+	resetUrl: string,
+	ipAddress: string,
+	minutes: number
+): Promise<void> {
+	const html = `
+		<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+			<h2 style="color:#333;text-align:center">Admin password reset</h2>
+			<p>Someone asked to reset the password for the OJ's Online Store admin account <strong>${adminEmail}</strong>.</p>
+			<div style="text-align:center;margin:32px 0">
+				<a href="${resetUrl}" style="background:#007c9e;color:#fff;padding:12px 32px;border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Set a new password</a>
+			</div>
+			<p style="color:#666;font-size:13px">This link works once and expires in ${minutes} minutes. The request came from IP address ${ipAddress}.</p>
+			<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px;margin:24px 0;border-radius:4px">
+				<p style="margin:0;color:#856404">If you didn't ask for this, ignore this email — your password stays the same. Never forward this link to anyone.</p>
+			</div>
+		</div>
+	`;
+	await sendEmail(adminEmail, "Admin password reset — OJ's Online Store", html);
+}
+
+export async function sendAdminPasswordChangedEmail(adminEmail: string, ipAddress: string): Promise<void> {
+	const html = `
+		<div style="font-family:sans-serif;max-width:600px;margin:0 auto">
+			<h2 style="color:#333;text-align:center">Your admin password was changed</h2>
+			<p>The password for the OJ's Online Store admin account <strong>${adminEmail}</strong> was just reset from IP address ${ipAddress}. All admin sessions have been signed out.</p>
+			<div style="background:#f8d7da;border-left:4px solid #e0122b;padding:12px;margin:24px 0;border-radius:4px">
+				<p style="margin:0;color:#721c24">If this wasn't you, reset the password again immediately and check the Security page in the admin panel.</p>
+			</div>
+		</div>
+	`;
+	await sendEmail(adminEmail, "Your admin password was changed — OJ's Online Store", html);
+}
+
 export async function sendWelcomeEmail(
 	customerEmail: string,
 	customerName: string

@@ -524,6 +524,59 @@ password_hash: admin.password_hash
 if (error) throw error;
 }
 
+export async function updateAdminPassword(db: SupabaseClient, adminId: number, passwordHash: string): Promise<void> {
+const { error } = await db.from('admins').update({ password_hash: passwordHash }).eq('id', adminId);
+if (error) throw error;
+}
+
+export async function deleteAllAdminSessions(db: SupabaseClient, adminId: number): Promise<void> {
+const { error } = await db.from('admin_sessions').delete().eq('admin_id', adminId);
+if (error) throw error;
+}
+
+// ─── Admin Password Reset Tokens ────────────────────────
+// Tokens are stored as SHA-256 hashes; the raw token only ever exists in the email.
+
+export async function createAdminResetToken(db: SupabaseClient, token: { token_hash: string; admin_id: number; expires_at: string; requested_ip: string }): Promise<void> {
+// Only the most recent link is valid
+await db.from('admin_password_reset_tokens').delete().eq('admin_id', token.admin_id);
+const { error } = await db.from('admin_password_reset_tokens').insert(token);
+if (error) throw error;
+}
+
+export async function getAdminResetToken(db: SupabaseClient, tokenHash: string): Promise<{ admin_id: number; admin_email: string } | null> {
+const { data, error } = await db.from('admin_password_reset_tokens')
+.select('admin_id, admins!inner(email)')
+.eq('token_hash', tokenHash)
+.is('used_at', null)
+.gt('expires_at', new Date().toISOString())
+.maybeSingle();
+if (error) throw error;
+if (!data) return null;
+return { admin_id: data.admin_id, admin_email: (data.admins as any).email };
+}
+
+/**
+ * Marks a token used and returns its admin id. The `used_at is null` guard makes this
+ * atomic: of two concurrent requests with the same token, only one gets a row back.
+ */
+export async function consumeAdminResetToken(db: SupabaseClient, tokenHash: string): Promise<number | null> {
+const { data, error } = await db.from('admin_password_reset_tokens')
+.update({ used_at: new Date().toISOString() })
+.eq('token_hash', tokenHash)
+.is('used_at', null)
+.gt('expires_at', new Date().toISOString())
+.select('admin_id')
+.maybeSingle();
+if (error) throw error;
+return data?.admin_id ?? null;
+}
+
+export async function deleteAdminResetTokens(db: SupabaseClient, adminId: number): Promise<void> {
+const { error } = await db.from('admin_password_reset_tokens').delete().eq('admin_id', adminId);
+if (error) throw error;
+}
+
 // ─── Categories ──────────────────────────────────────────
 export async function getAllCategories(db: SupabaseClient): Promise<Category[]> {
 const { data, error } = await db.rpc('get_all_categories');

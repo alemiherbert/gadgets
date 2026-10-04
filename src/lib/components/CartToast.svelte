@@ -4,10 +4,10 @@
 	import Icon from './Icon.svelte';
 </script>
 
-<div class="wrap pointer-events-none fixed inset-x-0 top-[6.5rem] z-[60] flex justify-center sm:top-28 sm:justify-end lg:top-36" aria-live="polite">
+<div class="wrap pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top))] z-[60] flex justify-center" aria-live="polite">
 	{#if ui.toast}
 		{#key ui.toast.id}
-			<div class="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-ink p-3 pl-4 text-white shadow-float animate-fade-in" role="status">
+			<div class="pointer-events-auto flex w-full max-w-sm items-center gap-3 rounded-2xl bg-ink p-3 pl-4 text-white shadow-float animate-toast-down motion-reduce:animate-fade-in" role="status">
 				<span class="grid size-8 shrink-0 place-items-center rounded-full bg-ok animate-pop">
 					<Icon name="check" class="size-4" stroke={3} />
 				</span>
