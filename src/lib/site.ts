@@ -19,7 +19,7 @@ export const site = {
 	phone: '+256 706 512 313',
 	phoneHref: 'tel:+256706512313',
 	/** International format without "+", e.g. "256700000000". Leave null to hide WhatsApp buttons. */
-	whatsapp: null as string | null,
+	whatsapp: '256706512313' as string | null,
 	/** Social profile URLs, used for links and structured data. Leave empty until they exist. */
 	social: [] as string[],
 	/** Twitter/X handle including "@", or null. */
