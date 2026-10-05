@@ -59,7 +59,7 @@
 			class="field"
 			placeholder="0706 512 313"
 		/>
-		<p class="field-hint">You'll sign in with this. We use it to confirm orders on WhatsApp.</p>
+		<p class="field-hint">You'll sign in with this, and we'll use it to confirm your orders.</p>
 	</div>
 
 	<div>

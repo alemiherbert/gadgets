@@ -65,7 +65,7 @@
 {#if whatsapp}
 	<div class="mt-6 rounded-2xl bg-surface p-4 text-sm">
 		<p class="font-semibold">Signed up with only a phone number?</p>
-		<p class="mt-1 text-ink-muted">Message us on WhatsApp from that number and we'll reset it for you.</p>
+		<p class="mt-1 text-ink-muted">Message us from that number and we'll reset it for you.</p>
 		<a href={whatsapp} target="_blank" rel="noopener" class="cta cta-sm mt-3 cta-whatsapp">
 			<Icon name="whatsapp" class="size-4" /> Reset on WhatsApp
 		</a>

@@ -119,9 +119,9 @@
 						<Icon name="truck" class="size-4 text-brand" />
 						No account needed · Pay on delivery
 					</p>
-					<a href="/checkout" class="cta cta-lg mt-4 w-full cta-whatsapp">
-						<Icon name="whatsapp" class="size-5" />
-						Checkout on WhatsApp
+					<a href="/checkout" class="cta cta-brand cta-lg mt-4 w-full">
+						Checkout
+						<Icon name="arrow-right" class="size-4" stroke={2.25} />
 					</a>
 					<a href="/cart" class="mt-2 flex h-10 w-full items-center justify-center text-sm font-bold text-ink hover:text-brand">View full cart</a>
 				</div>

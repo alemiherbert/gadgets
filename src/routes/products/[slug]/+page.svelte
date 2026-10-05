@@ -12,7 +12,7 @@
 	import { cart } from '$lib/cart.svelte';
 	import { wishlist } from '$lib/wishlist.svelte';
 	import { ui } from '$lib/ui.svelte';
-	import { site, whatsappLink, absoluteUrl } from '$lib/site';
+	import { site, absoluteUrl } from '$lib/site';
 	import { recordRecent, type RecentItem } from '$lib/recent';
 	import { enhance } from '$app/forms';
 	import { afterNavigate, goto } from '$app/navigation';
@@ -64,9 +64,6 @@
 	);
 
 	let isWishlisted = $derived(data.customer ? data.isWishlisted : wishlist.isInWishlist(data.product.id));
-	let whatsapp = $derived(
-		whatsappLink(`Hi ${site.name}! I have a question about: ${data.product.name} (${formatPrice(data.product.price)}) — ${site.url}/products/${data.product.slug}`)
-	);
 
 	// ── Recently viewed + reset per product ──
 	let recentlyViewed = $state<RecentItem[]>([]);
@@ -232,16 +229,18 @@
 	<meta property="product:availability" content={data.product.stock > 0 ? 'in stock' : 'out of stock'} />
 </Seo>
 
-{#snippet wishlistButton(classes: string)}
+{#snippet wishlistButton(classes: string, labelled = false)}
 	{#if data.customer}
 		<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'} use:enhance class="contents">
 			<button type="submit" class={classes} aria-label={data.isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWishlisted}>
-				<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="size-5 {isWishlisted ? 'text-deal' : ''}" />
+				<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="{labelled ? 'size-4' : 'size-5'} {isWishlisted ? 'text-deal' : ''}" />
+				{#if labelled}{isWishlisted ? 'Saved' : 'Save'}{/if}
 			</button>
 		</form>
 	{:else}
 		<button type="button" onclick={toggleLocalWishlist} class={classes} aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWishlisted}>
-			<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="size-5 {isWishlisted ? 'text-deal' : ''}" />
+			<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="{labelled ? 'size-4' : 'size-5'} {isWishlisted ? 'text-deal' : ''}" />
+			{#if labelled}{isWishlisted ? 'Saved' : 'Save'}{/if}
 		</button>
 	{/if}
 {/snippet}
@@ -419,17 +418,17 @@
 									<Icon name="plus" class="size-4" stroke={2.5} />
 								</button>
 							</div>
-							<button onclick={() => addToCart()} class="cta cta-brand cta-lg flex-1 px-4">
-								<Icon name="bag" class="size-5" stroke={2} />
-								Add to cart
+							<button onclick={buyNow} class="cta cta-brand cta-lg flex-1 px-4">
+								Buy now
 							</button>
 						</div>
-						<div class="mt-2.5 flex gap-2.5">
-							<button onclick={buyNow} class="cta cta-lg flex-1 cta-whatsapp">
-								<Icon name="whatsapp" class="size-5" />
-								Buy on WhatsApp
+						<div class="mt-1.5 flex items-center justify-center gap-1">
+							<button onclick={() => addToCart()} class="flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-ink-muted hover:bg-surface hover:text-ink">
+								<Icon name="bag" class="size-4" stroke={2} />
+								Add to cart
 							</button>
-							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
+							<span class="h-4 w-px bg-line" aria-hidden="true"></span>
+							{@render wishlistButton('flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-ink-muted hover:bg-surface hover:text-ink', true)}
 						</div>
 						{#if existingCartQty > 0}
 							<p class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ok-ink">
@@ -442,9 +441,9 @@
 							You have all {existingCartQty} available in your cart.
 						</div>
 						<div class="mt-2.5 flex gap-2.5" bind:this={mainCta}>
-							<a href="/checkout" class="cta cta-lg flex-1 cta-whatsapp">
-								<Icon name="whatsapp" class="size-5" />
-								Checkout on WhatsApp
+							<a href="/checkout" class="cta cta-brand cta-lg flex-1">
+								Checkout
+								<Icon name="arrow-right" class="size-4" stroke={2.25} />
 							</a>
 							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
@@ -457,12 +456,6 @@
 					<p class="mt-2 text-xs text-ink-muted">Save it to your wishlist and check back soon.</p>
 				{/if}
 
-				{#if whatsapp}
-					<a href={whatsapp} target="_blank" rel="noopener" class="mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-whatsapp-ink hover:underline">
-						<Icon name="whatsapp" class="size-4" />
-						Questions? Ask us on WhatsApp
-					</a>
-				{/if}
 			</div>
 
 			<!-- Reassurance -->
@@ -478,14 +471,7 @@
 					<span class="icon-tile bg-brand-soft text-brand"><Icon name="truck" class="size-5" /></span>
 					<span class="text-sm">
 						<span class="block font-bold">Delivery across Uganda</span>
-						<span class="block text-ink-muted">We confirm the delivery fee with you on WhatsApp.</span>
-					</span>
-				</li>
-				<li class="flex items-start gap-3 p-4">
-					<span class="icon-tile bg-ok-soft text-whatsapp-ink"><Icon name="whatsapp" class="size-5" /></span>
-					<span class="text-sm">
-						<span class="block font-bold">Order on WhatsApp</span>
-						<span class="block text-ink-muted">No account needed. We confirm everything in the chat.</span>
+						<span class="block text-ink-muted">We confirm the delivery fee with you before dispatch.</span>
 					</span>
 				</li>
 			</ul>
@@ -717,10 +703,7 @@
 				<p class="text-base font-extrabold tabular-nums {discount > 0 ? 'text-deal' : ''}">{formatPrice(data.product.price)}</p>
 			</div>
 			{#if maxAddable > 0}
-				<button onclick={() => addToCart()} class="cta cta-brand shrink-0 px-5">
-					<Icon name="bag" class="size-4" stroke={2} />
-					Add to cart
-				</button>
+				<button onclick={buyNow} class="cta cta-brand shrink-0 px-6">Buy now</button>
 			{:else}
 				<a href="/checkout" class="cta cta-brand shrink-0 px-5">Checkout</a>
 			{/if}

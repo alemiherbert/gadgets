@@ -29,18 +29,18 @@ export const site = {
 	logo: '/logo.png'
 };
 
-export type PerkIcon = 'cash' | 'truck' | 'whatsapp' | 'package';
+export type PerkIcon = 'cash' | 'truck' | 'phone' | 'package';
 
 export const perks: { icon: PerkIcon; title: string; text: string }[] = [
 	{ icon: 'cash', title: 'Pay on delivery', text: 'Pay when your order arrives' },
-	{ icon: 'whatsapp', title: 'Order on WhatsApp', text: site.phone },
-	{ icon: 'truck', title: 'Delivery across Uganda', text: 'Fee confirmed on WhatsApp' },
+	{ icon: 'truck', title: 'Delivery across Uganda', text: 'Fee confirmed before dispatch' },
+	{ icon: 'phone', title: 'Talk to us', text: site.phone },
 	{ icon: 'package', title: 'No account needed', text: 'Check out as a guest' }
 ];
 
 export const announcements = [
 	'Pay on delivery — no card needed',
-	`Order on WhatsApp — ${site.phone}`,
+	`No account needed — check out as a guest`,
 	`${site.tagline} Shop online across Uganda`
 ];
 

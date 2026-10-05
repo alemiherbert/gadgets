@@ -27,7 +27,7 @@
 		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
 		<li class="flex items-center gap-2 text-ink-subtle">
 			<span class="grid size-6 place-items-center rounded-full bg-surface">3</span>
-			Send on WhatsApp
+			Confirm
 		</li>
 	</ol>
 
@@ -111,7 +111,7 @@
 						</div>
 						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-semibold text-brand-dark">
 							<Icon name="truck" class="size-5 shrink-0" />
-							We deliver across Uganda and confirm the delivery fee with you on WhatsApp.
+							We deliver across Uganda and confirm the delivery fee with you before dispatch.
 						</p>
 					</section>
 
@@ -160,7 +160,7 @@
 							</div>
 							<div class="flex justify-between">
 								<dt class="text-ink-muted">Delivery</dt>
-								<dd class="text-xs font-semibold text-warn-ink">Confirmed on WhatsApp</dd>
+								<dd class="text-xs font-semibold text-warn-ink">Confirmed before dispatch</dd>
 							</div>
 						</dl>
 						<div class="mt-4 flex items-baseline justify-between border-t border-line pt-4">
@@ -182,7 +182,7 @@
 						</button>
 						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-muted">
 							<Icon name="shield" class="size-4 text-ok" />
-							We save your order, then open WhatsApp to send it. Pay on delivery.
+							Nothing to pay now — you pay on delivery
 						</p>
 					</div>
 				</aside>

@@ -15,7 +15,7 @@
 
 <div class="mb-8">
 	<h1 class="h-page">Welcome back</h1>
-	<p class="mt-2 text-sm text-ink-muted">Optional — you can always check out as a guest on WhatsApp</p>
+	<p class="mt-2 text-sm text-ink-muted">Optional — you can always check out as a guest</p>
 </div>
 
 {#if resetSuccess}

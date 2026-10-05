@@ -30,7 +30,7 @@
 	const firstName = $derived(data.customer?.name?.split(' ')[0] ?? '');
 	const activeCategory = $derived(page.url.pathname === '/shop' ? page.url.searchParams.get('category') : null);
 	const whatsapp = whatsappLink(`Hi ${site.name}, I would like to place an order.`);
-	// Product pages have a sticky add-to-cart bar on mobile; lift the WhatsApp button above it.
+	// Product pages have their own buy bar, so the chat bubble stays off them.
 	const isProductRoute = $derived(page.url.pathname.startsWith('/products/'));
 
 	// ── Announcement rotation (mobile shows one at a time) ──
@@ -368,14 +368,14 @@
 	<CartDrawer {categories} />
 	<CartToast />
 
-	{#if whatsapp && !hideChrome}
+	{#if whatsapp && !hideChrome && !isProductRoute}
 		<a
 			href={whatsapp}
 			target="_blank"
 			rel="noopener"
 			aria-label="Chat with us on WhatsApp"
 			title="Chat with us on WhatsApp"
-			class="fixed right-4 z-40 grid size-14 place-items-center rounded-full bg-whatsapp text-white shadow-float transition-transform hover:scale-105 focus-visible:scale-105 sm:right-6 {isProductRoute ? 'bottom-24 lg:bottom-6' : 'bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6'}"
+			class="fixed right-4 z-40 grid size-14 place-items-center rounded-full bg-whatsapp text-white shadow-float transition-transform hover:scale-105 focus-visible:scale-105 bottom-[max(1rem,env(safe-area-inset-bottom))] sm:right-6 sm:bottom-6"
 		>
 			<Icon name="whatsapp" class="size-7" />
 		</a>

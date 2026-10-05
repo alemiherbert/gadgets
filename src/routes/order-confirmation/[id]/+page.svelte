@@ -39,7 +39,7 @@
 		</div>
 		<h1 class="mt-6 h-page">Thanks, {firstName}! One last step</h1>
 		<p class="mt-2 text-ink-muted">
-			Order <span class="font-bold text-ink">#{data.order.id}</span> is saved. Send it to us on WhatsApp and we'll confirm the delivery fee.
+			Order <span class="font-bold text-ink">#{data.order.id}</span> is saved. Send it to us and we'll confirm the delivery fee.
 		</p>
 		{#if data.whatsappUrl}
 			<a href={data.whatsappUrl} target="_blank" rel="noopener" class="cta cta-lg mt-6 w-full cta-whatsapp sm:w-auto sm:px-10">
@@ -57,7 +57,7 @@
 		</li>
 		<li class="rounded-2xl bg-surface p-4">
 			<span class="grid size-8 place-items-center rounded-full bg-white text-whatsapp-ink"><Icon name="whatsapp" class="size-4" /></span>
-			<p class="mt-3 text-sm font-bold">Send it on WhatsApp</p>
+			<p class="mt-3 text-sm font-bold">Send it to us</p>
 			<p class="text-xs text-ink-muted">We reply with your delivery fee and time.</p>
 		</li>
 		<li class="rounded-2xl bg-surface p-4">
