@@ -140,6 +140,7 @@ export interface OrderItem {
 
 export interface OrderItemWithProduct extends OrderItem {
 	product_name: string;
+	product_slug?: string;
 	product_image_key: string | null;
 }
 

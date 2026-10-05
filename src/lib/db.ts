@@ -442,7 +442,7 @@ return single<Order>(db.from('orders').select('*').eq('id', id));
 
 export async function getOrderItems(db: SupabaseClient, orderId: number): Promise<OrderItemWithProduct[]> {
 const { data, error } = await db.from('order_items')
-.select('*, products!inner(name, image_key)')
+.select('*, products!inner(name, slug, image_key)')
 .eq('order_id', orderId);
 if (error) throw error;
 return (data ?? []).map((row: any) => ({
@@ -452,6 +452,7 @@ product_id: row.product_id,
 quantity: row.quantity,
 price_at_purchase: row.price_at_purchase,
 product_name: row.products.name,
+product_slug: row.products.slug,
 product_image_key: row.products.image_key
 }));
 }

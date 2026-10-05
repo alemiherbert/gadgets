@@ -2,7 +2,7 @@ import { site, whatsappLink } from './site';
 import { formatPrice, formatAddress } from './utils';
 
 type MessageOrder = { id: number; name: string; phone: string; total: number; notes?: string; shipping_address: string };
-type MessageItem = { product_name: string; quantity: number; price_at_purchase: number };
+type MessageItem = { product_name: string; product_slug?: string; quantity: number; price_at_purchase: number };
 
 /** The message a customer sends us on WhatsApp after checking out. Plain text: WhatsApp renders *bold*. */
 export function orderMessage(order: MessageOrder, items: MessageItem[]): string {
@@ -17,7 +17,12 @@ export function orderMessage(order: MessageOrder, items: MessageItem[]): string 
 		`Hi ${site.name}, I'd like to place this order:`,
 		`*Order #${order.id}*`,
 		'',
-		...items.map((i) => `• ${i.quantity} × ${i.product_name} — ${formatPrice(i.price_at_purchase * i.quantity)}`),
+		// Each item links to its product page. WhatsApp turns the first link into a preview
+		// card with that product's photo (the page's og:image); a pre-filled message can't attach images.
+		...items.flatMap((i) => [
+			`• ${i.quantity} × ${i.product_name} — ${formatPrice(i.price_at_purchase * i.quantity)}`,
+			...(i.product_slug ? [`  ${site.url}/products/${i.product_slug}`] : [])
+		]),
 		'',
 		`*Subtotal: ${formatPrice(order.total)}* (+ delivery)`,
 		'',
