@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getCustomerByEmail, createSession } from '$lib/db';
+import { getCustomerByEmail, getCustomerByPhone, createSession } from '$lib/db';
 import { verifyPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
-import { isValidEmail } from '$lib/utils';
+import { isValidEmail, normalizeUgPhone } from '$lib/utils';
 import { logSecurityEvent, getClientIP, getUserAgent } from '$lib/monitoring';
 import { sendLoginNotification } from '$lib/email';
 
@@ -21,18 +21,28 @@ export const actions: Actions = {
 		const formData = await request.formData();
 		const redirectTo = url.searchParams.get('redirectTo');
 
-		const email = (formData.get('email') as string)?.trim().toLowerCase();
+		// One box: an email address or a Ugandan phone number
+		const login = String(formData.get('login') ?? '').trim();
 		const password = formData.get('password') as string;
+		const email = login;
 
-		if (!email || !password) {
-			return fail(400, { error: 'Email and password are required.', email });
+		if (!login || !password) {
+			return fail(400, { error: 'Enter your email or phone number and your password.', email });
 		}
 
-		if (!isValidEmail(email)) {
-			return fail(400, { error: 'Please enter a valid email address.', email });
+		let customer;
+		if (login.includes('@')) {
+			if (!isValidEmail(login)) {
+				return fail(400, { error: 'That email address doesn’t look right.', email });
+			}
+			customer = await getCustomerByEmail(db, login.toLowerCase());
+		} else {
+			const phone = normalizeUgPhone(login);
+			if (!phone) {
+				return fail(400, { error: 'Enter a valid email, or a phone number like 0706 512 313.', email });
+			}
+			customer = await getCustomerByPhone(db, phone);
 		}
-
-		const customer = await getCustomerByEmail(db, email);
 		if (!customer) {
 			// Log failed login attempt
 			await logSecurityEvent(platform?.env?.SECURITY_LOGS_KV || null, {
@@ -46,10 +56,10 @@ export const actions: Actions = {
 				details: { email, reason: 'user_not_found' }
 			});
 
-			return fail(400, { error: 'Invalid email or password.', email });
+			return fail(400, { error: 'Wrong email/phone or password.', email });
 		}
 
-		// OAuth-only accounts don't have a local password hash.
+		// Google-only accounts don't have a local password hash.
 		if (!customer.password_hash) {
 			return fail(400, {
 				error: 'This account uses Google sign-in. Please use "Sign in with Google".',
@@ -72,7 +82,7 @@ export const actions: Actions = {
 				details: { email, reason: 'invalid_password' }
 			});
 
-			return fail(400, { error: 'Invalid email or password.', email });
+			return fail(400, { error: 'Wrong email/phone or password.', email });
 		}
 
 		const sessionId = generateSessionId();
@@ -83,7 +93,7 @@ export const actions: Actions = {
 		});
 
 		// Send login notification email
-		await sendLoginNotification(
+		if (customer.email) await sendLoginNotification(
 			customer.email,
 			customer.name,
 			getClientIP(request),

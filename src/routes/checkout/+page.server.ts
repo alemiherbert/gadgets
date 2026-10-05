@@ -3,51 +3,45 @@ import { fail, redirect } from '@sveltejs/kit';
 import { getProductById, createOrder, createOrderItems, decrementStock, incrementStock, getOrderItems } from '$lib/db';
 import { sendOrderConfirmation, sendAdminNewOrderNotification } from '$lib/email';
 import type { CartItem, ShippingAddress } from '$lib/types';
-import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
+import { normalizeUgPhone, isValidEmail } from '$lib/utils';
+import { rememberOrder } from '$lib/guest-orders';
 
-export const load: PageServerLoad = async ({ locals, url }) => {
-	if (!locals.customer) {
-		throw redirect(303, `/auth/login?redirectTo=${encodeURIComponent(url.pathname)}`);
-	}
-
+// No account needed: guests check out with a name and phone number, then send the order on WhatsApp.
+export const load: PageServerLoad = async ({ locals }) => {
 	return {
-		customer: locals.customer
+		customer: locals.customer ?? null
 	};
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals }) => {
-		if (!locals.customer) {
-			throw redirect(303, '/auth/login?redirectTo=%2Fcheckout');
-		}
-
+	default: async ({ request, locals, cookies }) => {
 		const db = locals.db;
 		const formData = await request.formData();
 
-		const name = formData.get('name') as string;
-		const email = formData.get('email') as string;
-		const phone = formData.get('phone') as string;
-		const street = formData.get('street') as string;
-		const city = formData.get('city') as string;
-		const state = formData.get('state') as string;
-		const notes = ((formData.get('notes') as string) || '').trim().slice(0, 500);
-		const cartJson = formData.get('cart') as string;
+		const field = (key: string, max = 200) => String(formData.get(key) ?? '').trim().slice(0, max);
+		const name = field('name', 100);
+		const email = field('email', 254).toLowerCase();
+		const phoneInput = field('phone', 30);
+		const city = field('city', 100);
+		const street = field('street', 200);
+		const notes = field('notes', 500);
+		const cartJson = String(formData.get('cart') ?? '');
 
-		// Validate required fields
-		if (!name || !email || !phone || !street || !city || !state) {
-			return fail(400, { error: 'All fields except notes are required.' });
+		if (name.length < 2) {
+			return fail(400, { error: 'Please enter your name.' });
 		}
 
-		if (!isValidEmail(email)) {
-			return fail(400, { error: 'Please enter a valid email address.' });
+		const phone = normalizeUgPhone(phoneInput);
+		if (!phone) {
+			return fail(400, { error: 'Please enter a Ugandan phone number, e.g. 0706 512 313.' });
 		}
 
-		if (!isValidUgandanPhone(phone)) {
-			return fail(400, { error: 'Please enter a valid Ugandan phone number (e.g. 0771234567 or +256771234567).' });
+		if (email && !isValidEmail(email)) {
+			return fail(400, { error: 'That email address doesn’t look right. You can also leave it empty.' });
 		}
 
-		if (name.trim().length < 2) {
-			return fail(400, { error: 'Please enter your full name.' });
+		if (city.length < 2) {
+			return fail(400, { error: 'Please tell us your area or town for delivery.' });
 		}
 
 		// Parse cart
@@ -58,8 +52,14 @@ export const actions: Actions = {
 			return fail(400, { error: 'Invalid cart data.' });
 		}
 
-		if (!cartItems || cartItems.length === 0) {
+		if (!Array.isArray(cartItems) || cartItems.length === 0) {
 			return fail(400, { error: 'Your cart is empty.' });
+		}
+
+		const validLine = (i: CartItem) =>
+			Number.isInteger(i?.productId) && i.productId > 0 && Number.isInteger(i.quantity) && i.quantity >= 1 && i.quantity <= 99;
+		if (cartItems.length > 50 || !cartItems.every(validLine)) {
+			return fail(400, { error: 'Something is off with your cart. Please refresh the page and try again.' });
 		}
 
 		// Validate stock for all items (parallel fetch)
@@ -92,10 +92,10 @@ export const actions: Actions = {
 			return fail(400, { error: stockErrors.join(' ') });
 		}
 
-		// Calculate total (delivery fee is confirmed with the customer by phone)
+		// Calculate total (delivery fee is confirmed with the customer on WhatsApp)
 		const total = validatedItems.reduce((sum, { product, quantity }) => sum + product!.price * quantity, 0);
 
-		const address: ShippingAddress = { street, city, state };
+		const address: ShippingAddress = { street, city, state: '' };
 
 		// Create order
 		const orderId = await createOrder(db, {
@@ -134,13 +134,16 @@ export const actions: Actions = {
 		const orderItems = await getOrderItems(db, orderId);
 		try {
 			await Promise.all([
-				sendOrderConfirmation(orderId, name, email, orderItems, total, address),
+				email ? sendOrderConfirmation(orderId, name, email, orderItems, total, address) : null,
 				sendAdminNewOrderNotification(orderId, name, email, phone, orderItems, total, address)
 			]);
 		} catch (e) {
 			console.error('Email send error:', e);
 		}
 
-		throw redirect(303, `/order-confirmation/${orderId}`);
+		rememberOrder(cookies, orderId);
+
+		// The confirmation page opens WhatsApp with the order ready to send
+		throw redirect(303, `/order-confirmation/${orderId}?send=1`);
 	}
 };

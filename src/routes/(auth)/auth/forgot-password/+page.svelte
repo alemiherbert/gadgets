@@ -1,10 +1,13 @@
 <script lang="ts">
 	import Seo from '$lib/components/Seo.svelte';
 	import { enhance } from '$app/forms';
+	import Icon from '$lib/components/Icon.svelte';
+	import { whatsappLink, site } from '$lib/site';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
 	let submitting = $state(false);
+	const whatsapp = whatsappLink(`Hi ${site.name}, I signed up with my phone number and forgot my password. My number is: `);
 </script>
 
 <Seo title="Reset password" noindex />
@@ -55,9 +58,19 @@
 		disabled={submitting}
 		class="cta cta-brand cta-lg w-full"
 	>
-		{submitting ? 'Sending…' : 'Send Reset Link'}
+		{submitting ? 'Sending…' : 'Send reset link'}
 	</button>
 </form>
+
+{#if whatsapp}
+	<div class="mt-6 rounded-2xl bg-surface p-4 text-sm">
+		<p class="font-semibold">Signed up with only a phone number?</p>
+		<p class="mt-1 text-ink-muted">Message us on WhatsApp from that number and we'll reset it for you.</p>
+		<a href={whatsapp} target="_blank" rel="noopener" class="cta cta-sm mt-3 cta-whatsapp">
+			<Icon name="whatsapp" class="size-4" /> Reset on WhatsApp
+		</a>
+	</div>
+{/if}
 
 <p class="mt-8 text-center text-sm text-ink-muted">
 	Remember your password?

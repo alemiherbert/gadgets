@@ -2,6 +2,7 @@
 
 import type { OrderItemWithProduct, ShippingAddress } from './types';
 import { site } from './site';
+import { formatAddress, escapeHtml, whatsappDigits } from './utils';
 
 const FROM_EMAIL = 'noreply@ojsonlinestore.com';
 const FROM_NAME = "OJ's Online Store";
@@ -15,7 +16,7 @@ function formatPrice(cents: number): string {
 function buildItemsTable(items: OrderItemWithProduct[]): string {
 	let rows = items.map(item =>
 		`<tr>
-			<td style="padding:8px;border-bottom:1px solid #eee">${item.product_name}</td>
+			<td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(item.product_name)}</td>
 			<td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td>
 			<td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${formatPrice(item.price_at_purchase)}</td>
 			<td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${formatPrice(item.price_at_purchase * item.quantity)}</td>
@@ -73,7 +74,7 @@ export async function sendOrderConfirmation(
 				</div>
 			</div>
 			<h2 style="color:#333;text-align:center">Order Confirmation #${orderId}</h2>
-			<p>Hi ${customerName},</p>
+			<p>Hi ${escapeHtml(customerName)},</p>
 			<p>Thank you for your order! We're excited to get your items to you. Here's a summary:</p>
 			${buildItemsTable(items)}
 			<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:24px 0">
@@ -81,7 +82,7 @@ export async function sendOrderConfirmation(
 			</div>
 			<h3 style="color:#333">Delivery Address</h3>
 			<div style="background:#fff;border:1px solid #eee;padding:16px;border-radius:8px">
-				<p style="margin:0">${address.street}<br>${address.city}, ${address.state}</p>
+				<p style="margin:0">${escapeHtml(formatAddress(address))}</p>
 			</div>
 			<div style="background:#fff3cd;border-left:4px solid #ffc107;padding:12px;margin:24px 0;border-radius:4px">
 				<p style="margin:0;color:#856404">
@@ -110,20 +111,21 @@ export async function sendAdminNewOrderNotification(
 			<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0">
 				<h3 style="margin-top:0">Customer Info</h3>
 				<p style="margin:4px 0">
-					<strong>Name:</strong> ${customerName}<br>
-					<strong>Email:</strong> ${customerEmail}<br>
-					<strong>Phone:</strong> ${customerPhone}
+					<strong>Name:</strong> ${escapeHtml(customerName)}<br>
+					${customerEmail ? `<strong>Email:</strong> ${escapeHtml(customerEmail)}<br>` : ''}
+					<strong>Phone:</strong> ${escapeHtml(customerPhone)}
 				</p>
+				${whatsappDigits(customerPhone) ? `<p style="margin:12px 0 0"><a href="https://wa.me/${whatsappDigits(customerPhone)}" style="display:inline-block;background:#0f7a3f;color:#fff;padding:8px 14px;border-radius:999px;text-decoration:none;font-weight:bold">Chat with ${escapeHtml(customerName)} on WhatsApp</a></p>` : ''}
 			</div>
 			${buildItemsTable(items)}
 			<p style="font-size:18px;font-weight:bold">Total: ${formatPrice(total)}</p>
 			<div style="background:#fff;border:1px solid #eee;padding:16px;border-radius:8px;margin:16px 0">
 				<h3 style="margin-top:0">Delivery Address</h3>
-				<p style="margin:0">${address.street}<br>${address.city}, ${address.state}</p>
+				<p style="margin:0">${escapeHtml(formatAddress(address))}</p>
 			</div>
 		</div>
 	`;
-	await sendEmail(ADMIN_EMAIL, `New Order #${orderId} from ${customerName}`, html);
+	await sendEmail(ADMIN_EMAIL, `New Order #${orderId} from ${customerName.replace(/[\r\n]/g, ' ')}`, html);
 }
 
 export async function sendPasswordResetEmail(
@@ -139,7 +141,7 @@ export async function sendPasswordResetEmail(
 				</div>
 			</div>
 			<h2 style="color:#333;text-align:center">Reset Your Password</h2>
-			<p>Hi ${customerName},</p>
+			<p>Hi ${escapeHtml(customerName)},</p>
 			<p>We received a request to reset the password for your OJ's Online Store account. Click the button below to set a new password:</p>
 			<div style="text-align:center;margin:32px 0">
 				<a href="${resetUrl}" style="background:#007c9e;color:#fff;padding:12px 32px;border-radius:999px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block">Reset Password</a>
@@ -199,7 +201,7 @@ export async function sendWelcomeEmail(
 				</div>
 			</div>
 			<h2 style="color:#333;text-align:center">Welcome to OJ's Online Store!</h2>
-			<p>Hi ${customerName},</p>
+			<p>Hi ${escapeHtml(customerName)},</p>
 			<p>Thank you for creating an account with us! We're thrilled to have you join our community of tech enthusiasts.</p>
 			<div style="background:#f5f5f5;padding:20px;border-radius:8px;margin:24px 0">
 				<h3 style="margin-top:0;color:#333">What's next?</h3>
@@ -239,7 +241,7 @@ export async function sendLoginNotification(
 				</div>
 			</div>
 			<h2 style="color:#333;text-align:center">New Login Detected</h2>
-			<p>Hi ${customerName},</p>
+			<p>Hi ${escapeHtml(customerName)},</p>
 			<p>We detected a new login to your OJ's Online Store account:</p>
 			<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:24px 0">
 				<p style="margin:4px 0"><strong>Time:</strong> ${now}</p>

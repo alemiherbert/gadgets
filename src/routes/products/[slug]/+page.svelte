@@ -65,7 +65,7 @@
 
 	let isWishlisted = $derived(data.customer ? data.isWishlisted : wishlist.isInWishlist(data.product.id));
 	let whatsapp = $derived(
-		whatsappLink(`Hi ${site.name}! I'd like to order: ${data.product.name} (${formatPrice(data.product.price)}) — ${site.url}/products/${data.product.slug}`)
+		whatsappLink(`Hi ${site.name}! I have a question about: ${data.product.name} (${formatPrice(data.product.price)}) — ${site.url}/products/${data.product.slug}`)
 	);
 
 	// ── Recently viewed + reset per product ──
@@ -425,9 +425,9 @@
 							</button>
 						</div>
 						<div class="mt-2.5 flex gap-2.5">
-							<button onclick={buyNow} class="cta cta-dark cta-lg flex-1">
-								<Icon name="bolt-solid" class="size-4 text-sun" />
-								Buy now
+							<button onclick={buyNow} class="cta cta-lg flex-1 cta-whatsapp">
+								<Icon name="whatsapp" class="size-5" />
+								Buy on WhatsApp
 							</button>
 							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
@@ -442,9 +442,9 @@
 							You have all {existingCartQty} available in your cart.
 						</div>
 						<div class="mt-2.5 flex gap-2.5" bind:this={mainCta}>
-							<a href="/checkout" class="cta cta-brand cta-lg flex-1">
-								Go to checkout
-								<Icon name="arrow-right" class="size-4" stroke={2.25} />
+							<a href="/checkout" class="cta cta-lg flex-1 cta-whatsapp">
+								<Icon name="whatsapp" class="size-5" />
+								Checkout on WhatsApp
 							</a>
 							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
@@ -458,9 +458,9 @@
 				{/if}
 
 				{#if whatsapp}
-					<a href={whatsapp} target="_blank" rel="noopener" class="cta cta-lg mt-2.5 w-full border-whatsapp text-whatsapp-ink hover:bg-whatsapp hover:text-white">
-						<Icon name="whatsapp" class="size-5" />
-						Order on WhatsApp
+					<a href={whatsapp} target="_blank" rel="noopener" class="mt-3 flex items-center justify-center gap-1.5 text-sm font-semibold text-whatsapp-ink hover:underline">
+						<Icon name="whatsapp" class="size-4" />
+						Questions? Ask us on WhatsApp
 					</a>
 				{/if}
 			</div>
@@ -478,14 +478,14 @@
 					<span class="icon-tile bg-brand-soft text-brand"><Icon name="truck" class="size-5" /></span>
 					<span class="text-sm">
 						<span class="block font-bold">Delivery across Uganda</span>
-						<span class="block text-ink-muted">We call to confirm the delivery fee before dispatch.</span>
+						<span class="block text-ink-muted">We confirm the delivery fee with you on WhatsApp.</span>
 					</span>
 				</li>
 				<li class="flex items-start gap-3 p-4">
-					<span class="icon-tile bg-brand-soft text-brand"><Icon name="package" class="size-5" /></span>
+					<span class="icon-tile bg-ok-soft text-whatsapp-ink"><Icon name="whatsapp" class="size-5" /></span>
 					<span class="text-sm">
-						<span class="block font-bold">Track your order</span>
-						<span class="block text-ink-muted">Follow its status any time from your account.</span>
+						<span class="block font-bold">Order on WhatsApp</span>
+						<span class="block text-ink-muted">No account needed. We confirm everything in the chat.</span>
 					</span>
 				</li>
 			</ul>

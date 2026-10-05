@@ -1,28 +1,29 @@
 import type { PageServerLoad } from './$types';
 import { getOrderById, getOrderItems } from '$lib/db';
-import { error, redirect } from '@sveltejs/kit';
+import { error } from '@sveltejs/kit';
+import { rememberedOrders } from '$lib/guest-orders';
+import { orderWhatsappLink } from '$lib/whatsapp';
 
-export const load: PageServerLoad = async ({ params, locals }) => {
-	// SECURITY: Require authentication to view order confirmation
-	if (!locals.customer) {
-		throw redirect(303, '/auth/login');
-	}
+export const load: PageServerLoad = async ({ params, locals, cookies }) => {
+	const orderId = Number(params.id);
+	if (!Number.isInteger(orderId) || orderId <= 0) throw error(404, 'Order not found');
 
-	const db = locals.db;
-	const orderId = parseInt(params.id);
-	const order = await getOrderById(db, orderId);
+	const order = await getOrderById(locals.db, orderId);
 
-	if (!order) {
+	// SECURITY: only the customer who owns the order, or the browser that placed it, may view it (IDOR protection)
+	const ownsOrder = !!order && !!locals.customer && order.customer_id === locals.customer.id;
+	const placedHere = !!order && rememberedOrders(cookies).includes(orderId);
+	if (!order || !(ownsOrder || placedHere)) {
 		throw error(404, 'Order not found');
 	}
 
-	// SECURITY: Verify the order belongs to the logged-in customer (IDOR protection)
-	if (order.customer_id !== locals.customer.id) {
-		throw error(403, 'You do not have permission to view this order');
+	const items = await getOrderItems(locals.db, orderId);
+	let address = { street: '', city: '', state: '' };
+	try {
+		address = { ...address, ...JSON.parse(order.shipping_address) };
+	} catch {
+		// keep empty address
 	}
 
-	const items = await getOrderItems(db, orderId);
-	const address = JSON.parse(order.shipping_address);
-
-	return { order, items, address };
+	return { order, items, address, whatsappUrl: orderWhatsappLink(order, items) };
 };

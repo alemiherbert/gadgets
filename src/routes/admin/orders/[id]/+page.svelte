@@ -1,12 +1,24 @@
 <script lang="ts">
 import type { PageData, ActionData } from './$types';
-import { formatPrice } from '$lib/utils';
+import { formatPrice, formatAddress, whatsappDigits } from '$lib/utils';
+import { site } from '$lib/site';
+import Icon from '$lib/components/Icon.svelte';
 import { getImageUrl } from '$lib/r2';
 import { enhance } from '$app/forms';
 
 let { data, form }: { data: PageData; form: ActionData } = $props();
 
 const statuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+
+const waDigits = $derived(whatsappDigits(data.order.phone));
+const firstName = $derived(data.order.name.split(' ')[0]);
+
+// Starter messages; edit in WhatsApp before sending. WhatsApp Business quick replies work there too.
+const templates = $derived([
+	{ label: 'Confirm order', text: `Hi ${firstName}, thanks for your ${site.name} order #${data.order.id} (${formatPrice(data.order.total)}). Delivery to ${formatAddress(data.address) || 'your area'} is UGX ___. Shall we send it today?` },
+	{ label: 'Out for delivery', text: `Hi ${firstName}, your order #${data.order.id} is on its way. Please keep your phone on. Total to pay on delivery: ${formatPrice(data.order.total)} + delivery.` },
+	{ label: 'Just chat', text: `Hi ${firstName}, this is ${site.name} about your order #${data.order.id}.` }
+]);
 </script>
 
 <svelte:head>
@@ -64,7 +76,18 @@ const statuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 
 <!-- Customer Info -->
 <div class="card p-5">
-<h2 class="text-sm font-semibold text-zinc-900 mb-3">Customer</h2>
+<div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+<h2 class="text-sm font-semibold text-zinc-900">Customer</h2>
+{#if waDigits}
+<div class="flex flex-wrap gap-1.5">
+{#each templates as t}
+<a href="https://wa.me/{waDigits}?text={encodeURIComponent(t.text)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-full bg-whatsapp-dark px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0b6e39]">
+<Icon name="whatsapp" class="size-3.5" /> {t.label}
+</a>
+{/each}
+</div>
+{/if}
+</div>
 <div class="grid grid-cols-2 gap-4 text-sm">
 <div>
 <p class="text-zinc-500">Name</p>
@@ -72,7 +95,7 @@ const statuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 </div>
 <div>
 <p class="text-zinc-500">Email</p>
-<p class="font-medium text-zinc-900">{data.order.email}</p>
+<p class="font-medium text-zinc-900">{data.order.email || '—'}</p>
 </div>
 <div>
 <p class="text-zinc-500">Phone</p>
@@ -80,7 +103,7 @@ const statuses = ['pending', 'confirmed', 'shipped', 'delivered', 'cancelled'];
 </div>
 <div>
 <p class="text-zinc-500">Address</p>
-<p class="font-medium text-zinc-900">{data.address.street}, {data.address.city}, {data.address.state}</p>
+<p class="font-medium text-zinc-900">{formatAddress(data.address) || '—'}</p>
 </div>
 </div>
 </div>

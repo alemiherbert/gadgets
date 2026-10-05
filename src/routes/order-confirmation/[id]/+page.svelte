@@ -1,7 +1,9 @@
 <script lang="ts">
 	import Seo from '$lib/components/Seo.svelte';
 	import type { PageData } from './$types';
-	import { formatPrice, orderStatusBadge } from '$lib/utils';
+	import { formatPrice, orderStatusBadge, formatAddress } from '$lib/utils';
+	import { page } from '$app/state';
+	import { replaceState } from '$app/navigation';
 	import { getImageUrl } from '$lib/r2';
 	import { cart } from '$lib/cart.svelte';
 	import { onMount } from 'svelte';
@@ -11,8 +13,18 @@
 
 	const firstName = $derived(data.order.name.split(' ')[0]);
 
+	let opened = $state(false);
+
 	onMount(() => {
 		cart.clear();
+		// Straight after checkout: hand the order to WhatsApp. Drop ?send so a refresh doesn't reopen it.
+		if (page.url.searchParams.has('send') && data.whatsappUrl) {
+			const url = new URL(page.url);
+			url.searchParams.delete('send');
+			replaceState(url, {});
+			opened = true;
+			window.location.href = data.whatsappUrl;
+		}
 	});
 </script>
 
@@ -25,20 +37,28 @@
 				<Icon name="check" class="size-7" stroke={3} />
 			</span>
 		</div>
-		<h1 class="mt-6 h-page">Thank you, {firstName}!</h1>
-		<p class="mt-2 text-ink-muted">Your order <span class="font-bold text-ink">#{data.order.id}</span> is in. We've emailed a confirmation to {data.order.email}.</p>
+		<h1 class="mt-6 h-page">Thanks, {firstName}! One last step</h1>
+		<p class="mt-2 text-ink-muted">
+			Order <span class="font-bold text-ink">#{data.order.id}</span> is saved. Send it to us on WhatsApp and we'll confirm the delivery fee.
+		</p>
+		{#if data.whatsappUrl}
+			<a href={data.whatsappUrl} target="_blank" rel="noopener" class="cta cta-lg mt-6 w-full cta-whatsapp sm:w-auto sm:px-10">
+				<Icon name="whatsapp" class="size-5" />
+				{opened ? 'Didn’t open? Send on WhatsApp' : 'Send order on WhatsApp'}
+			</a>
+		{/if}
 	</div>
 
 	<ol class="mt-10 grid gap-3 sm:grid-cols-3">
 		<li class="rounded-2xl bg-ok-soft p-4">
 			<span class="grid size-8 place-items-center rounded-full bg-ok text-white"><Icon name="check" class="size-4" stroke={3} /></span>
-			<p class="mt-3 text-sm font-bold">Order received</p>
-			<p class="text-xs text-ink-muted">We have your order and details.</p>
+			<p class="mt-3 text-sm font-bold">Order saved</p>
+			<p class="text-xs text-ink-muted">Your items are reserved for you.</p>
 		</li>
 		<li class="rounded-2xl bg-surface p-4">
-			<span class="grid size-8 place-items-center rounded-full bg-white text-brand"><Icon name="package" class="size-4" /></span>
-			<p class="mt-3 text-sm font-bold">We prepare & dispatch</p>
-			<p class="text-xs text-ink-muted">We'll call {data.order.phone} to arrange delivery.</p>
+			<span class="grid size-8 place-items-center rounded-full bg-white text-whatsapp-ink"><Icon name="whatsapp" class="size-4" /></span>
+			<p class="mt-3 text-sm font-bold">Send it on WhatsApp</p>
+			<p class="text-xs text-ink-muted">We reply with your delivery fee and time.</p>
 		</li>
 		<li class="rounded-2xl bg-surface p-4">
 			<span class="grid size-8 place-items-center rounded-full bg-white text-brand"><Icon name="cash" class="size-4" /></span>
@@ -82,16 +102,15 @@
 		<h2 class="flex items-center gap-2 h-card text-base"><Icon name="map" class="size-4 text-brand" /> Delivering to</h2>
 		<p class="mt-2 text-sm leading-relaxed text-ink-muted">
 			{data.order.name}<br />
-			{data.address.street}<br />
-			{data.address.city}, {data.address.state}<br />
+			{formatAddress(data.address)}<br />
 			{data.order.phone}
 		</p>
 	</div>
 
 	<div class="mt-8 flex flex-col gap-3 sm:flex-row">
 		{#if data.order.customer_id}
-			<a href="/account" class="cta cta-dark flex-1">View my orders</a>
+			<a href="/account" class="cta cta-dark sm:flex-1">View my orders</a>
 		{/if}
-		<a href="/shop" class="cta cta-line flex-1">Continue shopping</a>
+		<a href="/shop" class="cta cta-line sm:flex-1">Continue shopping</a>
 	</div>
 </div>

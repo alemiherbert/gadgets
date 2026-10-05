@@ -252,8 +252,12 @@ export async function getCustomerById(db: SupabaseClient, id: number): Promise<C
 return single<Customer>(db.from('customers').select('*').eq('id', id));
 }
 
+export async function getCustomerByPhone(db: SupabaseClient, phone: string): Promise<Customer | null> {
+return single<Customer>(db.from('customers').select('*').eq('phone', phone));
+}
+
 export async function createCustomer(db: SupabaseClient, customer: {
-email: string; password_hash: string; name: string; phone: string;
+email: string | null; password_hash: string; name: string; phone: string;
 }): Promise<number> {
 const { data, error } = await db.from('customers').insert({
 email: customer.email,
@@ -275,9 +279,9 @@ expires_at: session.expires_at
 if (error) throw error;
 }
 
-export async function getSession(db: SupabaseClient, sessionId: string): Promise<(Session & { customer_name: string; customer_email: string }) | null> {
+export async function getSession(db: SupabaseClient, sessionId: string): Promise<(Session & { customer_name: string; customer_email: string | null; customer_phone: string }) | null> {
 const { data, error } = await db.from('sessions')
-.select('*, customers!inner(name, email)')
+.select('*, customers!inner(name, email, phone)')
 .eq('id', sessionId)
 .gt('expires_at', new Date().toISOString())
 .maybeSingle();
@@ -289,7 +293,8 @@ id: data.id,
 customer_id: data.customer_id,
 expires_at: data.expires_at,
 customer_name: c.name,
-customer_email: c.email
+customer_email: c.email,
+customer_phone: c.phone ?? ''
 };
 }
 
@@ -386,6 +391,11 @@ if (error) throw error;
 
 export async function updateCustomerPassword(db: SupabaseClient, customerId: number, passwordHash: string): Promise<void> {
 const { error } = await db.from('customers').update({ password_hash: passwordHash }).eq('id', customerId);
+if (error) throw error;
+}
+
+export async function deleteCustomerSessions(db: SupabaseClient, customerId: number): Promise<void> {
+const { error } = await db.from('sessions').delete().eq('customer_id', customerId);
 if (error) throw error;
 }
 

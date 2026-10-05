@@ -13,7 +13,7 @@
 
 <div class="mb-8">
 	<h1 class="h-page">Create your account</h1>
-	<p class="mt-2 text-sm text-ink-muted">Sign up to track orders and checkout faster</p>
+	<p class="mt-2 text-sm text-ink-muted">Optional — it saves your details for next time and keeps your order history</p>
 </div>
 
 {#if form?.error}
@@ -34,7 +34,7 @@
 	}}
 >
 	<div>
-		<label for="name" class="field-label">Full Name</label>
+		<label for="name" class="field-label">Your name</label>
 		<input
 			id="name"
 			name="name"
@@ -42,37 +42,38 @@
 			required
 			value={form?.name ?? ''}
 			class="field"
-			placeholder="John Doe"
+			placeholder="e.g. Sarah Namuli" autocomplete="name"
 		/>
 	</div>
 
 	<div>
-		<label for="email" class="field-label">Email</label>
+		<label for="phone" class="field-label">Phone number</label>
+		<input
+			id="phone"
+			name="phone"
+			type="tel"
+			inputmode="tel"
+			required
+			autocomplete="tel"
+			value={form?.phone ?? ''}
+			class="field"
+			placeholder="0706 512 313"
+		/>
+		<p class="field-hint">You'll sign in with this. We use it to confirm orders on WhatsApp.</p>
+	</div>
+
+	<div>
+		<label for="email" class="field-label">Email <span class="font-normal text-ink-subtle">(optional)</span></label>
 		<input
 			id="email"
 			name="email"
 			type="email"
-			required
 			autocomplete="email"
 			value={form?.email ?? ''}
 			class="field"
 			placeholder="you@example.com"
 		/>
-	</div>
-
-	<div>
-		<label for="phone" class="field-label">Phone <span class="font-normal text-ink-subtle">(optional)</span></label>
-		<input
-			id="phone"
-			name="phone"
-			type="tel"
-			value={form?.phone ?? ''}
-			pattern="^(\+?256|0)[3-9]\d{8}$"
-			title="Ugandan phone number, e.g. 0771234567 or +256771234567"
-			class="field"
-			placeholder="0771234567"
-		/>
-		<p class="field-hint">Format: 07XXXXXXXX or +2567XXXXXXXX</p>
+		<p class="field-hint">Add one if you'd like order emails and password reset links.</p>
 	</div>
 
 	<div>
@@ -83,23 +84,10 @@
 			type="password"
 			required
 			minlength="8"
+			maxlength="128"
 			autocomplete="new-password"
 			class="field"
-			placeholder="Min 8 characters"
-		/>
-	</div>
-
-	<div>
-		<label for="confirmPassword" class="field-label">Confirm Password</label>
-		<input
-			id="confirmPassword"
-			name="confirmPassword"
-			type="password"
-			required
-			minlength="8"
-			autocomplete="new-password"
-			class="field"
-			placeholder="Repeat your password"
+			placeholder="At least 8 characters"
 		/>
 	</div>
 
@@ -108,7 +96,7 @@
 		disabled={submitting}
 		class="cta cta-brand cta-lg w-full"
 	>
-		{submitting ? 'Creating account…' : 'Create Account'}
+		{submitting ? 'Creating account…' : 'Create account'}
 	</button>
 </form>
 

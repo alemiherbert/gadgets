@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
-import { getCustomerByEmail, createCustomer, createSession } from '$lib/db';
+import { getCustomerByEmail, getCustomerByPhone, createCustomer, createSession } from '$lib/db';
 import { hashPassword, generateSessionId, getSessionExpiry } from '$lib/auth';
-import { isValidUgandanPhone, isValidEmail } from '$lib/utils';
+import { normalizeUgPhone, isValidEmail } from '$lib/utils';
 import { sendWelcomeEmail } from '$lib/email';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -13,51 +13,48 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, locals, cookies }) => {
+	default: async ({ request, locals, cookies, url }) => {
 		const db = locals.db;
 		const formData = await request.formData();
 
-		const name = (formData.get('name') as string)?.trim();
-		const email = (formData.get('email') as string)?.trim().toLowerCase();
-		const phone = (formData.get('phone') as string)?.trim();
-		const password = formData.get('password') as string;
-		const confirmPassword = formData.get('confirmPassword') as string;
+		const name = String(formData.get('name') ?? '').trim().slice(0, 100);
+		const phoneInput = String(formData.get('phone') ?? '').trim();
+		const email = String(formData.get('email') ?? '').trim().toLowerCase();
+		const password = String(formData.get('password') ?? '');
+		const values = { name, phone: phoneInput, email };
 
-		if (!name || !email || !password) {
-			return fail(400, { error: 'Name, email, and password are required.', name, email, phone });
+		if (name.length < 2) {
+			return fail(400, { error: 'Please enter your name.', ...values });
 		}
 
-		if (!isValidEmail(email)) {
-			return fail(400, { error: 'Please enter a valid email address.', name, email, phone });
+		const phone = normalizeUgPhone(phoneInput);
+		if (!phone) {
+			return fail(400, { error: 'Enter a Ugandan phone number, e.g. 0706 512 313.', ...values });
 		}
 
-		if (phone && !isValidUgandanPhone(phone)) {
-			return fail(400, { error: 'Please enter a valid Ugandan phone number (e.g. 0771234567 or +256771234567).', name, email, phone });
+		if (email && !isValidEmail(email)) {
+			return fail(400, { error: 'That email address doesn’t look right. You can also leave it empty.', ...values });
 		}
 
-		if (password.length < 8) {
-			return fail(400, { error: 'Password must be at least 8 characters.', name, email, phone });
+		if (password.length < 8 || password.length > 128) {
+			return fail(400, { error: 'Use at least 8 characters for your password.', ...values });
 		}
 
-		if (password !== confirmPassword) {
-			return fail(400, { error: 'Passwords do not match.', name, email, phone });
+		if (await getCustomerByPhone(db, phone)) {
+			return fail(400, { error: 'That phone number already has an account. Sign in instead.', ...values });
+		}
+		if (email && (await getCustomerByEmail(db, email))) {
+			return fail(400, { error: 'That email already has an account. Sign in instead.', ...values });
 		}
 
-		const existing = await getCustomerByEmail(db, email);
-		if (existing) {
-			return fail(400, { error: 'An account with this email already exists.', name, email, phone });
-		}
-
-		const passwordHash = await hashPassword(password);
 		const customerId = await createCustomer(db, {
-			email,
-			password_hash: passwordHash,
+			email: email || null,
+			password_hash: await hashPassword(password),
 			name,
-			phone: phone || ''
+			phone
 		});
 
-		// Send welcome email
-		await sendWelcomeEmail(email, name);
+		if (email) await sendWelcomeEmail(email, name);
 
 		const sessionId = generateSessionId();
 		await createSession(db, {
@@ -74,6 +71,7 @@ export const actions: Actions = {
 			maxAge: 60 * 60 * 24 * 30
 		});
 
-		throw redirect(303, '/account');
+		const redirectTo = url.searchParams.get('redirectTo');
+		throw redirect(303, redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : '/account');
 	}
 };

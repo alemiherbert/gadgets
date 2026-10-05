@@ -27,7 +27,7 @@
 		<li class="h-px w-6 bg-line sm:w-10" aria-hidden="true"></li>
 		<li class="flex items-center gap-2 text-ink-subtle">
 			<span class="grid size-6 place-items-center rounded-full bg-surface">3</span>
-			Done
+			Send on WhatsApp
 		</li>
 	</ol>
 
@@ -69,32 +69,22 @@
 							Contact details
 						</h2>
 						{#if data.customer}
-							<p class="mt-2 text-sm text-ink-muted">Signed in as <span class="font-semibold text-ink">{data.customer.email}</span></p>
+							<p class="mt-2 text-sm text-ink-muted">Signed in as <span class="font-semibold text-ink">{data.customer.name}</span></p>
+						{:else}
+							<p class="mt-2 text-sm text-ink-muted">No account needed. <a href="/auth/login?redirectTo=%2Fcheckout" class="font-bold text-brand hover:underline">Sign in</a> to use your saved details.</p>
 						{/if}
 						<div class="mt-5 grid gap-4 sm:grid-cols-2">
 							<div>
-								<label for="name" class="field-label">Full name</label>
-								<input id="name" name="name" type="text" required minlength="2" autocomplete="name" value={data.customer?.name ?? ''} class="field" placeholder="John Doe" />
+								<label for="name" class="field-label">Your name</label>
+								<input id="name" name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" value={data.customer?.name ?? ''} class="field" placeholder="e.g. Sarah Namuli" />
 							</div>
 							<div>
-								<label for="email" class="field-label">Email</label>
-								<input id="email" name="email" type="email" required autocomplete="email" value={data.customer?.email ?? ''} class="field" placeholder="john@example.com" />
+								<label for="phone" class="field-label">Phone number</label>
+								<input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required value={data.customer?.phone ?? ''} class="field" placeholder="0706 512 313" />
 							</div>
 							<div class="sm:col-span-2">
-								<label for="phone" class="field-label">Phone number</label>
-								<input
-									id="phone"
-									name="phone"
-									type="tel"
-									inputmode="tel"
-									autocomplete="tel"
-									required
-									pattern={'^(\\+?256|0)[3-9]\\d{8}$'}
-									title="Ugandan phone number, e.g. 0771234567 or +256771234567"
-									class="field"
-									placeholder="0771234567"
-								/>
-								<p class="field-hint">We'll call this number to arrange delivery. Format: 07XXXXXXXX or +2567XXXXXXXX</p>
+								<label for="email" class="field-label">Email <span class="font-normal text-ink-subtle">(optional, for an order receipt)</span></label>
+								<input id="email" name="email" type="email" autocomplete="email" value={data.customer?.email ?? ''} class="field" placeholder="you@example.com" />
 							</div>
 						</div>
 					</section>
@@ -103,29 +93,25 @@
 					<section class="panel p-5 sm:p-6">
 						<h2 class="flex items-center gap-2.5 h-card">
 							<span class="grid size-7 place-items-center rounded-full bg-ink text-xs text-white">2</span>
-							Delivery address
+							Delivery
 						</h2>
 						<div class="mt-5 grid gap-4 sm:grid-cols-2">
-							<div class="sm:col-span-2">
-								<label for="street" class="field-label">Street address</label>
-								<input id="street" name="street" type="text" required minlength="3" autocomplete="street-address" class="field" placeholder="Plot 12, Kampala Rd" />
+							<div>
+								<label for="city" class="field-label">Area / town</label>
+								<input id="city" name="city" type="text" required minlength="2" maxlength="100" autocomplete="address-level2" class="field" placeholder="e.g. Ntinda, Kampala" />
 							</div>
 							<div>
-								<label for="city" class="field-label">City / town</label>
-								<input id="city" name="city" type="text" required minlength="2" autocomplete="address-level2" class="field" placeholder="Kampala" />
-							</div>
-							<div>
-								<label for="state" class="field-label">District</label>
-								<input id="state" name="state" type="text" required minlength="2" autocomplete="address-level1" class="field" placeholder="Kampala" />
+								<label for="street" class="field-label">Street or landmark <span class="font-normal text-ink-subtle">(optional)</span></label>
+								<input id="street" name="street" type="text" maxlength="200" autocomplete="street-address" class="field" placeholder="e.g. near Capital Shoppers" />
 							</div>
 							<div class="sm:col-span-2">
 								<label for="notes" class="field-label">Delivery notes <span class="font-normal text-ink-subtle">(optional)</span></label>
-								<textarea id="notes" name="notes" rows="2" maxlength="500" class="field" placeholder="Nearby landmark, gate colour, best time to call…"></textarea>
+								<textarea id="notes" name="notes" rows="2" maxlength="500" class="field" placeholder="Gate colour, best time to reach you…"></textarea>
 							</div>
 						</div>
 						<p class="mt-4 flex items-center gap-2 rounded-xl bg-brand-soft px-3.5 py-2.5 text-sm font-semibold text-brand-dark">
 							<Icon name="truck" class="size-5 shrink-0" />
-							We deliver across Uganda and will call to confirm your delivery fee before dispatch.
+							We deliver across Uganda and confirm the delivery fee with you on WhatsApp.
 						</p>
 					</section>
 
@@ -174,7 +160,7 @@
 							</div>
 							<div class="flex justify-between">
 								<dt class="text-ink-muted">Delivery</dt>
-								<dd class="text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
+								<dd class="text-xs font-semibold text-warn-ink">Confirmed on WhatsApp</dd>
 							</div>
 						</dl>
 						<div class="mt-4 flex items-baseline justify-between border-t border-line pt-4">
@@ -185,17 +171,18 @@
 							</span>
 						</div>
 
-						<button type="submit" disabled={submitting} class="cta cta-brand cta-lg mt-6 w-full">
+						<button type="submit" disabled={submitting} class="cta cta-lg mt-6 w-full cta-whatsapp">
 							{#if submitting}
 								<svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
-								Placing order…
+								Saving your order…
 							{:else}
-								Place order · {formatPrice(cart.total)}
+								<Icon name="whatsapp" class="size-5" />
+								Order on WhatsApp
 							{/if}
 						</button>
 						<p class="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-muted">
 							<Icon name="shield" class="size-4 text-ok" />
-							Nothing to pay now — you pay on delivery
+							We save your order, then open WhatsApp to send it. Pay on delivery.
 						</p>
 					</div>
 				</aside>

@@ -98,7 +98,7 @@
 						</div>
 						<div class="flex justify-between gap-4">
 							<dt class="text-ink-muted">Delivery</dt>
-							<dd class="text-right text-xs font-semibold text-warn-ink">Confirmed by phone</dd>
+							<dd class="text-right text-xs font-semibold text-warn-ink">Confirmed on WhatsApp</dd>
 						</div>
 					</dl>
 					<div class="my-5 h-px bg-line"></div>
@@ -106,15 +106,16 @@
 						<span class="font-bold">Estimated total</span>
 						<span class="text-2xl font-extrabold tracking-tight tabular-nums">{formatPrice(cart.total)}</span>
 					</div>
-					<a href="/checkout" class="cta cta-brand cta-lg mt-6 w-full">
-						Checkout
+					<a href="/checkout" class="cta cta-lg mt-6 w-full cta-whatsapp">
+						<Icon name="whatsapp" class="size-5" />
+						Checkout on WhatsApp
 						<Icon name="arrow-right" class="size-4" stroke={2.25} />
 					</a>
 					<a href="/shop" class="mt-2 flex h-10 w-full items-center justify-center text-sm font-bold hover:text-brand">Continue shopping</a>
 				</div>
 				<ul class="mt-4 space-y-3 px-2 text-sm">
 					<li class="flex items-center gap-2.5"><Icon name="cash" class="size-5 text-brand" /> <span><b>Pay on delivery</b> — no card needed</span></li>
-					<li class="flex items-center gap-2.5"><Icon name="package" class="size-5 text-brand" /> <span><b>Track your order</b> from your account</span></li>
+					<li class="flex items-center gap-2.5"><Icon name="whatsapp" class="size-5 text-whatsapp-ink" /> <span><b>No account needed</b> — we confirm on WhatsApp</span></li>
 				</ul>
 			</aside>
 		</div>

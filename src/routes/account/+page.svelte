@@ -17,7 +17,7 @@
 			<span class="grid size-14 place-items-center rounded-full bg-brand text-xl font-extrabold text-white">{firstName.charAt(0).toUpperCase()}</span>
 			<div>
 				<h1 class="h-page">Hi, {firstName}</h1>
-				<p class="text-sm text-ink-muted">{data.customer.email}</p>
+				<p class="text-sm text-ink-muted">{data.customer.phone || data.customer.email}</p>
 			</div>
 		</div>
 		<form method="POST" action="/auth/logout">

@@ -1,8 +1,10 @@
 <script lang="ts">
-import type { PageData } from './$types';
-import { formatPrice } from '$lib/utils';
+import type { PageData, ActionData } from './$types';
+import { enhance } from '$app/forms';
+import { formatPrice, whatsappDigits } from '$lib/utils';
+import Icon from '$lib/components/Icon.svelte';
 
-let { data }: { data: PageData } = $props();
+let { data, form }: { data: PageData; form: ActionData } = $props();
 
 function pageHref(nextPage: number) {
 	const params = new URLSearchParams();
@@ -24,6 +26,18 @@ function pageHref(nextPage: number) {
 			<p class="text-sm text-zinc-500 mt-1">{data.total} registered customer{data.total !== 1 ? 's' : ''}</p>
 		</div>
 	</div>
+
+	{#if form && 'reset' in form && form.reset}
+		<div class="mb-4 rounded-xl border border-ok/30 bg-ok-soft p-4 text-sm">
+			<p class="font-semibold text-ok-ink">New password for {form.reset.name}: <span class="select-all rounded bg-white px-2 py-0.5 font-mono text-base text-ink">{form.reset.password}</span></p>
+			<p class="mt-1 text-ink-muted">They've been signed out everywhere. Send it to them, then they can sign in with their phone number.</p>
+			{#if form.reset.whatsappUrl}
+				<a href={form.reset.whatsappUrl} target="_blank" rel="noopener" class="cta cta-sm mt-3 cta-whatsapp"><Icon name="whatsapp" class="size-4" /> Send on WhatsApp</a>
+			{/if}
+		</div>
+	{:else if form && 'error' in form}
+		<div class="alert alert-error mb-4">{form.error}</div>
+	{/if}
 
 	<form method="GET" action="/admin/customers" class="mb-4">
 		<div class="flex items-center gap-2">
@@ -54,6 +68,7 @@ function pageHref(nextPage: number) {
 							<th class="px-4 py-3 text-right font-medium text-zinc-500">Orders</th>
 							<th class="px-4 py-3 text-right font-medium text-zinc-500">Total Spent</th>
 							<th class="px-4 py-3 text-right font-medium text-zinc-500">Joined</th>
+							<th class="px-4 py-3"><span class="sr-only">Actions</span></th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-zinc-100">
@@ -67,7 +82,7 @@ function pageHref(nextPage: number) {
 										<span class="font-medium text-zinc-900">{customer.name}</span>
 									</div>
 								</td>
-								<td class="px-4 py-3 text-zinc-600">{customer.email}</td>
+								<td class="px-4 py-3 text-zinc-600">{customer.email || '—'}</td>
 								<td class="px-4 py-3 text-zinc-600">{customer.phone || '—'}</td>
 								<td class="px-4 py-3 text-right">
 									<span class="inline-flex items-center rounded-xs bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-700">{customer.order_count}</span>
@@ -75,6 +90,17 @@ function pageHref(nextPage: number) {
 								<td class="px-4 py-3 text-right font-medium text-zinc-900">{formatPrice(customer.total_spent)}</td>
 								<td class="px-4 py-3 text-right text-zinc-500 text-xs">
 									{new Date(customer.created_at).toLocaleDateString('en-UG', { year: 'numeric', month: 'short', day: 'numeric' })}
+								</td>
+								<td class="px-4 py-3">
+									<div class="flex items-center justify-end gap-1.5">
+										{#if whatsappDigits(customer.phone ?? '')}
+											<a href="https://wa.me/{whatsappDigits(customer.phone ?? '')}" target="_blank" rel="noopener" class="grid size-8 place-items-center rounded-full text-whatsapp-ink hover:bg-ok-soft" title="Chat on WhatsApp" aria-label="Chat with {customer.name} on WhatsApp"><Icon name="whatsapp" class="size-4" /></a>
+										{/if}
+										<form method="POST" action="?/resetPassword" use:enhance={({ cancel }) => { if (!confirm(`Give ${customer.name} a new password? They'll be signed out.`)) cancel(); }}>
+											<input type="hidden" name="id" value={customer.id} />
+											<button class="btn btn-xs btn-outline whitespace-nowrap">Reset password</button>
+										</form>
+									</div>
 								</td>
 							</tr>
 						{/each}

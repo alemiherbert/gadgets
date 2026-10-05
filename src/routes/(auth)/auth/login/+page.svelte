@@ -15,7 +15,7 @@
 
 <div class="mb-8">
 	<h1 class="h-page">Welcome back</h1>
-	<p class="mt-2 text-sm text-ink-muted">Sign in to track orders and manage your profile</p>
+	<p class="mt-2 text-sm text-ink-muted">Optional — you can always check out as a guest on WhatsApp</p>
 </div>
 
 {#if resetSuccess}
@@ -42,16 +42,18 @@
 	}}
 >
 	<div>
-		<label for="email" class="field-label">Email</label>
+		<label for="login" class="field-label">Email or phone number</label>
 		<input
-			id="email"
-			name="email"
-			type="email"
+			id="login"
+			name="login"
+			type="text"
 			required
-			autocomplete="email"
+			autocomplete="username"
+			autocapitalize="off"
+			spellcheck="false"
 			value={form?.email ?? ''}
 			class="field"
-			placeholder="you@example.com"
+			placeholder="0706 512 313 or you@example.com"
 		/>
 	</div>
 
@@ -78,7 +80,7 @@
 		disabled={submitting}
 		class="cta cta-brand cta-lg w-full"
 	>
-		{submitting ? 'Signing in…' : 'Sign In'}
+		{submitting ? 'Signing in…' : 'Sign in'}
 	</button>
 </form>
 

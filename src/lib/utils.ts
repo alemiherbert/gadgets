@@ -23,6 +23,18 @@ export function isValidUgandanPhone(phone: string): boolean {
 	return UG_PHONE_RE.test(phone.replace(/[\s-]/g, ''));
 }
 
+/** "0706 512 313", "256706512313" or "+256706512313" → "+256706512313"; null if not a Ugandan number */
+export function normalizeUgPhone(phone: string): string | null {
+	const p = phone.replace(/[\s()-]/g, '');
+	if (!UG_PHONE_RE.test(p)) return null;
+	return '+256' + p.slice(-9);
+}
+
+/** Digits-only international form for wa.me links, e.g. "256706512313"; null if not a Ugandan number */
+export function whatsappDigits(phone: string): string | null {
+	return normalizeUgPhone(phone)?.slice(1) ?? null;
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmail(email: string): boolean {
@@ -86,4 +98,13 @@ const ORDER_STATUS_BADGE: Record<string, string> = {
 
 export function orderStatusBadge(status: string): string {
 	return ORDER_STATUS_BADGE[status] ?? 'badge-secondary';
+}
+
+/** One-line delivery address; parts the customer left empty are skipped */
+export function formatAddress(address: { street?: string; city?: string; state?: string } | null | undefined): string {
+	if (!address) return '';
+	return [address.street, address.city, address.state]
+		.map((p) => (p ?? '').trim())
+		.filter((p, i, all) => p && all.indexOf(p) === i)
+		.join(', ');
 }

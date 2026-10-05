@@ -10,7 +10,8 @@ declare global {
 		interface Locals {
 			customer?: {
 				id: number;
-				email: string;
+				email: string | null;
+				phone: string;
 				name: string;
 				oauth_provider?: string | null;
 				avatar_url?: string | null;

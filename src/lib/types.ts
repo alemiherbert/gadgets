@@ -88,7 +88,7 @@ export interface FeaturedSlide {
 
 export interface Customer {
 	id: number;
-	email: string;
+	email: string | null;
 	password_hash: string | null;
 	name: string;
 	phone: string;

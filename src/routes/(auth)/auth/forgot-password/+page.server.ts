@@ -16,7 +16,7 @@ export const actions: Actions = {
 
 		// Always return success to avoid leaking whether an email exists
 		const customer = await getCustomerByEmail(db, email);
-		if (customer) {
+		if (customer?.email) {
 			const token = generateResetToken();
 			await createPasswordResetToken(db, {
 				id: token,

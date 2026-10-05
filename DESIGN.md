@@ -17,6 +17,7 @@ Tokens live in `src/app.css` (`@theme`). Use the token classes below rather than
 | Savings | `deal`, `deal-soft`, `deal-ink` | Discounts, errors |
 | Accent | `sun` | Highlights, stars, "New" tags, CTAs on dark |
 | Status | `ok*`, `warn*` | Success / stock and warnings |
+| WhatsApp | `whatsapp` `#25d366`, `whatsapp-dark` `#0f7a3f` | Ordering happens on WhatsApp: checkout, cart and buy buttons use `cta-whatsapp` (white on `whatsapp-dark`, 5.4:1). The bright `whatsapp` green is for icon-only buttons; white text on it is only 2:1 |
 
 On dark backgrounds: white for primary text, `white/70` secondary, `white/50` labels, `white/10` dividers.
 

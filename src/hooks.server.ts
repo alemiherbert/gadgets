@@ -53,6 +53,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				event.locals.customer = {
 					id: session.customer_id,
 					email: session.customer_email,
+					phone: session.customer_phone,
 					name: session.customer_name
 				};
 			}
