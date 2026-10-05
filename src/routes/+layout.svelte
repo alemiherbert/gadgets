@@ -32,6 +32,8 @@
 	const whatsapp = whatsappLink(`Hi ${site.name}, I would like to place an order.`);
 	// Product pages have their own buy bar, so the chat bubble stays off them.
 	const isProductRoute = $derived(page.url.pathname.startsWith('/products/'));
+	// Checkout and confirmation already have their own WhatsApp step
+	const hideChatBubble = $derived(isProductRoute || page.url.pathname === '/checkout' || page.url.pathname.startsWith('/order-confirmation/'));
 
 	// ── Announcement rotation (mobile shows one at a time) ──
 	let announcementIndex = $state(0);
@@ -368,7 +370,7 @@
 	<CartDrawer {categories} />
 	<CartToast />
 
-	{#if whatsapp && !hideChrome && !isProductRoute}
+	{#if whatsapp && !hideChrome && !hideChatBubble}
 		<a
 			href={whatsapp}
 			target="_blank"

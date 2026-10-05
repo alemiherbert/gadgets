@@ -42,8 +42,6 @@
   --color-brand-tint: #cdebf3;
   --color-whatsapp: #25d366;
   --color-whatsapp-ink: #128c4a;
-  /* White text on WhatsApp's own #25d366 is only 2:1, so text buttons use this AA shade (5.4:1) */
-  --color-whatsapp-dark: #0f7a3f;
 
   /* Radius scale — lg: small tiles & icons · xl: controls, fields, small cards
      2xl: cards, panels, image wells · 3xl: feature blocks. Pills use rounded-full. */
@@ -227,16 +225,6 @@ button {
 
   .cta-brand:hover:not(:disabled) {
     background: var(--color-brand-dark);
-  }
-
-  .cta-whatsapp {
-    background: var(--color-whatsapp-dark);
-    color: #fff;
-    box-shadow: 0 10px 24px -12px rgb(15 122 63 / 0.6);
-  }
-
-  .cta-whatsapp:hover:not(:disabled) {
-    background: #0b6e39;
   }
 
   .cta-dark {

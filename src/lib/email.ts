@@ -115,7 +115,7 @@ export async function sendAdminNewOrderNotification(
 					${customerEmail ? `<strong>Email:</strong> ${escapeHtml(customerEmail)}<br>` : ''}
 					<strong>Phone:</strong> ${escapeHtml(customerPhone)}
 				</p>
-				${whatsappDigits(customerPhone) ? `<p style="margin:12px 0 0"><a href="https://wa.me/${whatsappDigits(customerPhone)}" style="display:inline-block;background:#0f7a3f;color:#fff;padding:8px 14px;border-radius:999px;text-decoration:none;font-weight:bold">Chat with ${escapeHtml(customerName)} on WhatsApp</a></p>` : ''}
+				${whatsappDigits(customerPhone) ? `<p style="margin:12px 0 0"><a href="https://wa.me/${whatsappDigits(customerPhone)}" style="display:inline-block;background:#007c9e;color:#fff;padding:8px 14px;border-radius:999px;text-decoration:none;font-weight:bold">Chat with ${escapeHtml(customerName)} on WhatsApp</a></p>` : ''}
 			</div>
 			${buildItemsTable(items)}
 			<p style="font-size:18px;font-weight:bold">Total: ${formatPrice(total)}</p>

@@ -42,7 +42,7 @@
 			Order <span class="font-bold text-ink">#{data.order.id}</span> is saved. Send it to us and we'll confirm the delivery fee.
 		</p>
 		{#if data.whatsappUrl}
-			<a href={data.whatsappUrl} target="_blank" rel="noopener" class="cta cta-lg mt-6 w-full cta-whatsapp sm:w-auto sm:px-10">
+			<a href={data.whatsappUrl} target="_blank" rel="noopener" class="cta cta-lg mt-6 w-full cta-brand sm:w-auto sm:px-10">
 				<Icon name="whatsapp" class="size-5" />
 				{opened ? 'Didn’t open? Send on WhatsApp' : 'Send order on WhatsApp'}
 			</a>
@@ -56,7 +56,7 @@
 			<p class="text-xs text-ink-muted">Your items are reserved for you.</p>
 		</li>
 		<li class="rounded-2xl bg-surface p-4">
-			<span class="grid size-8 place-items-center rounded-full bg-white text-whatsapp-ink"><Icon name="whatsapp" class="size-4" /></span>
+			<span class="grid size-8 place-items-center rounded-full bg-white text-brand"><Icon name="whatsapp" class="size-4" /></span>
 			<p class="mt-3 text-sm font-bold">Send it to us</p>
 			<p class="text-xs text-ink-muted">We reply with your delivery fee and time.</p>
 		</li>

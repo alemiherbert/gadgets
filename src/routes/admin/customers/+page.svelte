@@ -32,7 +32,7 @@ function pageHref(nextPage: number) {
 			<p class="font-semibold text-ok-ink">New password for {form.reset.name}: <span class="select-all rounded bg-white px-2 py-0.5 font-mono text-base text-ink">{form.reset.password}</span></p>
 			<p class="mt-1 text-ink-muted">They've been signed out everywhere. Send it to them, then they can sign in with their phone number.</p>
 			{#if form.reset.whatsappUrl}
-				<a href={form.reset.whatsappUrl} target="_blank" rel="noopener" class="cta cta-sm mt-3 cta-whatsapp"><Icon name="whatsapp" class="size-4" /> Send on WhatsApp</a>
+				<a href={form.reset.whatsappUrl} target="_blank" rel="noopener" class="cta cta-sm mt-3 cta-brand"><Icon name="whatsapp" class="size-4" /> Send on WhatsApp</a>
 			{/if}
 		</div>
 	{:else if form && 'error' in form}
@@ -94,7 +94,7 @@ function pageHref(nextPage: number) {
 								<td class="px-4 py-3">
 									<div class="flex items-center justify-end gap-1.5">
 										{#if whatsappDigits(customer.phone ?? '')}
-											<a href="https://wa.me/{whatsappDigits(customer.phone ?? '')}" target="_blank" rel="noopener" class="grid size-8 place-items-center rounded-full text-whatsapp-ink hover:bg-ok-soft" title="Chat on WhatsApp" aria-label="Chat with {customer.name} on WhatsApp"><Icon name="whatsapp" class="size-4" /></a>
+											<a href="https://wa.me/{whatsappDigits(customer.phone ?? '')}" target="_blank" rel="noopener" class="grid size-8 place-items-center rounded-full text-brand hover:bg-brand-soft" title="Chat on WhatsApp" aria-label="Chat with {customer.name} on WhatsApp"><Icon name="whatsapp" class="size-4" /></a>
 										{/if}
 										<form method="POST" action="?/resetPassword" use:enhance={({ cancel }) => { if (!confirm(`Give ${customer.name} a new password? They'll be signed out.`)) cancel(); }}>
 											<input type="hidden" name="id" value={customer.id} />

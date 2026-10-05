@@ -171,7 +171,7 @@
 							</span>
 						</div>
 
-						<button type="submit" disabled={submitting} class="cta cta-lg mt-6 w-full cta-whatsapp">
+						<button type="submit" disabled={submitting} class="cta cta-lg mt-6 w-full cta-brand">
 							{#if submitting}
 								<svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-opacity=".3" stroke-width="3" /><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round" /></svg>
 								Saving your order…

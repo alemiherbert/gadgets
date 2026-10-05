@@ -81,7 +81,7 @@ const templates = $derived([
 {#if waDigits}
 <div class="flex flex-wrap gap-1.5">
 {#each templates as t}
-<a href="https://wa.me/{waDigits}?text={encodeURIComponent(t.text)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-full bg-whatsapp-dark px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0b6e39]">
+<a href="https://wa.me/{waDigits}?text={encodeURIComponent(t.text)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-dark">
 <Icon name="whatsapp" class="size-3.5" /> {t.label}
 </a>
 {/each}
