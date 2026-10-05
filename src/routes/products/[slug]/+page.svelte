@@ -15,7 +15,7 @@
 	import { site, absoluteUrl } from '$lib/site';
 	import { recordRecent, type RecentItem } from '$lib/recent';
 	import { enhance } from '$app/forms';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { afterNavigate } from '$app/navigation';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -128,11 +128,6 @@
 		if (openDrawer) ui.added(data.product.name);
 	}
 
-	function buyNow() {
-		addToCart(false);
-		goto('/checkout');
-	}
-
 	function toggleLocalWishlist() {
 		wishlist.toggleItem({
 			id: data.product.id,
@@ -229,18 +224,16 @@
 	<meta property="product:availability" content={data.product.stock > 0 ? 'in stock' : 'out of stock'} />
 </Seo>
 
-{#snippet wishlistButton(classes: string, labelled = false)}
+{#snippet wishlistButton(classes: string)}
 	{#if data.customer}
 		<form method="POST" action={data.isWishlisted ? '?/removeFromWishlist' : '?/addToWishlist'} use:enhance class="contents">
 			<button type="submit" class={classes} aria-label={data.isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWishlisted}>
-				<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="{labelled ? 'size-4' : 'size-5'} {isWishlisted ? 'text-deal' : ''}" />
-				{#if labelled}{isWishlisted ? 'Saved' : 'Save'}{/if}
+				<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="size-5 {isWishlisted ? 'text-deal' : ''}" />
 			</button>
 		</form>
 	{:else}
 		<button type="button" onclick={toggleLocalWishlist} class={classes} aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'} aria-pressed={isWishlisted}>
-			<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="{labelled ? 'size-4' : 'size-5'} {isWishlisted ? 'text-deal' : ''}" />
-			{#if labelled}{isWishlisted ? 'Saved' : 'Save'}{/if}
+			<Icon name={isWishlisted ? 'heart-solid' : 'heart'} class="size-5 {isWishlisted ? 'text-deal' : ''}" />
 		</button>
 	{/if}
 {/snippet}
@@ -418,17 +411,11 @@
 									<Icon name="plus" class="size-4" stroke={2.5} />
 								</button>
 							</div>
-							<button onclick={buyNow} class="cta cta-brand cta-lg flex-1 px-4">
-								Buy now
-							</button>
-						</div>
-						<div class="mt-1.5 flex items-center justify-center gap-1">
-							<button onclick={() => addToCart()} class="flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-ink-muted hover:bg-surface hover:text-ink">
-								<Icon name="bag" class="size-4" stroke={2} />
+							<button onclick={() => addToCart()} class="cta cta-brand cta-lg flex-1 px-4">
+								<Icon name="bag" class="size-5" stroke={2} />
 								Add to cart
 							</button>
-							<span class="h-4 w-px bg-line" aria-hidden="true"></span>
-							{@render wishlistButton('flex h-11 items-center gap-1.5 rounded-full px-4 text-sm font-bold text-ink-muted hover:bg-surface hover:text-ink', true)}
+							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
 						</div>
 						{#if existingCartQty > 0}
 							<p class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ok-ink">
@@ -703,7 +690,10 @@
 				<p class="text-base font-extrabold tabular-nums {discount > 0 ? 'text-deal' : ''}">{formatPrice(data.product.price)}</p>
 			</div>
 			{#if maxAddable > 0}
-				<button onclick={buyNow} class="cta cta-brand shrink-0 px-6">Buy now</button>
+				<button onclick={() => addToCart()} class="cta cta-brand shrink-0 px-5">
+					<Icon name="bag" class="size-4" stroke={2} />
+					Add to cart
+				</button>
 			{:else}
 				<a href="/checkout" class="cta cta-brand shrink-0 px-5">Checkout</a>
 			{/if}
