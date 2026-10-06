@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { createProduct, getAllCategories, getAllSubcategoriesGrouped, setProductCategories, addProductImage, getAllBrands, generateSlug, generateSku } from '$lib/db';
 import { uploadImage, generateImageKey } from '$lib/r2';
+import { MAX_GALLERY_IMAGES } from '$lib/product-images';
 import { parsePriceToCents } from '$lib/utils';
 
 export const load: PageServerLoad = async ({ locals, platform }) => {
@@ -77,9 +78,9 @@ export const actions: Actions = {
 			await setProductCategories(db, productId, categoryIds);
 		}
 
-		// Upload additional images (max 5)
+		// Upload additional images
 		let sortOrder = 1;
-		for (const file of additionalImages.slice(0, 5)) {
+		for (const file of additionalImages.slice(0, MAX_GALLERY_IMAGES)) {
 			if (file && file.size > 0) {
 				const key = generateImageKey(file.name);
 				const arrayBuffer = await file.arrayBuffer();

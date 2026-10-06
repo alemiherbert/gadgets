@@ -6,6 +6,7 @@ import {
 	getAllBrands, generateSlug
 } from '$lib/db';
 import { uploadImage, deleteImage, generateImageKey } from '$lib/r2';
+import { MAX_GALLERY_IMAGES } from '$lib/product-images';
 import { parsePriceToCents } from '$lib/utils';
 
 export const load: PageServerLoad = async ({ params, locals, platform }) => {
@@ -110,9 +111,9 @@ export const actions: Actions = {
 			}
 		}
 
-		// Upload new additional images (limit total to 5)
+		// Upload new additional images (capped at MAX_GALLERY_IMAGES in total)
 		const existingImages = await getProductImages(db, productId);
-		const remainingSlots = Math.max(0, 5 - existingImages.length);
+		const remainingSlots = Math.max(0, MAX_GALLERY_IMAGES - existingImages.length);
 		let sortOrder = existingImages.length > 0
 			? Math.max(...existingImages.map(i => i.sort_order)) + 1
 			: 1;

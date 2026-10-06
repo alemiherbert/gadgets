@@ -2,12 +2,10 @@
 import type { PageData, ActionData } from './$types';
 import { getImageUrl } from '$lib/r2';
 import { enhance } from '$app/forms';
+import ProductImagesField from '$lib/components/admin/ProductImagesField.svelte';
 
 let { data, form }: { data: PageData; form: ActionData } = $props();
 let submitting = $state(false);
-let imagePreview = $state<string | null>(null);
-let additionalPreviews = $state<string[]>([]);
-let imagesToDelete = $state<number[]>([]);
 
 // Parse existing specs into editable rows
 function initSpecRows(): { key: string; value: string }[] {
@@ -44,40 +42,6 @@ function removeSpecRow(index: number) {
 function priceToUgx(cents: number): string {
 	return (cents / 100).toFixed(0);
 }
-
-function handleImageChange(e: Event) {
-	const target = e.target as HTMLInputElement;
-	const file = target.files?.[0];
-	if (file) {
-		const reader = new FileReader();
-		reader.onload = () => { imagePreview = reader.result as string; };
-		reader.readAsDataURL(file);
-	}
-}
-
-function handleAdditionalImages(e: Event) {
-	const target = e.target as HTMLInputElement;
-	const files = target.files;
-	if (!files) return;
-	additionalPreviews = [];
-	for (let i = 0; i < files.length; i++) {
-		const reader = new FileReader();
-		reader.onload = () => {
-			additionalPreviews = [...additionalPreviews, reader.result as string];
-		};
-		reader.readAsDataURL(files[i]);
-	}
-}
-
-function toggleDeleteImage(imageId: number) {
-	if (imagesToDelete.includes(imageId)) {
-		imagesToDelete = imagesToDelete.filter(id => id !== imageId);
-	} else {
-		imagesToDelete = [...imagesToDelete, imageId];
-	}
-}
-
-let remainingImages = $derived(data.images.filter(img => !imagesToDelete.includes(img.id)));
 </script>
 
 <svelte:head>
@@ -213,80 +177,7 @@ let remainingImages = $derived(data.images.filter(img => !imagesToDelete.include
 		<div class="card p-6 space-y-5">
 			<h2 class="text-sm font-semibold text-zinc-900 uppercase tracking-wider">Images</h2>
 
-			<div class="form-group">
-				<label for="image" class="label">Main Product Image</label>
-				<div class="flex items-center gap-4">
-					{#if imagePreview}
-						<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-							<img src={imagePreview} alt="Preview" class="h-full w-full object-cover" />
-						</div>
-					{:else if data.product.image_key}
-						<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-							<img src={getImageUrl(data.product.image_key)} alt={data.product.name} class="h-full w-full object-cover" />
-						</div>
-					{/if}
-					<input id="image" name="image" type="file" accept="image/*" onchange={handleImageChange} class="text-sm text-zinc-500 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200" />
-				</div>
-			</div>
-
-			<!-- Existing additional images -->
-			{#if data.images.length > 0}
-				<div class="form-group">
-				<p class="label mb-2">Current Additional Images</p>
-					<p class="text-xs text-zinc-400 mb-3">Click the &times; to mark images for deletion. Changes apply when you save.</p>
-					<div class="flex flex-wrap gap-3">
-						{#each data.images as img}
-							<div class="relative group">
-								<div class="h-20 w-20 overflow-hidden rounded-lg border-2 transition-all {imagesToDelete.includes(img.id) ? 'border-red-300 opacity-40' : 'border-zinc-200'}">
-									<img src={getImageUrl(img.image_key)} alt="Gallery view" class="h-full w-full object-cover" />
-								</div>
-								<button
-									type="button"
-									onclick={() => toggleDeleteImage(img.id)}
-									class="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold transition-colors
-										{imagesToDelete.includes(img.id)
-											? 'bg-zinc-400 text-white hover:bg-zinc-600'
-											: 'bg-red-500 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100'}"
-									title={imagesToDelete.includes(img.id) ? 'Undo delete' : 'Mark for deletion'}
-								>
-									{imagesToDelete.includes(img.id) ? '↩' : '×'}
-								</button>
-							</div>
-						{/each}
-					</div>
-				</div>
-				{#each imagesToDelete as imgId}
-					<input type="hidden" name="delete_image_ids" value={imgId} />
-				{/each}
-			{/if}
-
-			<!-- Upload new additional images -->
-			<div class="form-group">
-				<label for="additional_images" class="label">Add More Images</label>
-				<p class="text-xs text-zinc-400 mb-2">Upload additional gallery images (up to {Math.max(0, 5 - remainingImages.length)} more, 5 total max).</p>
-				{#if remainingImages.length < 5}
-					<div class="flex flex-wrap gap-3">
-						{#each Array(Math.max(0, 5 - remainingImages.length)) as _, i}
-							<div class="flex flex-col items-center gap-1">
-								{#if additionalPreviews[i]}
-									<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-										<img src={additionalPreviews[i]} alt="Preview {i + 1}" class="h-full w-full object-cover" />
-									</div>
-								{:else}
-									<div class="h-20 w-20 flex items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-zinc-400">
-										<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-											<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-										</svg>
-									</div>
-								{/if}
-								<input name="additional_images" type="file" accept="image/*" onchange={handleAdditionalImages} class="w-20 text-[10px] text-zinc-400" />
-							</div>
-						{/each}
-					</div>
-				{:else}
-					<p class="text-xs text-amber-600">Maximum of 5 additional images reached. Delete existing images to add new ones.</p>
-				{/if}
-			</div>
+			<ProductImagesField mainKey={data.product.image_key} existing={data.images} />
 		</div>
 
 		<!-- Specifications card -->

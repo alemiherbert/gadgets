@@ -1,12 +1,10 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
 import type { PageData, ActionData } from './$types';
+import ProductImagesField from '$lib/components/admin/ProductImagesField.svelte';
 
 let { data, form }: { data: PageData; form: ActionData } = $props();
 let submitting = $state(false);
-let imagePreview = $state<string | null>(null);
-let additionalPreviews = $state<string[]>([]);
-let additionalFiles = $state<(File | null)[]>([null, null, null, null, null]);
 
 // Specs key-value editor
 let specRows = $state<{ key: string; value: string }[]>([{ key: '', value: '' }]);
@@ -27,31 +25,6 @@ function addSpecRow() {
 function removeSpecRow(index: number) {
 	specRows = specRows.filter((_, i) => i !== index);
 	if (specRows.length === 0) specRows = [{ key: '', value: '' }];
-}
-
-function handleImageChange(e: Event) {
-	const target = e.target as HTMLInputElement;
-	const file = target.files?.[0];
-	if (file) {
-		const reader = new FileReader();
-		reader.onload = () => { imagePreview = reader.result as string; };
-		reader.readAsDataURL(file);
-	}
-}
-
-function handleAdditionalImage(e: Event, index: number) {
-	const target = e.target as HTMLInputElement;
-	const file = target.files?.[0];
-	if (file) {
-		additionalFiles[index] = file;
-		const reader = new FileReader();
-		reader.onload = () => {
-			const newPreviews = [...additionalPreviews];
-			newPreviews[index] = reader.result as string;
-			additionalPreviews = newPreviews;
-		};
-		reader.readAsDataURL(file);
-	}
 }
 </script>
 
@@ -178,40 +151,7 @@ function handleAdditionalImage(e: Event, index: number) {
 		<div class="card p-6 space-y-5">
 			<h2 class="text-sm font-semibold text-zinc-900 uppercase tracking-wider">Images</h2>
 
-			<div class="form-group">
-				<label for="image" class="label">Main Product Image</label>
-				<div class="flex items-center gap-4">
-					{#if imagePreview}
-						<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-							<img src={imagePreview} alt="Preview" class="h-full w-full object-cover" />
-						</div>
-					{/if}
-					<input id="image" name="image" type="file" accept="image/*" onchange={handleImageChange} class="text-sm text-zinc-500 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200" />
-				</div>
-			</div>
-
-			<div class="form-group">
-				<label for="additional_images" class="label">Additional Images (up to 5)</label>
-				<p class="text-xs text-zinc-400 mb-2">Upload up to 5 additional images for the product gallery.</p>
-				<div class="grid grid-cols-5 gap-3">
-					{#each [0,1,2,3,4] as i}
-						<div class="flex flex-col items-center gap-1">
-							{#if additionalPreviews[i]}
-								<div class="h-20 w-20 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100">
-									<img src={additionalPreviews[i]} alt="Preview {i + 1}" class="h-full w-full object-cover" />
-								</div>
-							{:else}
-								<div class="h-20 w-20 flex items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-zinc-50 text-zinc-400">
-									<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-									</svg>
-								</div>
-							{/if}
-							<input name="additional_images" type="file" accept="image/*" onchange={(e) => handleAdditionalImage(e, i)} class="w-20 text-[10px] text-zinc-400" />
-						</div>
-					{/each}
-				</div>
-			</div>
+			<ProductImagesField />
 		</div>
 
 		<!-- Specifications card -->
