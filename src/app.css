@@ -129,8 +129,15 @@
    BASE
    ═══════════════════════════════════════════════════════ */
 
-* {
-  border-color: var(--color-border);
+/* Default border colour. In the base layer so border-* utilities and
+   component classes (chip, field, alert…) can override it — unlayered,
+   it would beat every one of them. */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-border);
+  }
 }
 
 html {
