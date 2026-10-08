@@ -108,15 +108,15 @@
 		<div class="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
 			{#each existing as img (img.id)}
 				{@const gone = removedIds.includes(img.id)}
-				<div class="relative aspect-square overflow-hidden rounded-xl border-2 bg-surface {gone ? 'border-red-300' : 'border-line'}">
+				<div class="relative aspect-square overflow-hidden rounded-xl border-2 bg-surface {gone ? 'border-deal-line' : 'border-line'}">
 					<img src={getImageUrl(img.image_key)} alt="Gallery" class="size-full object-cover {gone ? 'opacity-30' : ''}" />
 					<button
 						type="button"
 						onclick={() => toggleExisting(img.id)}
-						class="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full text-sm font-bold shadow {gone ? 'bg-zinc-700 text-white' : 'bg-white text-red-600 hover:bg-red-50'}"
+						class="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full text-sm font-bold shadow {gone ? 'bg-zinc-700 text-white' : 'bg-white text-deal hover:bg-deal-soft'}"
 						aria-label={gone ? 'Keep this photo' : 'Remove this photo'}
 					>{gone ? '↩' : '×'}</button>
-					{#if gone}<span class="absolute inset-x-0 bottom-0 bg-red-500/90 py-0.5 text-center text-2xs font-bold text-white">Removed on save</span>{/if}
+					{#if gone}<span class="absolute inset-x-0 bottom-0 bg-deal/90 py-0.5 text-center text-2xs font-bold text-white">Removed on save</span>{/if}
 				</div>
 				{#if gone}<input type="hidden" name="delete_image_ids" value={img.id} />{/if}
 			{/each}
@@ -127,7 +127,7 @@
 					<button
 						type="button"
 						onclick={() => removeNew(i)}
-						class="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-white text-sm font-bold text-red-600 shadow hover:bg-red-50"
+						class="absolute right-1.5 top-1.5 grid size-7 place-items-center rounded-full bg-white text-sm font-bold text-deal shadow hover:bg-deal-soft"
 						aria-label="Remove this photo"
 					>×</button>
 					<span class="absolute inset-x-0 bottom-0 bg-brand/90 py-0.5 text-center text-2xs font-bold text-white">New</span>
@@ -146,7 +146,7 @@
 		<!-- Always rendered: its file list is what gets submitted -->
 		<input id="gallery-input" bind:this={galleryInput} name="additional_images" type="file" accept="image/*" multiple onchange={pickGallery} class="sr-only" />
 		{#if room === 0}
-			<p class="mt-2 text-xs text-amber-600">That's the maximum. Remove a photo to add another.</p>
+			<p class="mt-2 text-xs text-warn-ink">That's the maximum. Remove a photo to add another.</p>
 		{/if}
 	</div>
 </div>

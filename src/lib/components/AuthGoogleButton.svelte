@@ -21,7 +21,7 @@
 
 <a
 	href={href}
-	class="cta cta-lg w-full border-line bg-white text-ink hover:border-ink"
+	class="cta cta-lg w-full border-line bg-white text-ink hover:border-line-strong"
 >
 	<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
 		<path

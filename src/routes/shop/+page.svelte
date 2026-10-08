@@ -552,7 +552,7 @@ const schema = $derived(
 						id="sort-select"
 						value={data.activeSort}
 						onchange={(e) => setSort((e.target as HTMLSelectElement).value)}
-						class="h-10 cursor-pointer appearance-none rounded-full border-control border-line bg-white pl-4 pr-10 text-base font-bold md:text-sm transition hover:border-ink focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15"
+						class="h-10 cursor-pointer appearance-none rounded-full border-control border-line bg-white pl-4 pr-10 text-base font-bold md:text-sm transition hover:border-line-strong focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/15"
 					>
 						{#each sortOptions as opt}
 							<option value={opt.value}>Sort: {opt.label}</option>
@@ -628,7 +628,7 @@ const schema = $derived(
 						<button
 							onclick={() => goToPage(data.page - 1)}
 							disabled={data.page <= 1}
-							class="grid size-10 place-items-center rounded-full border-control border-line bg-white transition hover:border-ink disabled:pointer-events-none disabled:opacity-40"
+							class="grid size-10 place-items-center rounded-full border-control border-line bg-white transition hover:border-line-strong disabled:pointer-events-none disabled:opacity-40"
 							aria-label="Previous page"
 						>
 							<Icon name="chevron-left" class="size-4" stroke={2.25} />
@@ -649,7 +649,7 @@ const schema = $derived(
 						<button
 							onclick={() => goToPage(data.page + 1)}
 							disabled={data.page >= data.totalPages}
-							class="grid size-10 place-items-center rounded-full border-control border-line bg-white transition hover:border-ink disabled:pointer-events-none disabled:opacity-40"
+							class="grid size-10 place-items-center rounded-full border-control border-line bg-white transition hover:border-line-strong disabled:pointer-events-none disabled:opacity-40"
 							aria-label="Next page"
 						>
 							<Icon name="chevron-right" class="size-4" stroke={2.25} />

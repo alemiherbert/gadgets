@@ -58,7 +58,7 @@
 		<ul class="mt-4 space-y-3">
 			{#each data.orders as order}
 				<li>
-					<a href="/order-confirmation/{order.id}" class="panel flex flex-wrap items-center justify-between gap-4 p-5 transition hover:border-ink">
+					<a href="/order-confirmation/{order.id}" class="panel flex flex-wrap items-center justify-between gap-4 p-5 transition hover:border-line-strong">
 						<div class="flex items-center gap-4">
 							<span class="icon-tile bg-surface"><Icon name="package" class="size-5" /></span>
 							<div>

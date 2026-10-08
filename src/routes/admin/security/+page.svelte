@@ -9,10 +9,10 @@
 
 	function getSeverityColor(severity: string): string {
 		switch (severity) {
-			case 'critical': return 'bg-red-100 text-red-800 border-red-300';
-			case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
-			case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-			default: return 'bg-blue-100 text-blue-800 border-blue-300';
+			case 'critical': return 'bg-deal-soft text-deal-ink border-deal-line';
+			case 'high': return 'bg-warn-soft text-warn-ink border-warn-line';
+			case 'medium': return 'bg-sun/20 text-ink border-sun/60';
+			default: return 'bg-brand-soft text-brand-dark border-brand-tint';
 		}
 	}
 
@@ -27,67 +27,67 @@
 
 <div class="px-6 py-8 max-w-7xl mx-auto">
 	<div class="mb-8">
-		<h1 class="text-3xl font-bold text-gray-900">Security Monitoring</h1>
-		<p class="mt-2 text-gray-600">Monitor security events, failed logins, and suspicious activity</p>
+		<h1 class="text-3xl font-bold text-ink">Security Monitoring</h1>
+		<p class="mt-2 text-ink-muted">Monitor security events, failed logins, and suspicious activity</p>
 	</div>
 
 	<!-- Statistics Cards -->
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-		<div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-			<div class="text-sm font-medium text-gray-500 mb-1">Total Events</div>
-			<div class="text-3xl font-bold text-gray-900">{data.stats.totalEvents}</div>
+		<div class="bg-white rounded-lg shadow p-6 border border-line">
+			<div class="text-sm font-medium text-ink-subtle mb-1">Total Events</div>
+			<div class="text-3xl font-bold text-ink">{data.stats.totalEvents}</div>
 		</div>
 		
-		<div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-			<div class="text-sm font-medium text-gray-500 mb-1">Critical Events</div>
-			<div class="text-3xl font-bold text-red-600">{data.stats.criticalEvents}</div>
+		<div class="bg-white rounded-lg shadow p-6 border border-line">
+			<div class="text-sm font-medium text-ink-subtle mb-1">Critical Events</div>
+			<div class="text-3xl font-bold text-deal">{data.stats.criticalEvents}</div>
 		</div>
 
-		<div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-			<div class="text-sm font-medium text-gray-500 mb-1">High Severity</div>
-			<div class="text-3xl font-bold text-orange-600">{data.stats.highSeverity}</div>
+		<div class="bg-white rounded-lg shadow p-6 border border-line">
+			<div class="text-sm font-medium text-ink-subtle mb-1">High Severity</div>
+			<div class="text-3xl font-bold text-warn-ink">{data.stats.highSeverity}</div>
 		</div>
 		
-		<div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-			<div class="text-sm font-medium text-gray-500 mb-1">Failed Logins</div>
-			<div class="text-3xl font-bold text-yellow-600">{data.stats.failedLogins}</div>
+		<div class="bg-white rounded-lg shadow p-6 border border-line">
+			<div class="text-sm font-medium text-ink-subtle mb-1">Failed Logins</div>
+			<div class="text-3xl font-bold text-ink">{data.stats.failedLogins}</div>
 		</div>
 		
-		<div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-			<div class="text-sm font-medium text-gray-500 mb-1">Rate Limits</div>
-			<div class="text-3xl font-bold text-blue-600">{data.stats.rateLimitHits}</div>
+		<div class="bg-white rounded-lg shadow p-6 border border-line">
+			<div class="text-sm font-medium text-ink-subtle mb-1">Rate Limits</div>
+			<div class="text-3xl font-bold text-brand">{data.stats.rateLimitHits}</div>
 		</div>
 	</div>
 
 	<!-- Failed Logins -->
 	{#if data.failedLogins.length > 0}
-		<div class="bg-white rounded-lg shadow mb-8 border border-gray-200">
-			<div class="px-6 py-4 border-b border-gray-200">
-				<h2 class="text-xl font-bold text-gray-900">Recent Failed Logins</h2>
+		<div class="bg-white rounded-lg shadow mb-8 border border-line">
+			<div class="px-6 py-4 border-b border-line">
+				<h2 class="text-xl font-bold text-ink">Recent Failed Logins</h2>
 			</div>
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-line">
+					<thead class="bg-surface">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Type</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Time</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">User Type</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Email</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">IP Address</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Reason</th>
 						</tr>
 					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
+					<tbody class="bg-white divide-y divide-line">
 						{#each data.failedLogins as event}
 							<tr>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(event.timestamp)}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{formatDate(event.timestamp)}</td>
 								<td class="px-6 py-4 whitespace-nowrap">
-									<span class="px-2 py-1 text-xs font-medium rounded-full {event.userType === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}">
+									<span class="px-2 py-1 text-xs font-medium rounded-full {event.userType === 'admin' ? 'bg-ink text-white' : 'bg-brand-soft text-brand-dark'}">
 										{event.userType || 'unknown'}
 									</span>
 								</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.details?.email || 'N/A'}</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{event.ip || 'N/A'}</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{event.details?.reason || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{event.details?.email || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink font-mono">{event.ip || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink-muted">{event.details?.reason || 'N/A'}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -98,27 +98,27 @@
 
 	<!-- Rate Limit Events -->
 	{#if data.rateLimits.length > 0}
-		<div class="bg-white rounded-lg shadow mb-8 border border-gray-200">
-			<div class="px-6 py-4 border-b border-gray-200">
-				<h2 class="text-xl font-bold text-gray-900">Rate Limit Violations</h2>
+		<div class="bg-white rounded-lg shadow mb-8 border border-line">
+			<div class="px-6 py-4 border-b border-line">
+				<h2 class="text-xl font-bold text-ink">Rate Limit Violations</h2>
 			</div>
 			<div class="overflow-x-auto">
-				<table class="min-w-full divide-y divide-gray-200">
-					<thead class="bg-gray-50">
+				<table class="min-w-full divide-y divide-line">
+					<thead class="bg-surface">
 						<tr>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Path</th>
-							<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Count</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Time</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">IP Address</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Path</th>
+							<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Count</th>
 						</tr>
 					</thead>
-					<tbody class="bg-white divide-y divide-gray-200">
+					<tbody class="bg-white divide-y divide-line">
 						{#each data.rateLimits as event}
 							<tr>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(event.timestamp)}</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{event.ip || 'N/A'}</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.path || 'N/A'}</td>
-								<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{event.details?.count || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{formatDate(event.timestamp)}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink font-mono">{event.ip || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{event.path || 'N/A'}</td>
+								<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{event.details?.count || 'N/A'}</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -128,44 +128,44 @@
 	{/if}
 
 	<!-- All Security Events -->
-	<div class="bg-white rounded-lg shadow border border-gray-200">
-		<div class="px-6 py-4 border-b border-gray-200">
-			<h2 class="text-xl font-bold text-gray-900">All Security Events</h2>
+	<div class="bg-white rounded-lg shadow border border-line">
+		<div class="px-6 py-4 border-b border-line">
+			<h2 class="text-xl font-bold text-ink">All Security Events</h2>
 		</div>
 		<div class="overflow-x-auto">
-			<table class="min-w-full divide-y divide-gray-200">
-				<thead class="bg-gray-50">
+			<table class="min-w-full divide-y divide-line">
+				<thead class="bg-surface">
 					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Time</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Type</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Severity</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">User</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">IP</th>
+						<th class="px-6 py-3 text-left text-xs font-medium text-ink-subtle uppercase tracking-wider">Details</th>
 					</tr>
 				</thead>
-				<tbody class="bg-white divide-y divide-gray-200">
+				<tbody class="bg-white divide-y divide-line">
 					{#each data.events as event}
 						<tr>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{formatDate(event.timestamp)}</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{getTypeLabel(event.type)}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{formatDate(event.timestamp)}</td>
+							<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">{getTypeLabel(event.type)}</td>
 							<td class="px-6 py-4 whitespace-nowrap">
 								<span class="px-2 py-1 text-xs font-medium rounded border {getSeverityColor(event.severity)}">
 									{event.severity}
 								</span>
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+							<td class="px-6 py-4 whitespace-nowrap text-sm text-ink">
 								{#if event.userType}
 									<span class="text-xs">{event.userType}</span>
 									{#if event.userId}
-										<span class="text-gray-500">#{event.userId}</span>
+										<span class="text-ink-subtle">#{event.userId}</span>
 									{/if}
 								{:else}
 									—
 								{/if}
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-mono">{event.ip || 'N/A'}</td>
-							<td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+							<td class="px-6 py-4 whitespace-nowrap text-sm text-ink font-mono">{event.ip || 'N/A'}</td>
+							<td class="px-6 py-4 text-sm text-ink-muted max-w-xs truncate">
 								{JSON.stringify(event.details || {})}
 							</td>
 						</tr>
@@ -175,7 +175,7 @@
 		</div>
 
 		{#if data.events.length === 0}
-			<div class="px-6 py-12 text-center text-gray-500">
+			<div class="px-6 py-12 text-center text-ink-subtle">
 				No security events recorded yet.
 			</div>
 		{/if}

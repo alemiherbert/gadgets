@@ -102,7 +102,7 @@ let removeBgMobile = $state(false);
 {#if data.slide.bg_image_desktop_key && !removeBgDesktop}
 <div class="relative mb-2 rounded-lg overflow-hidden border border-zinc-200">
 <img src={getImageUrl(data.slide.bg_image_desktop_key)} alt="Desktop bg" class="w-full h-20 object-cover" />
-<button type="button" onclick={() => removeBgDesktop = true} class="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600" title="Remove">✕</button>
+<button type="button" onclick={() => removeBgDesktop = true} class="absolute top-1 right-1 h-6 w-6 rounded-full bg-deal text-white text-xs flex items-center justify-center hover:bg-deal-ink" title="Remove">✕</button>
 </div>
 {/if}
 <input type="file" id="bg_image_desktop" name="bg_image_desktop" accept="image/*" class="input !h-auto py-1.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-medium" />
@@ -114,7 +114,7 @@ let removeBgMobile = $state(false);
 {#if data.slide.bg_image_mobile_key && !removeBgMobile}
 <div class="relative mb-2 rounded-lg overflow-hidden border border-zinc-200">
 <img src={getImageUrl(data.slide.bg_image_mobile_key)} alt="Mobile bg" class="w-full h-20 object-cover" />
-<button type="button" onclick={() => removeBgMobile = true} class="absolute top-1 right-1 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600" title="Remove">✕</button>
+<button type="button" onclick={() => removeBgMobile = true} class="absolute top-1 right-1 h-6 w-6 rounded-full bg-deal text-white text-xs flex items-center justify-center hover:bg-deal-ink" title="Remove">✕</button>
 </div>
 {/if}
 <input type="file" id="bg_image_mobile" name="bg_image_mobile" accept="image/*" class="input !h-auto py-1.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-medium" />
@@ -150,7 +150,7 @@ let removeBgMobile = $state(false);
 {#if data.slide.image_key && !removeImage}
 <div class="relative mb-2 w-24 h-24 rounded-lg overflow-hidden border border-zinc-200">
 <img src={getImageUrl(data.slide.image_key)} alt="Product overlay" class="w-full h-full object-contain bg-zinc-50" />
-<button type="button" onclick={() => removeImage = true} class="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center hover:bg-red-600" title="Remove">✕</button>
+<button type="button" onclick={() => removeImage = true} class="absolute top-0.5 right-0.5 h-5 w-5 rounded-full bg-deal text-white text-[10px] flex items-center justify-center hover:bg-deal-ink" title="Remove">✕</button>
 </div>
 {/if}
 <input type="file" id="image" name="image" accept="image/*" class="input !h-auto py-1.5 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-xs file:font-medium" />
@@ -159,7 +159,7 @@ let removeBgMobile = $state(false);
 
 <!-- Active toggle -->
 <div class="flex items-center gap-2">
-<input type="checkbox" id="active" name="active" checked={data.slide.active === 1} class="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+<input type="checkbox" id="active" name="active" checked={data.slide.active === 1} class="h-4 w-4 rounded border-zinc-300 accent-brand focus:ring-brand" />
 <label for="active" class="text-sm font-medium text-zinc-700">Active</label>
 </div>
 

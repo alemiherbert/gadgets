@@ -183,7 +183,7 @@
 								>
 									<input type="hidden" name="id" value={brand.id} />
 									<input type="hidden" name="logo_key" value={brand.logo_key ?? ''} />
-									<button type="submit" class="btn btn-ghost btn-xs text-red-500 hover:text-red-700">Delete</button>
+									<button type="submit" class="btn btn-ghost btn-xs text-deal hover:bg-deal-soft hover:text-deal-ink">Delete</button>
 								</form>
 							</div>
 						</td>

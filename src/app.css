@@ -40,6 +40,11 @@
   --color-warn-soft: #fff4e5;
   --color-deal-ink: #b0091d;
   --color-brand-tint: #cdebf3;
+
+  /* Borders for tinted notices — same hue as the *-soft fill, one step deeper */
+  --color-ok-line: #bfe6cf;
+  --color-warn-line: #fbdcae;
+  --color-deal-line: #fbc9cf;
   --color-whatsapp: #25d366;
   --color-whatsapp-ink: #128c4a;
 
@@ -61,20 +66,20 @@
   --font-weight-extrabold: 760;
   --tracking-tight: -0.015em;
 
-  /* Legacy tokens (admin + shared utilities) */
-  --color-primary: #007c9e;
+  /* Legacy tokens (admin + shared utilities) — aliases of the tokens above */
+  --color-primary: var(--color-brand);
   --color-primary-foreground: #ffffff;
-  --color-primary-light: #008cb2;
-  --color-primary-dark: #00637e;
-  --color-muted: #f3f5f6;
-  --color-muted-foreground: #545a61;
-  --color-accent: #e3f4f8;
-  --color-accent-foreground: #0e1012;
-  --color-border: #e3e6e9;
-  --color-input: #c9ced3;
-  --color-ring: #007c9e;
-  --color-destructive: #e0122b;
-  --color-success: #12a150;
+  --color-primary-light: var(--color-brand-bright);
+  --color-primary-dark: var(--color-brand-dark);
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent: var(--color-brand-soft);
+  --color-accent-foreground: var(--color-ink);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-strong);
+  --color-ring: var(--color-brand);
+  --color-destructive: var(--color-deal);
+  --color-success: var(--color-ok-ink);
   --radius: 0.75rem;
 
   --animate-fade-up: fade-up 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -505,7 +510,7 @@ button {
   }
 
   .chip:hover {
-    border-color: var(--color-ink);
+    border-color: var(--color-line-strong);
   }
 
   .chip-sm {
@@ -789,7 +794,7 @@ button {
 @utility badge-outline {
   background: transparent;
   border-color: var(--color-border);
-  color: var(--color-accent-foreground);
+  color: var(--color-ink-muted);
 }
 
 @utility badge-success {
@@ -850,19 +855,19 @@ button {
 }
 
 @utility alert-error {
-  border-color: #fecdd3;
+  border-color: var(--color-deal-line);
   background: var(--color-deal-soft);
   color: var(--color-deal-ink);
 }
 
 @utility alert-success {
-  border-color: #bbf7d0;
+  border-color: var(--color-ok-line);
   background: var(--color-ok-soft);
   color: var(--color-ok-ink);
 }
 
 @utility alert-warning {
-  border-color: #fde68a;
+  border-color: var(--color-warn-line);
   background: var(--color-warn-soft);
   color: var(--color-warn-ink);
 }
@@ -1097,7 +1102,7 @@ th {
   --color-zinc-400: var(--color-ink-faint);
   --color-zinc-500: var(--color-ink-subtle);
   --color-zinc-600: var(--color-ink-muted);
-  --color-zinc-700: #3a3f45;
+  --color-zinc-700: var(--color-ink-soft);
   --color-zinc-800: var(--color-ink-soft);
   --color-zinc-900: var(--color-ink);
   --color-zinc-950: var(--color-ink);

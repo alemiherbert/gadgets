@@ -215,7 +215,7 @@ function priceToUgx(cents: number): string {
 						<button
 							type="button"
 							onclick={() => removeSpecRow(i)}
-							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+							class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-deal-soft hover:text-deal transition-colors"
 							title="Remove"
 						>
 							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

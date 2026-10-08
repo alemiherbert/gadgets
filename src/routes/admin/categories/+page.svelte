@@ -101,10 +101,10 @@
 
 	<!-- Error messages -->
 	{#if form?.error}
-		<div class="rounded-xs border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{form.error}</div>
+		<div class="rounded-xs border border-deal-line bg-deal-soft px-4 py-3 text-sm text-deal-ink">{form.error}</div>
 	{/if}
 	{#if form?.subError}
-		<div class="rounded-xs border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{form.subError}</div>
+		<div class="rounded-xs border border-deal-line bg-deal-soft px-4 py-3 text-sm text-deal-ink">{form.subError}</div>
 	{/if}
 
 	<!-- Category form (create / edit) -->
@@ -134,7 +134,7 @@
 
 				<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 					<div>
-						<label for="cat-name" class="block text-sm font-medium text-zinc-700 mb-1">Name <span class="text-red-400">*</span></label>
+						<label for="cat-name" class="block text-sm font-medium text-zinc-700 mb-1">Name <span class="text-deal">*</span></label>
 						<input id="cat-name" name="name" type="text" required bind:value={catName}
 							class="w-full rounded-xs border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none" placeholder="e.g. Phones" />
 					</div>
@@ -211,12 +211,12 @@
 
 				<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 					<div>
-						<label for="sub-name" class="block text-sm font-medium text-zinc-700 mb-1">Name <span class="text-red-400">*</span></label>
+						<label for="sub-name" class="block text-sm font-medium text-zinc-700 mb-1">Name <span class="text-deal">*</span></label>
 						<input id="sub-name" name="name" type="text" required bind:value={subName}
 							class="w-full rounded-xs border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none" placeholder="e.g. Smartphones" />
 					</div>
 					<div>
-						<label for="sub-cat" class="block text-sm font-medium text-zinc-700 mb-1">Parent Category <span class="text-red-400">*</span></label>
+						<label for="sub-cat" class="block text-sm font-medium text-zinc-700 mb-1">Parent Category <span class="text-deal">*</span></label>
 						<select id="sub-cat" name="category_id" required bind:value={subCategoryId}
 							class="w-full rounded-xs border border-zinc-300 px-3 py-2 text-sm shadow-sm focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none">
 							<option value="">— Select —</option>
@@ -317,7 +317,7 @@
 								<button
 									type="submit"
 									onclick={(e) => { if (!confirm(`Delete "${cat.name}" and all its subcategories?`)) e.preventDefault(); }}
-									class="flex h-7 w-7 items-center justify-center rounded-xs text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+									class="flex h-7 w-7 items-center justify-center rounded-xs text-zinc-400 hover:bg-deal-soft hover:text-deal transition-colors cursor-pointer"
 									aria-label="Delete {cat.name}"
 								>
 									<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -353,7 +353,7 @@
 											<button
 												type="submit"
 												onclick={(e) => { if (!confirm(`Delete subcategory "${sub.name}"?`)) e.preventDefault(); }}
-												class="flex h-6 w-6 items-center justify-center rounded-xs text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
+												class="flex h-6 w-6 items-center justify-center rounded-xs text-zinc-400 hover:bg-deal-soft hover:text-deal transition-colors cursor-pointer"
 												aria-label="Delete {sub.name}"
 											>
 												<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

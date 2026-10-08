@@ -415,7 +415,7 @@
 								<Icon name="bag" class="size-5" stroke={2} />
 								Add to cart
 							</button>
-							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
+							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-line-strong')}
 						</div>
 						{#if existingCartQty > 0}
 							<p class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-ok-ink">
@@ -432,13 +432,13 @@
 								Checkout
 								<Icon name="arrow-right" class="size-4" stroke={2.25} />
 							</a>
-							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
+							{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-line-strong')}
 						</div>
 					{/if}
 				{:else}
 					<div class="flex gap-2.5">
 						<div class="cta cta-lg flex-1 cursor-not-allowed bg-surface text-ink-muted">Sold out</div>
-						{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-ink')}
+						{@render wishlistButton('grid size-14 shrink-0 place-items-center rounded-full border-control border-line transition hover:border-line-strong')}
 					</div>
 					<p class="mt-2 text-xs text-ink-muted">Save it to your wishlist and check back soon.</p>
 				{/if}

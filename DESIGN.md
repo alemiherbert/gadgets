@@ -14,12 +14,15 @@ Tokens live in `src/app.css` (`@theme`). Use the token classes below rather than
 | Tertiary text | `ink-subtle` | Captions, struck-through prices, SKUs, placeholders (4.6:1) |
 | Decorative | `ink-faint` | Empty stars, disabled icons — never text |
 | Surfaces | `surface`, `line`, `line-strong` | Wells and panels, hairlines, hovered control borders |
-| Savings | `deal`, `deal-soft`, `deal-ink` | Discounts, errors |
+| Savings | `deal`, `deal-soft`, `deal-ink` | Discounts, errors, destructive actions |
 | Accent | `sun` | Highlights, stars, "New" tags, CTAs on dark |
 | Status | `ok*`, `warn*` | Success / stock and warnings |
+| Notice borders | `deal-line`, `ok-line`, `warn-line`, `brand-tint` | Border of a tinted `*-soft` box, when it needs one |
 | WhatsApp | `whatsapp` `#25d366` | Only the floating chat bubble and WhatsApp icons. Buttons that open WhatsApp (place order, send order) are ordinary `cta-brand` buttons with the WhatsApp icon; never green buttons |
 
-On dark backgrounds: white for primary text, `white/70` secondary, `white/50` labels, `white/10` dividers.
+On dark backgrounds: white for primary text, `white/70` secondary and links, `white/50` labels, `white/10` dividers and outlines.
+
+No Tailwind palette colours (`red-500`, `gray-200`, `blue-600`…) — every red is `deal*`, every green `ok*`, every amber `warn*`/`sun`, every blue `brand*`. Admin pages may use `zinc-*`, which `.admin-ui` maps onto the ink/line greys. The legacy `primary`/`muted`/`border`… tokens are aliases of the ones above.
 
 ## Shape
 
@@ -31,7 +34,7 @@ On dark backgrounds: white for primary text, `white/70` secondary, `white/50` la
 | `rounded-2xl` | 20px | Cards, panels, image wells, tiles |
 | `rounded-3xl` | 28px | Feature blocks: hero/spotlight cards, empty states, cards wrapping a `2xl` well |
 
-Borders: `border-control` (1.5px) for interactive controls, 1px `border-line` for static surfaces, 2px `brand` for the selected state.
+Borders: `border-control` (1.5px) for interactive controls, 1px `border-line` for static surfaces, 2px `brand` for the selected state. Hover on a bordered control or clickable panel deepens `line` → `line-strong`; focus turns it `brand`.
 
 Elevation: none for cards; `shadow-sm` for raised icon tiles; `shadow-md` for floating round buttons; `shadow-float` for drawers, dropdowns, menus and showcase cards.
 

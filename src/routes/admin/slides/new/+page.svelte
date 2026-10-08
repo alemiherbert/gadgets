@@ -4,7 +4,7 @@ import type { ActionData } from './$types';
 
 let { form }: { form: ActionData } = $props();
 
-let bgColor = $state('#3b82f6');
+let bgColor = $state('#007c9e');
 let textColor = $state('#ffffff');
 let overlayOpacity = $state(0.4);
 </script>
@@ -120,7 +120,7 @@ let overlayOpacity = $state(0.4);
 
 <!-- Active toggle -->
 <div class="flex items-center gap-2">
-<input type="checkbox" id="active" name="active" checked class="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+<input type="checkbox" id="active" name="active" checked class="h-4 w-4 rounded border-zinc-300 accent-brand focus:ring-brand" />
 <label for="active" class="text-sm font-medium text-zinc-700">Active</label>
 </div>
 

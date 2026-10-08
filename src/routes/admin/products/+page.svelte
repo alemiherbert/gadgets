@@ -79,7 +79,7 @@ Add Product
 <td class="px-4 py-3 text-left font-mono text-xs text-zinc-500">{product.sku}</td>
 <td class="px-4 py-3 text-right">{formatPrice(product.price)}</td>
 <td class="px-4 py-3 text-right">
-<span class="{product.stock === 0 ? 'text-red-500 font-medium' : product.stock < 5 ? 'text-amber-600' : 'text-zinc-900'}">
+<span class="{product.stock === 0 ? 'text-deal font-medium' : product.stock < 5 ? 'text-warn-ink' : 'text-zinc-900'}">
 {product.stock}
 </span>
 </td>
@@ -96,7 +96,7 @@ Edit
 <form method="POST" action="?/delete" use:enhance onsubmit={(e) => { if (!confirm('Delete this product?')) e.preventDefault(); }}>
 <input type="hidden" name="id" value={product.id} />
 <input type="hidden" name="image_key" value={product.image_key ?? ''} />
-<button type="submit" class="btn btn-ghost btn-sm text-red-500 hover:text-red-700">
+<button type="submit" class="btn btn-ghost btn-sm text-deal hover:bg-deal-soft hover:text-deal-ink">
 Delete
 </button>
 </form>

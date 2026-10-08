@@ -330,7 +330,7 @@
 				<p class="eyebrow text-sun"><Icon name="star" class="size-4" /> Editor's pick</p>
 				<h2 class="h-section mt-2">{spotlight.name}</h2>
 				{#if spotlight.description}
-					<p class="mt-4 line-clamp-3 max-w-lg leading-relaxed text-white/80">{markdownExcerpt(spotlight.description, 220)}</p>
+					<p class="mt-4 line-clamp-3 max-w-lg leading-relaxed text-white/70">{markdownExcerpt(spotlight.description, 220)}</p>
 				{/if}
 				<div class="mt-6 flex flex-wrap items-baseline gap-x-3 gap-y-1">
 					<span class="text-3xl font-extrabold tracking-tight tabular-nums">{formatPrice(spotlight.price)}</span>

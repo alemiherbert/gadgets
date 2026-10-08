@@ -423,7 +423,7 @@
 				<h3 class="label-caps text-white/50">Shop</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
 					{#each categories as cat}
-						<li><a href="/shop?category={cat.slug}" class="text-white/80 hover:text-white">{cat.name}</a></li>
+						<li><a href="/shop?category={cat.slug}" class="text-white/70 hover:text-white">{cat.name}</a></li>
 					{/each}
 				</ul>
 			</div>
@@ -431,10 +431,10 @@
 			<div class="lg:col-span-2">
 				<h3 class="label-caps text-white/50">Discover</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
-					<li><a href="/shop?sort=discount" class="text-white/80 hover:text-white">Deals</a></li>
-					<li><a href="/shop?sort=newest" class="text-white/80 hover:text-white">New arrivals</a></li>
-					<li><a href="/shop?sort=popular" class="text-white/80 hover:text-white">Best sellers</a></li>
-					<li><a href="/shop" class="text-white/80 hover:text-white">All products</a></li>
+					<li><a href="/shop?sort=discount" class="text-white/70 hover:text-white">Deals</a></li>
+					<li><a href="/shop?sort=newest" class="text-white/70 hover:text-white">New arrivals</a></li>
+					<li><a href="/shop?sort=popular" class="text-white/70 hover:text-white">Best sellers</a></li>
+					<li><a href="/shop" class="text-white/70 hover:text-white">All products</a></li>
 				</ul>
 			</div>
 
@@ -442,14 +442,14 @@
 				<h3 class="label-caps text-white/50">Account</h3>
 				<ul class="mt-4 space-y-2.5 text-sm">
 					{#if data.customer}
-						<li><a href="/account" class="text-white/80 hover:text-white">My account</a></li>
+						<li><a href="/account" class="text-white/70 hover:text-white">My account</a></li>
 					{:else}
-						<li><a href="/auth/login" class="text-white/80 hover:text-white">Sign in</a></li>
-						<li><a href="/auth/register" class="text-white/80 hover:text-white">Create account</a></li>
+						<li><a href="/auth/login" class="text-white/70 hover:text-white">Sign in</a></li>
+						<li><a href="/auth/register" class="text-white/70 hover:text-white">Create account</a></li>
 					{/if}
-					<li><a href="/account" class="text-white/80 hover:text-white">Track my orders</a></li>
-					<li><a href="/account/wishlist" class="text-white/80 hover:text-white">Wishlist</a></li>
-					<li><a href="/cart" class="text-white/80 hover:text-white">Cart</a></li>
+					<li><a href="/account" class="text-white/70 hover:text-white">Track my orders</a></li>
+					<li><a href="/account/wishlist" class="text-white/70 hover:text-white">Wishlist</a></li>
+					<li><a href="/cart" class="text-white/70 hover:text-white">Cart</a></li>
 				</ul>
 			</div>
 		</div>
@@ -457,7 +457,7 @@
 		<div class="border-t border-white/10">
 			<div class="wrap flex flex-col items-center justify-between gap-3 py-6 text-xs text-white/50 sm:flex-row">
 				<p>&copy; {new Date().getFullYear()} {site.name}. All rights reserved. Prices in Ugandan shillings (UGX).</p>
-				<p class="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-1.5 font-semibold text-white/80">
+				<p class="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 font-semibold text-white/70">
 					<Icon name="cash" class="size-4 text-brand-bright" />
 					Cash on delivery
 				</p>

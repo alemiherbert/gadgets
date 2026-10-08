@@ -79,10 +79,10 @@ style="background: linear-gradient(135deg, {slide.bg_color} 0%, {slide.bg_color}
 <span>CTA: {slide.cta_text}</span>
 <span>Link: {slide.cta_link}</span>
 {#if slide.bg_image_desktop_key}
-<span class="text-green-600">Desktop bg ✓</span>
+<span class="text-ok-ink">Desktop bg ✓</span>
 {/if}
 {#if slide.bg_image_mobile_key}
-<span class="text-green-600">Mobile bg ✓</span>
+<span class="text-ok-ink">Mobile bg ✓</span>
 {/if}
 </div>
 </div>
@@ -90,7 +90,7 @@ style="background: linear-gradient(135deg, {slide.bg_color} 0%, {slide.bg_color}
 <a href="/admin/slides/{slide.id}/edit" class="btn btn-ghost btn-sm text-zinc-500">Edit</a>
 <form method="POST" action="?/delete" use:enhance onsubmit={(e) => { if (!confirm('Delete this slide?')) e.preventDefault(); }}>
 <input type="hidden" name="id" value={slide.id} />
-<button type="submit" class="btn btn-ghost btn-sm text-red-500 hover:text-red-700">Delete</button>
+<button type="submit" class="btn btn-ghost btn-sm text-deal hover:bg-deal-soft hover:text-deal-ink">Delete</button>
 </form>
 </div>
 </div>
