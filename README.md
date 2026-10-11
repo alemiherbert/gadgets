@@ -66,6 +66,16 @@ Run this SQL periodically (e.g. weekly via Supabase SQL Editor) to clean up expi
 SELECT * FROM run_all_cleanup();
 ```
 
+### 4. Admin Password Recovery
+
+If you're locked out of `/admin` and the "Forgot password" email doesn't arrive, set a new password directly:
+
+```sh
+node scripts/reset-admin-password.mjs [admin-email]   # defaults to support@ojsonlinestore.com
+```
+
+You'll be asked for the new password (hidden). If `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are set (or in `.dev.vars`), the script updates the database and signs out all admin sessions. Otherwise it prints SQL to paste into the Supabase SQL Editor.
+
 ## Cloudflare Deployment
 
 ### 1. Create R2 Bucket
