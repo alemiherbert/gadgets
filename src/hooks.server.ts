@@ -1,48 +1,17 @@
 import type { Handle } from '@sveltejs/kit';
 import { getSession, getAdminSession } from '$lib/db';
 import { getSupabaseClient } from '$lib/supabase';
-import { checkRateLimit, logSecurityEvent, getClientIP, getUserAgent } from '$lib/monitoring';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	const env = event.platform?.env;
 	const db = env ? getSupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : null;
-	const rateLimitKV = env?.RATE_LIMIT_KV || null;
-	const securityLogsKV = env?.SECURITY_LOGS_KV || null;
 
 	if (db) {
 		event.locals.db = db;
 	}
 
-	// Rate limiting for API routes
-	if (event.url.pathname.startsWith('/api/')) {
-		const clientIP = getClientIP(event.request);
-		
-		const { allowed, info } = await checkRateLimit(rateLimitKV, clientIP, 100, 60000);
-		
-		if (!allowed) {
-			// Log rate limit violation
-			await logSecurityEvent(securityLogsKV, {
-				type: 'rate_limit',
-				severity: 'medium',
-				ip: clientIP,
-				userAgent: getUserAgent(event.request),
-				path: event.url.pathname,
-				method: event.request.method,
-				details: {
-					count: info.count,
-					resetAt: new Date(info.resetAt).toISOString()
-				}
-			});
-
-			return new Response('Too many requests', {
-				status: 429,
-				headers: {
-					'Retry-After': String(Math.ceil((info.resetAt - Date.now()) / 1000)),
-					'Content-Type': 'text/plain'
-				}
-			});
-		}
-	}
+	// General API rate limiting is handled by Cloudflare's built-in rate limiting
+	// rules (WAF), which cost no KV writes. KV is only used for login/reset limits.
 
 	// Customer session
 	const sessionId = event.cookies.get('session');
